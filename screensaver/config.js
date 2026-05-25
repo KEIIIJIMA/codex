@@ -86,6 +86,12 @@ const CONFIG = {
     apiUrl: null,            // "https://your-api.example.com/kpi" など
   },
 
+  // --- 横スクロールシーン設定 ---
+  scrollScene: {
+    enabled: true,       // true でマリオ風シーンを表示（スライドショーを置き換え）
+    speed: 1.5,          // スクロール速度（px/フレーム）。大きいほど速い
+  },
+
   // --- UIパネル表示設定 ---
   ui: {
     showLeftPanel: true,

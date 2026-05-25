@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- マリオ風横スクロールキャンバス（scrollScene.enabled = true で有効）-->
+  <canvas id="scroll-canvas"></canvas>
+
   <!-- パララックス背景レイヤー -->
   <div id="parallax-container">
     <div class="parallax-layer" id="layer-sky"></div>
@@ -69,6 +72,7 @@
   </div>
 
   <script src="config.js"></script>
+  <script src="parallax-scroll.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
