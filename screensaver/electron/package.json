@@ -1,0 +1,26 @@
+{
+  "name": "multimonitor-screensaver",
+  "version": "1.0.0",
+  "description": "マルチモニター横断型スクリーンセイバー",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "jp.co.yourcompany.screensaver",
+    "productName": "MultiMonitor Screensaver",
+    "win": {
+      "target": "portable",
+      "icon": "images/icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}

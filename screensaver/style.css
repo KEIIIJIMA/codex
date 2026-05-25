@@ -1,0 +1,316 @@
+/* ============================================================
+   マルチモニター スクリーンセイバー - スタイルシート
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+  color: #fff;
+  cursor: none;
+  user-select: none;
+}
+
+/* ============================================================
+   パララックス背景
+   ============================================================ */
+
+#parallax-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.parallax-layer {
+  position: absolute;
+  inset: 0;
+  width: 200%;  /* スクロール用に2倍幅 */
+  height: 100%;
+  will-change: transform;
+}
+
+#layer-sky {
+  background: linear-gradient(180deg, #0f0c29 0%, #302b63 60%, #24243e 100%);
+}
+
+#layer-far    { opacity: 0.6; }
+#layer-mid    { opacity: 0.5; }
+#layer-near   { opacity: 0.4; }
+#layer-ground {
+  top: auto;
+  bottom: 0;
+  height: 12%;
+  width: 200%;
+  background: repeating-linear-gradient(
+    90deg,
+    #1a1a2e 0px, #1a1a2e 80px,
+    #16213e 80px, #16213e 160px
+  );
+}
+
+/* ============================================================
+   スライドショー
+   ============================================================ */
+
+#slideshow-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+/* 画像なしのフォールバック時もフェードが効くよう transition を保持 */
+
+/* ============================================================
+   パーティクルキャンバス
+   ============================================================ */
+
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ============================================================
+   UI レイヤー
+   ============================================================ */
+
+#ui-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+  padding: 40px 60px;
+  gap: 40px;
+  pointer-events: none;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 32px 24px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================
+   左パネル
+   ============================================================ */
+
+#panel-left {
+  align-items: flex-start;
+}
+
+#message-ticker {
+  font-size: clamp(14px, 1.2vw, 18px);
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  overflow: hidden;
+  max-height: 6em;
+}
+
+#weather-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+}
+
+#weather-icon {
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+#weather-temp {
+  font-size: clamp(24px, 2.5vw, 36px);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   中央パネル：時計
+   ============================================================ */
+
+#panel-center {
+  align-items: center;
+}
+
+#clock-date {
+  font-size: clamp(14px, 1.2vw, 20px);
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+#clock-time {
+  font-size: clamp(48px, 6vw, 96px);
+  font-weight: 200;
+  letter-spacing: 0.05em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow:
+    0 0 20px rgba(100, 160, 255, 0.6),
+    0 0 60px rgba(100, 160, 255, 0.2);
+}
+
+#clock-day {
+  font-size: clamp(14px, 1.4vw, 22px);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.2em;
+}
+
+/* ============================================================
+   右パネル：KPI
+   ============================================================ */
+
+#panel-right {
+  align-items: stretch;
+}
+
+#kpi-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.kpi-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.kpi-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.kpi-label {
+  font-size: clamp(12px, 1vw, 16px);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.08em;
+}
+
+.kpi-value {
+  font-size: clamp(24px, 2.5vw, 40px);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  color: #64b5f6;
+  text-shadow: 0 0 16px rgba(100, 181, 246, 0.4);
+  transition: color 0.5s;
+}
+
+.kpi-value.updated {
+  color: #a5d6a7;
+  text-shadow: 0 0 16px rgba(165, 214, 167, 0.6);
+}
+
+/* ============================================================
+   ティッカーバー（下部）
+   ============================================================ */
+
+#ticker-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.7);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+#ticker-content {
+  white-space: nowrap;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.05em;
+  will-change: transform;
+}
+
+/* ============================================================
+   流れ星（CSS のみ）
+   ============================================================ */
+
+.star {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  z-index: 3;
+  pointer-events: none;
+  animation: twinkle 3s infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.2; transform: scale(1); }
+  to   { opacity: 1;   transform: scale(1.5); }
+}
+
+/* ============================================================
+   グラデーションシマーアニメーション（画像なし時）
+   ============================================================ */
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-animated {
+  background-size: 300% 300% !important;
+  animation: gradientShift 12s ease infinite;
+}
+
+/* ============================================================
+   レスポンシブ調整（シングルモニター確認用）
+   ============================================================ */
+
+@media (max-width: 1400px) {
+  #ui-layer {
+    padding: 24px 32px;
+    gap: 20px;
+  }
+
+  #clock-time {
+    font-size: clamp(36px, 5vw, 72px);
+  }
+}

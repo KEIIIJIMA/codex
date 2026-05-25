@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Monitor Screensaver</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- パララックス背景レイヤー -->
+  <div id="parallax-container">
+    <div class="parallax-layer" id="layer-sky"></div>
+    <div class="parallax-layer" id="layer-far"></div>
+    <div class="parallax-layer" id="layer-mid"></div>
+    <div class="parallax-layer" id="layer-near"></div>
+    <div class="parallax-layer" id="layer-ground"></div>
+  </div>
+
+  <!-- スライドショーオーバーレイ -->
+  <div id="slideshow-container">
+    <div class="slide active" id="slide-0"></div>
+    <div class="slide" id="slide-1"></div>
+    <div class="slide" id="slide-2"></div>
+  </div>
+
+  <!-- サイネージ UI レイヤー -->
+  <div id="ui-layer">
+    <!-- 左パネル：メッセージ -->
+    <div id="panel-left" class="panel">
+      <div id="message-ticker"></div>
+      <div id="weather-widget">
+        <span id="weather-icon">☀️</span>
+        <span id="weather-temp">--°C</span>
+      </div>
+    </div>
+
+    <!-- 中央パネル：時計 -->
+    <div id="panel-center" class="panel">
+      <div id="clock-date"></div>
+      <div id="clock-time"></div>
+      <div id="clock-day"></div>
+    </div>
+
+    <!-- 右パネル：KPI / お知らせ -->
+    <div id="panel-right" class="panel">
+      <div id="kpi-container">
+        <div class="kpi-item" id="kpi-1">
+          <span class="kpi-label">KPI 1</span>
+          <span class="kpi-value" id="kpi-val-1">--</span>
+        </div>
+        <div class="kpi-item" id="kpi-2">
+          <span class="kpi-label">KPI 2</span>
+          <span class="kpi-value" id="kpi-val-2">--</span>
+        </div>
+        <div class="kpi-item" id="kpi-3">
+          <span class="kpi-label">KPI 3</span>
+          <span class="kpi-value" id="kpi-val-3">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- パーティクルキャンバス -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- 流れるテキストバー -->
+  <div id="ticker-bar">
+    <div id="ticker-content"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
