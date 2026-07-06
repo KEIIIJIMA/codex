@@ -2,7 +2,7 @@ name: Deploy checklist to GitHub Pages
 
 on:
   push:
-    branches: [claude/weight-loss-exercise-checklist-tby6wy]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
