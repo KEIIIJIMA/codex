@@ -998,23 +998,55 @@
     state.startDate=t.getFullYear()+"-"+m+"-"+day; sd.value=state.startDate; save(true); render();
   });
 
+  var toastTimer=null;
+  function toast(msg, ms){
+    var h=document.getElementById("savehint");
+    h.textContent=msg; h.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){ h.classList.remove("show"); h.textContent="保存しました"; }, ms||2600);
+  }
+  function headerH(){
+    var hd=document.querySelector("header.app");
+    return (hd?hd.offsetHeight:0)+10;
+  }
+  function scrollToEl(el){
+    // details展開直後でも正しい位置に行くよう、レイアウト後に手動計算でスクロール
+    setTimeout(function(){
+      var y = el.getBoundingClientRect().top + (window.pageYOffset||document.documentElement.scrollTop) - headerH();
+      if(y<0) y=0;
+      try{ window.scrollTo({top:y, behavior:"smooth"}); }catch(e){ window.scrollTo(0,y); }
+    }, 80);
+  }
+  function jumpToDay(ti){
+    var wk=Math.floor(ti/7);
+    var det=document.querySelector('.weekacc[data-week="'+wk+'"]');
+    if(det && !det.open){ det.open=true; state.open["w"+wk]=true; save(false); }
+    var dayEl=document.querySelector('.day[data-day="'+ti+'"]');
+    if(!dayEl) return;
+    scrollToEl(dayEl);
+    dayEl.classList.remove("flash"); void dayEl.offsetWidth; dayEl.classList.add("flash");
+    var wInput=dayEl.querySelector('input[data-f="weight"]');
+    if(wInput && !wInput.value) setTimeout(function(){ try{wInput.focus({preventScroll:true});}catch(e){} }, 700);
+  }
   document.getElementById("btnJumpToday").addEventListener("click", function(){
     if(!state.startDate){
-      alert("先に「はじめに（使い方）」の開始日を設定してください（「今日から」ボタンが簡単です）。");
+      // 開始日未設定でも必ず反応する：設定欄まで移動して案内
       var acc=document.querySelector("details.acc"); if(acc) acc.open=true;
-      sd.scrollIntoView({behavior:"smooth", block:"center"});
+      scrollToEl(sd.closest(".startbar")||sd);
+      toast("開始日が未設定です。「今日から」を押すか日付を選んでください");
       return;
     }
     var ti=todayIdx();
-    if(ti<0){ alert("今日は28日プランの期間外です（開始日を確認してください）。"); return; }
-    var det=document.querySelector('.weekacc[data-week="'+Math.floor(ti/7)+'"]');
-    if(det && !det.open){ det.open=true; state.open["w"+Math.floor(ti/7)]=true; save(false); }
-    var dayEl=document.querySelector('.day[data-day="'+ti+'"]');
-    if(dayEl){
-      dayEl.scrollIntoView({behavior:"smooth", block:"start"});
-      dayEl.classList.remove("flash"); void dayEl.offsetWidth; dayEl.classList.add("flash");
-      var wInput=dayEl.querySelector('input[data-f="weight"]');
-      if(wInput && !wInput.value) setTimeout(function(){ try{wInput.focus({preventScroll:true});}catch(e){} }, 600);
+    if(ti>=0){ jumpToDay(ti); return; }
+    // 期間外でも必ずどこかへジャンプする
+    var d0=new Date(state.startDate+"T00:00:00");
+    var t=new Date(); t.setHours(0,0,0,0);
+    if(!isNaN(d0) && t.getTime()<d0.getTime()){
+      toast("開始日がまだ先なので Day 1 を表示します");
+      jumpToDay(0);
+    }else{
+      toast("28日プランは終了しています。Day 28 を表示します");
+      jumpToDay(27);
     }
   });
 
