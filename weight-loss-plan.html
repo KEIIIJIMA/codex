@@ -139,6 +139,20 @@
   .menu-tbl td:last-child{text-align:right; color:var(--sub); white-space:nowrap; font-variant-numeric:tabular-nums}
   .menu-tbl tr:last-child td{border-bottom:none}
 
+  /* weight chart */
+  .stat-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:4px 0 10px}
+  .stat{background:#f3f6fb; border:1px solid var(--line); border-radius:10px; padding:8px 6px; text-align:center}
+  .stat span{display:block; font-size:10.5px; color:var(--sub); font-weight:600}
+  .stat b{font-size:17px; font-weight:600}
+  .stat b.down{color:var(--ok)} .stat b.up{color:var(--danger)}
+  .chart-box{position:relative}
+  .chart-box svg{display:block; width:100%; height:auto}
+  .chart-empty{font-size:13px; color:var(--sub); background:#f3f6fb; border:1px dashed var(--line); border-radius:10px; padding:18px 12px; text-align:center}
+  .chart-tip{position:absolute; pointer-events:none; background:var(--ink); color:#fff; font-size:12px; line-height:1.45;
+    padding:6px 10px; border-radius:8px; white-space:nowrap; transform:translate(-50%,-110%); opacity:0; transition:opacity .12s; z-index:5}
+  .chart-tip.show{opacity:.96}
+  .chart-tip b{font-variant-numeric:tabular-nums}
+
   .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 4px}
   .btn{font:inherit; font-size:13px; font-weight:600; padding:9px 14px; border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer}
   .btn.accent{background:var(--accent); color:#fff; border-color:var(--accent)}
@@ -333,6 +347,23 @@
         <li><b>足裏が痛い（足底）：</b>歩行距離を減らし、クッション靴・インソール。ふくらはぎ/足裏のストレッチ。</li>
         <li><b>共通：</b>痛みが2〜3日続く／悪化するなら運動を止めて受診。痛い日は<b>完全休養</b>でOK。休むのも計画のうち。</li>
       </ul>
+    </div>
+  </details>
+
+  <!-- 体重グラフ -->
+  <details class="acc" open id="chartAcc">
+    <summary><span class="ic">📈</span>体重の変化グラフ<span class="chev">▶</span></summary>
+    <div class="body">
+      <div class="stat-row">
+        <div class="stat"><span>開始体重</span><b id="stStart">—</b></div>
+        <div class="stat"><span>最新体重</span><b id="stNow">—</b></div>
+        <div class="stat"><span>変化</span><b id="stDelta">—</b></div>
+      </div>
+      <div class="chart-box">
+        <div id="chartBox"></div>
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+      <div class="tiny muted" style="margin-top:6px">毎日の体重入力から自動で描画。点をタップすると日付と数値を表示。水分で±1kgは普通に動くので、線のゆるやかな傾きで見てください。</div>
     </div>
   </details>
 
@@ -695,6 +726,7 @@
       renderMeals(el, idx);
       updateDayKcal(idx);
     });
+    renderChart();
     updateProgress();
   }
 
@@ -710,6 +742,106 @@
     document.getElementById("pdays").textContent = state.startDate? ("経過 "+elapsed+" 日"):"開始日を設定";
     for(var w=0;w<4;w++){ var el=document.getElementById("wc"+w); if(el) el.textContent="運動 "+weekCount(w)+"/7"; }
   }
+
+  // ===== 体重グラフ =====
+  var CHART_W=390, CHART_H=230;
+  var chartPts=[]; // {i, w, px, py}
+  function renderChart(){
+    var box=document.getElementById("chartBox");
+    var pts=[];
+    for(var i=0;i<28;i++){ var d=state.days[i]; var w=d?num(d.weight):0; if(w>0) pts.push({i:i,w:w}); }
+
+    // stats
+    var stS=document.getElementById("stStart"), stN=document.getElementById("stNow"), stD=document.getElementById("stDelta");
+    if(pts.length){
+      var first=pts[0].w, last=pts[pts.length-1].w, delta=Math.round((last-first)*10)/10;
+      stS.textContent=first.toFixed(1)+" kg";
+      stN.textContent=last.toFixed(1)+" kg";
+      stD.textContent=(delta>0?"+":"")+delta.toFixed(1)+" kg";
+      stD.className = delta<0?"down":(delta>0?"up":"");
+    }else{
+      stS.textContent=stN.textContent=stD.textContent="—"; stD.className="";
+    }
+
+    if(pts.length<1){
+      box.innerHTML='<div class="chart-empty">各日のカードに体重を入力すると、ここに変化グラフが表示されます。</div>';
+      chartPts=[]; return;
+    }
+
+    var W=CHART_W,H=CHART_H,padL=40,padR=14,padT=14,padB=28;
+    var pw=W-padL-padR, ph=H-padT-padB;
+
+    var minW=Infinity,maxW=-Infinity;
+    pts.forEach(function(p){ if(p.w<minW)minW=p.w; if(p.w>maxW)maxW=p.w; });
+    var mid=(minW+maxW)/2, range=maxW-minW;
+    if(range<1.6){ minW=mid-1; maxW=mid+1; } else { minW-=0.4; maxW+=0.4; }
+    var step = (maxW-minW)>4 ? 1 : 0.5;
+    var y0=Math.floor(minW/step)*step, y1=Math.ceil(maxW/step)*step;
+
+    function X(i){ return padL + pw*(i/27); }
+    function Y(w){ return padT + ph*(1-(w-y0)/(y1-y0)); }
+
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="体重の変化グラフ">';
+    // grid + y ticks
+    for(var g=y0; g<=y1+0.001; g+=step){
+      var gy=Y(g);
+      s+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(W-padR)+'" y2="'+gy+'" stroke="#eceff3" stroke-width="1"/>';
+      s+='<text x="'+(padL-7)+'" y="'+(gy+3.5)+'" text-anchor="end" font-size="11" fill="#5b6775">'+(step<1?g.toFixed(1):g)+'</text>';
+    }
+    // x ticks
+    [0,7,14,21,27].forEach(function(i){
+      var lx=X(i);
+      var anchor = i===0 ? "start" : (i===27 ? "end" : "middle");
+      var lbl = state.startDate ? fmtDate(i).replace(/（.+）/,"") : "Day "+(i+1);
+      s+='<text x="'+lx+'" y="'+(H-8)+'" text-anchor="'+anchor+'" font-size="11" fill="#5b6775">'+esc(lbl)+'</text>';
+    });
+    // area wash + line
+    if(pts.length>1){
+      var lp="", ap="";
+      pts.forEach(function(p,k){ var c=(k?"L":"M")+X(p.i).toFixed(1)+" "+Y(p.w).toFixed(1); lp+=c; ap+=c; });
+      ap+="L"+X(pts[pts.length-1].i).toFixed(1)+" "+(padT+ph)+"L"+X(pts[0].i).toFixed(1)+" "+(padT+ph)+"Z";
+      s+='<path d="'+ap+'" fill="#1f6feb" opacity="0.1"/>';
+      s+='<path d="'+lp+'" fill="none" stroke="#1f6feb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
+    // dots (surface ring 2px)
+    chartPts=[];
+    pts.forEach(function(p){
+      var px=X(p.i), py=Y(p.w);
+      chartPts.push({i:p.i, w:p.w, px:px, py:py});
+      s+='<circle cx="'+px+'" cy="'+py+'" r="4" fill="#1f6feb" stroke="#fff" stroke-width="2"/>';
+    });
+    // 端点ラベル（最新値のみ）
+    var lastP=pts[pts.length-1];
+    var lyy=Y(lastP.w)-9; if(lyy<padT+10) lyy=Y(lastP.w)+18;
+    var lxx=X(lastP.i); var anch = lastP.i>24 ? "end":"middle";
+    s+='<text x="'+lxx+'" y="'+lyy+'" text-anchor="'+anch+'" font-size="12" font-weight="600" fill="#1c2530">'+lastP.w.toFixed(1)+'</text>';
+    s+='</svg>';
+    box.innerHTML=s;
+  }
+
+  // グラフのタップ/ホバーでツールチップ
+  (function(){
+    var box=document.getElementById("chartBox");
+    var tip=document.getElementById("chartTip");
+    function onMove(e){
+      if(!chartPts.length) return;
+      var svg=box.querySelector("svg"); if(!svg) return;
+      var r=svg.getBoundingClientRect();
+      var sx=CHART_W/r.width;
+      var mx=(e.clientX-r.left)*sx;
+      var best=null, bd=1e9;
+      chartPts.forEach(function(p){ var d=Math.abs(p.px-mx); if(d<bd){bd=d; best=p;} });
+      if(!best){ tip.classList.remove("show"); return; }
+      var lbl = state.startDate ? fmtDate(best.i) : "";
+      tip.innerHTML = "Day "+(best.i+1)+(lbl?"・"+esc(lbl):"")+"<br><b>"+best.w.toFixed(1)+" kg</b>";
+      tip.style.left=(best.px/sx)+"px";
+      tip.style.top=(best.py*(r.height/CHART_H))+"px";
+      tip.classList.add("show");
+    }
+    box.addEventListener("pointermove", onMove);
+    box.addEventListener("pointerdown", onMove);
+    box.addEventListener("pointerleave", function(){ tip.classList.remove("show"); });
+  })();
 
   var KCAL_FIELDS={weight:1,exType:1,exMin:1,steps:1,strengthType:1,strengthMin:1};
 
@@ -745,6 +877,7 @@
       if(dd) dd.classList.toggle("show", el.checked);
     }
     if(KCAL_FIELDS[f]) updateDayKcal(idx);
+    if(f==="weight") renderChart();
     save(true);
   }
 
