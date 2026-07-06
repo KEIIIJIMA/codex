@@ -30,6 +30,14 @@
   }
   header.app h1{margin:0; font-size:17px; font-weight:700; letter-spacing:.2px}
   header.app .meta{font-size:12px; opacity:.92; margin-top:2px}
+  .todaybtn{margin-top:8px; font:inherit; font-size:13px; font-weight:700; padding:8px 14px; border-radius:99px;
+    border:none; background:#fff; color:var(--accent); cursor:pointer; box-shadow:0 1px 4px rgba(0,30,80,.2)}
+  .day.today{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent) inset}
+  .day.today.done{box-shadow:0 0 0 1.5px var(--accent) inset}
+  .dtag.today{background:var(--accent); color:#fff}
+  @keyframes dayflash{0%{background:#dcE9ff}100%{background:#fff}}
+  .day.flash{animation:dayflash 1.2s ease-out}
+  .day.weekend.flash{animation:none}
   .progress-wrap{margin-top:10px}
   .progress-bar{height:8px; background:rgba(255,255,255,.28); border-radius:99px; overflow:hidden}
   .progress-fill{height:100%; width:0%; background:#fff; border-radius:99px; transition:width .3s}
@@ -72,7 +80,7 @@
   .week-focus{font-size:12.5px; color:var(--sub); margin-top:2px; width:100%}
   .week-count{margin-left:auto; font-size:12px; color:var(--sub); font-weight:600}
 
-  .day{border:1px solid var(--line); border-radius:12px; margin:9px 0; background:#fff; overflow:hidden}
+  .day{border:1px solid var(--line); border-radius:12px; margin:9px 0; background:#fff; overflow:hidden; scroll-margin-top:158px}
   .day.weekend{background:var(--weekend); border-color:var(--weekend-line)}
   .day.done{border-color:#bfe3cd; box-shadow:0 0 0 1.5px #bfe3cd inset}
   .day-top{display:flex; align-items:flex-start; gap:10px; padding:11px 12px}
@@ -169,6 +177,7 @@
 <header class="app">
   <h1>🚶 1ヶ月 無理なく痩せるプラン</h1>
   <div class="meta">運動・飲酒・食事カロリーを毎日チェック／自動保存</div>
+  <button type="button" class="todaybtn" id="btnJumpToday">📍 今日の入力へジャンプ</button>
   <div class="progress-wrap">
     <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
     <div class="progress-label"><span id="plabel">運動実施 0 / 28 日</span><span id="pdays">経過 0 日</span></div>
@@ -195,6 +204,7 @@
         <button class="btn" id="btnToday" type="button">今日から</button>
       </div>
       <div class="tiny muted" style="margin-top:6px">※開始日を入れると各日に日付が表示されます。</div>
+      <div class="tiny" id="startWarn" style="display:none; color:var(--warn); margin-top:4px">⚠️ このプランは<b>月曜開始</b>の想定です（火曜=筋トレA など）。開始日を月曜にすると曜日どおりに進められます。別の曜日で始める場合は、曜日ラベルではなく各日の内容を目安にしてください。</div>
     </div>
   </details>
 
@@ -482,6 +492,15 @@
   function dayData(i){ if(!state.days[i]) state.days[i]={}; return state.days[i]; }
   function num(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
 
+  function todayIdx(){
+    if(!state.startDate) return -1;
+    var d0=new Date(state.startDate+"T00:00:00");
+    if(isNaN(d0)) return -1;
+    var t=new Date(); t.setHours(0,0,0,0);
+    var diff=Math.round((t.getTime()-d0.getTime())/86400000);
+    return (diff>=0 && diff<28) ? diff : -1;
+  }
+
   function fmtDate(idx){
     if(!state.startDate) return "";
     var d = new Date(state.startDate+"T00:00:00");
@@ -588,9 +607,11 @@
     if(t.tag==="A") tagHtml='<span class="dtag tra">筋トレA</span>';
     if(t.tag==="B") tagHtml='<span class="dtag trb">筋トレB</span>';
     if(t.tag==="long") tagHtml='<span class="dtag long">ロング</span>';
+    var isToday = idx===todayIdx();
+    if(isToday) tagHtml='<span class="dtag today">今日</span>'+tagHtml;
     var wdCls = isSat?" sat":(isSun?" sun":"");
 
-    var h='<div class="day'+doneCls+weCls+'" data-day="'+idx+'">';
+    var h='<div class="day'+doneCls+weCls+(isToday?" today":"")+'" data-day="'+idx+'">';
     h+='<div class="day-top">';
     h+='<input type="checkbox" class="daychk" data-f="exercise" '+(d.exercise?"checked":"")+' aria-label="運動を実施">';
     h+='<div class="day-title">';
@@ -728,6 +749,12 @@
     });
     renderChart();
     updateProgress();
+    var warn=document.getElementById("startWarn");
+    if(warn){
+      var show=false;
+      if(state.startDate){ var d0=new Date(state.startDate+"T00:00:00"); show=!isNaN(d0)&&d0.getDay()!==1; }
+      warn.style.display=show?"block":"none";
+    }
   }
 
   function updateProgress(){
@@ -969,6 +996,26 @@
   document.getElementById("btnToday").addEventListener("click", function(){
     var t=new Date(); var m=("0"+(t.getMonth()+1)).slice(-2), day=("0"+t.getDate()).slice(-2);
     state.startDate=t.getFullYear()+"-"+m+"-"+day; sd.value=state.startDate; save(true); render();
+  });
+
+  document.getElementById("btnJumpToday").addEventListener("click", function(){
+    if(!state.startDate){
+      alert("先に「はじめに（使い方）」の開始日を設定してください（「今日から」ボタンが簡単です）。");
+      var acc=document.querySelector("details.acc"); if(acc) acc.open=true;
+      sd.scrollIntoView({behavior:"smooth", block:"center"});
+      return;
+    }
+    var ti=todayIdx();
+    if(ti<0){ alert("今日は28日プランの期間外です（開始日を確認してください）。"); return; }
+    var det=document.querySelector('.weekacc[data-week="'+Math.floor(ti/7)+'"]');
+    if(det && !det.open){ det.open=true; state.open["w"+Math.floor(ti/7)]=true; save(false); }
+    var dayEl=document.querySelector('.day[data-day="'+ti+'"]');
+    if(dayEl){
+      dayEl.scrollIntoView({behavior:"smooth", block:"start"});
+      dayEl.classList.remove("flash"); void dayEl.offsetWidth; dayEl.classList.add("flash");
+      var wInput=dayEl.querySelector('input[data-f="weight"]');
+      if(wInput && !wInput.value) setTimeout(function(){ try{wInput.focus({preventScroll:true});}catch(e){} }, 600);
+    }
   });
 
   document.getElementById("btnExpand").addEventListener("click", function(){
