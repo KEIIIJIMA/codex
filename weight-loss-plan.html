@@ -41,7 +41,11 @@
   .progress-wrap{margin-top:10px}
   .progress-bar{height:8px; background:rgba(255,255,255,.28); border-radius:99px; overflow:hidden}
   .progress-fill{height:100%; width:0%; background:#fff; border-radius:99px; transition:width .3s}
-  .progress-label{font-size:11px; margin-top:4px; opacity:.95; display:flex; justify-content:space-between}
+  .progress-label{font-size:11px; margin-top:4px; opacity:.95; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap}
+  #storeBanner{display:none; background:#fceae7; border:1.5px solid #e0574f; color:#8f1f18; border-radius:12px;
+    padding:11px 12px; font-size:13px; margin:12px 0 2px; line-height:1.6}
+  .bak-ta{width:100%; font-size:11px; font-family:ui-monospace,monospace; min-height:72px; border:1px solid var(--line);
+    border-radius:9px; padding:8px; margin-top:8px; -webkit-user-select:all; user-select:all}
 
   h2.sec{font-size:15px; margin:22px 2px 8px; font-weight:700}
   .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin:10px 0; overflow:hidden}
@@ -180,11 +184,17 @@
   <button type="button" class="todaybtn" id="btnJumpToday">📍 今日の入力へジャンプ</button>
   <div class="progress-wrap">
     <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
-    <div class="progress-label"><span id="plabel">運動実施 0 / 28 日</span><span id="pdays">経過 0 日</span></div>
+    <div class="progress-label"><span id="plabel">運動実施 0 / 28 日</span><span id="lastSave">最終保存 —</span><span id="pdays">経過 0 日</span></div>
   </div>
 </header>
 
 <div class="wrap">
+
+  <div id="storeBanner">
+    <b>⚠️ このブラウザでは記録を保存できません。</b><br>
+    入力してもページを閉じると消えます。よくある原因：①プライベートブラウズで開いている ②LINE・メールなどアプリ内のブラウザで開いている ③この公開ページ自体が保存を制限している。<br>
+    → <b>Safariの通常モード</b>で開き直してください。それでもこの警告が出る場合は、別の公開方法に切り替えるので教えてください。
+  </div>
 
   <!-- 使い方 -->
   <details class="acc" open>
@@ -377,6 +387,20 @@
     </div>
   </details>
 
+  <!-- バックアップ -->
+  <details class="acc">
+    <summary><span class="ic">💾</span>データのバックアップ・復元<span class="chev">▶</span></summary>
+    <div class="body small">
+      <p class="tiny muted" style="margin:0 0 6px">記録はこのブラウザ内に自動保存されますが、機種変更やブラウザのデータ消去に備えて、ときどき書き出しておくと安心です。</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn accent" id="btnExport" type="button">📤 書き出す（コピー）</button>
+        <button class="btn" id="btnImport" type="button">📥 下の欄から復元する</button>
+      </div>
+      <textarea class="bak-ta" id="bakText" placeholder="「書き出す」を押すとここにデータが入ります。復元するときは、保管しておいたデータをここに貼り付けて「復元する」を押してください。"></textarea>
+      <div class="tiny muted">書き出したデータはメモアプリ等に貼り付けて保管してください（食事の写真も含まれるため長い文字列になります）。</div>
+    </div>
+  </details>
+
   <div class="toolbar">
     <button class="btn" id="btnExpand" type="button">全週をひらく</button>
     <button class="btn" id="btnCollapse" type="button">全週をとじる</button>
@@ -476,17 +500,44 @@
   var SIZES = [ {id:"0.8",n:"少なめ"},{id:"1",n:"普通"},{id:"1.3",n:"多め"},{id:"1.6",n:"大盛・おかわり"} ];
   var SLOTS = ["朝食","昼食","夕食","間食","飲酒・飲料"];
 
+  // ストレージが本当に使えるかの自己診断（プライベートブラウズ/サンドボックスで false になる）
+  var storageOK=(function(){
+    try{
+      var k="__wl_selftest";
+      localStorage.setItem(k,"1");
+      var ok = localStorage.getItem(k)==="1";
+      localStorage.removeItem(k);
+      return ok;
+    }catch(e){ return false; }
+  })();
+
   var state = load();
 
   function load(){
+    if(!storageOK) return {startDate:"", days:{}, open:{}};
     try{ var s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s && typeof s==="object"){ s.days=s.days||{}; s.open=s.open||{}; return s; } }catch(e){}
     return {startDate:"", days:{}, open:{}};
   }
+
+  function fmtSaveTime(ts){
+    if(!ts) return "—";
+    var d=new Date(ts);
+    return (d.getMonth()+1)+"/"+d.getDate()+" "+("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+  }
+  function updateLastSave(){
+    var el=document.getElementById("lastSave");
+    if(!el) return;
+    el.textContent = storageOK ? ("最終保存 "+fmtSaveTime(state.savedAt)) : "保存不可⚠️";
+  }
+
   var saveTimer=null;
   function save(showHint){
+    if(!storageOK){ updateLastSave(); return; } // 警告バナー表示中。誤った「保存しました」を出さない
+    state.savedAt=Date.now();
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-    catch(e){ alert("保存容量がいっぱいです。写真を減らすか、古い写真を削除してください。"); return; }
-    if(showHint){ var h=document.getElementById("savehint"); h.classList.add("show"); clearTimeout(saveTimer); saveTimer=setTimeout(function(){h.classList.remove("show");},900); }
+    catch(e){ toast("⚠️ 保存に失敗しました。容量不足の可能性があります。食事の写真を何枚か削除してください"); return; }
+    updateLastSave();
+    if(showHint){ var h=document.getElementById("savehint"); h.textContent="保存しました"; h.classList.add("show"); clearTimeout(saveTimer); saveTimer=setTimeout(function(){h.classList.remove("show");},900); }
   }
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
   function dayData(i){ if(!state.days[i]) state.days[i]={}; return state.days[i]; }
@@ -1056,6 +1107,33 @@
   document.getElementById("btnCollapse").addEventListener("click", function(){
     document.querySelectorAll(".weekacc").forEach(function(d){ d.open=false; });
   });
+  // バックアップ書き出し/復元
+  var bak=document.getElementById("bakText");
+  document.getElementById("btnExport").addEventListener("click", function(){
+    var json=JSON.stringify(state);
+    bak.value=json;
+    bak.focus(); bak.select(); try{ bak.setSelectionRange(0, json.length); }catch(e){}
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(json).then(function(){ toast("コピーしました。メモアプリ等に貼り付けて保管してください"); },
+        function(){ toast("全選択済みです。長押し→コピーで保管してください"); });
+    }else{
+      toast("全選択済みです。長押し→コピーで保管してください");
+    }
+  });
+  document.getElementById("btnImport").addEventListener("click", function(){
+    var txt=(bak.value||"").trim();
+    if(!txt){ toast("復元するデータを下の欄に貼り付けてから押してください"); return; }
+    var obj=null;
+    try{ obj=JSON.parse(txt); }catch(e){}
+    if(!obj || typeof obj!=="object" || !obj.days){ toast("⚠️ データの形式が正しくありません。書き出した文字列を丸ごと貼り付けてください"); return; }
+    if(!confirm("現在の記録を、貼り付けたデータで置き換えます。よろしいですか？")) return;
+    obj.days=obj.days||{}; obj.open=obj.open||{};
+    state=obj;
+    sd.value=state.startDate||"";
+    save(false); render(); updateLastSave();
+    toast("復元しました");
+  });
+
   document.getElementById("btnReset").addEventListener("click", function(){
     if(confirm("入力したチェック・記録・写真をすべて消去します。よろしいですか？")){
       state={startDate:"", days:{}, open:{}}; try{localStorage.removeItem(STORE_KEY);}catch(e){}
@@ -1064,5 +1142,9 @@
   });
 
   render();
+  updateLastSave();
+  if(!storageOK){
+    document.getElementById("storeBanner").style.display="block";
+  }
 })();
 </script>
