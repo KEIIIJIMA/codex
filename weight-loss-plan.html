@@ -1,0 +1,541 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6feb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="減量プラン">
+<title>1ヶ月 無理なく痩せる運動・飲酒管理プラン</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#1c2530; --sub:#5b6775;
+    --line:#e2e7ee; --accent:#1f6feb; --accent-weak:#e8f0fe;
+    --ok:#1a8f5a; --warn:#c47f00; --danger:#c0392b;
+    --weekend:#fff8ec; --weekend-line:#f0e2c4;
+    --radius:14px; --shadow:0 1px 3px rgba(20,30,45,.07);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",system-ui,sans-serif;
+    line-height:1.6; font-size:15px; padding-bottom:64px;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:14px 12px 40px;}
+  header.app{
+    position:sticky; top:0; z-index:10;
+    background:linear-gradient(135deg,#1f6feb,#3b86ff);
+    color:#fff; padding:14px 14px calc(14px + env(safe-area-inset-bottom,0));
+    padding-top:calc(12px + env(safe-area-inset-top,0));
+    box-shadow:0 2px 8px rgba(20,40,80,.18);
+  }
+  header.app h1{margin:0; font-size:17px; font-weight:700; letter-spacing:.2px}
+  header.app .meta{font-size:12px; opacity:.92; margin-top:2px}
+  .progress-wrap{margin-top:10px}
+  .progress-bar{height:8px; background:rgba(255,255,255,.28); border-radius:99px; overflow:hidden}
+  .progress-fill{height:100%; width:0%; background:#fff; border-radius:99px; transition:width .3s}
+  .progress-label{font-size:11px; margin-top:4px; opacity:.95; display:flex; justify-content:space-between}
+
+  h2.sec{font-size:15px; margin:22px 2px 8px; font-weight:700}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin:10px 0; overflow:hidden}
+  .card .pad{padding:13px 14px}
+  .muted{color:var(--sub)}
+  .small{font-size:13px}
+  .tiny{font-size:12px}
+
+  /* Accordion */
+  details.acc{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin:10px 0; overflow:hidden}
+  details.acc>summary{
+    list-style:none; cursor:pointer; padding:13px 14px; font-weight:700;
+    display:flex; align-items:center; gap:9px; user-select:none;
+  }
+  details.acc>summary::-webkit-details-marker{display:none}
+  summary .chev{margin-left:auto; transition:transform .2s; color:var(--sub); font-size:13px}
+  details[open]>summary .chev{transform:rotate(90deg)}
+  summary .ic{width:26px; height:26px; border-radius:8px; background:var(--accent-weak); color:var(--accent);
+    display:inline-flex; align-items:center; justify-content:center; font-size:14px; flex:0 0 auto}
+  details.acc>.body{padding:0 14px 14px; border-top:1px solid var(--line)}
+  details.acc>.body>*:first-child{margin-top:12px}
+
+  ul.clean{margin:8px 0; padding-left:18px}
+  ul.clean li{margin:3px 0}
+  .pill{display:inline-block; padding:2px 9px; border-radius:99px; font-size:12px; font-weight:600; background:var(--accent-weak); color:var(--accent)}
+  .pill.ok{background:#e3f5ec; color:var(--ok)}
+  .pill.warn{background:#fbf1d9; color:var(--warn)}
+  .pill.danger{background:#fbe6e3; color:var(--danger)}
+
+  .callout{border-radius:12px; padding:11px 12px; font-size:13.5px; margin:10px 0}
+  .callout.info{background:var(--accent-weak); border:1px solid #cfe0fd}
+  .callout.warn{background:#fdf6e5; border:1px solid #f0dcae}
+  .callout.danger{background:#fceae7; border:1px solid #f2c4bc}
+  .callout b{display:block; margin-bottom:2px}
+
+  /* Week block */
+  .week-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .week-head .wtag{font-size:12px; font-weight:700; color:#fff; background:var(--accent); padding:2px 9px; border-radius:99px}
+  .week-focus{font-size:12.5px; color:var(--sub); margin-top:2px; width:100%}
+  .week-count{margin-left:auto; font-size:12px; color:var(--sub); font-weight:600}
+
+  /* Day card */
+  .day{border:1px solid var(--line); border-radius:12px; margin:9px 0; background:#fff; overflow:hidden}
+  .day.weekend{background:var(--weekend); border-color:var(--weekend-line)}
+  .day.done{border-color:#bfe3cd; box-shadow:0 0 0 1.5px #bfe3cd inset}
+  .day-top{display:flex; align-items:flex-start; gap:10px; padding:11px 12px}
+  .daychk{width:24px; height:24px; margin:2px 0 0; flex:0 0 auto; accent-color:var(--ok)}
+  .day-title{flex:1; min-width:0}
+  .day-title .dn{font-weight:700; font-size:14px}
+  .day-title .dwd{font-size:12px; color:var(--sub)}
+  .day-title .dwd.sat{color:#1f6feb} .day-title .dwd.sun{color:#c0392b}
+  .day-plan{font-size:12.5px; color:var(--ink); margin-top:3px; background:#f3f6fb; border-radius:8px; padding:5px 8px; display:inline-block}
+  .day.weekend .day-plan{background:#fdefd4}
+  .dtag{font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px; margin-left:6px}
+  .dtag.tra{background:#ede4fb; color:#7b52c4} .dtag.trb{background:#e0f0fb; color:#1f7fb8}
+  .dtag.long{background:#fde3c4; color:#b8701a}
+
+  .day-fields{padding:0 12px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .field{display:flex; flex-direction:column; gap:3px}
+  .field.full{grid-column:1 / -1}
+  .field label{font-size:11.5px; color:var(--sub); font-weight:600}
+  .field input, .field select, .field textarea{
+    font:inherit; font-size:14px; padding:8px 9px; border:1px solid var(--line);
+    border-radius:9px; background:#fff; color:var(--ink); width:100%;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-weak)}
+  .field textarea{resize:vertical; min-height:38px}
+  .inline-chk{display:flex; align-items:center; gap:7px; font-size:13px; padding:6px 0}
+  .inline-chk input{width:19px; height:19px; accent-color:var(--accent)}
+
+  .subcard{grid-column:1/-1; border:1px dashed var(--line); border-radius:10px; padding:9px 10px; margin-top:2px; background:#fafbfd}
+  .subcard.weekendbox{background:#fff6e6; border-color:#f0dcae}
+  .subcard .sc-title{font-size:12px; font-weight:700; color:var(--sub); margin-bottom:6px; display:flex; align-items:center; gap:6px}
+  .drink-detail{display:none; margin-top:8px; gap:8px; grid-template-columns:1fr 1fr}
+  .drink-detail.show{display:grid}
+
+  .menu-tbl{width:100%; border-collapse:collapse; font-size:13.5px; margin:6px 0}
+  .menu-tbl td{padding:6px 4px; border-bottom:1px solid var(--line)}
+  .menu-tbl td:last-child{text-align:right; color:var(--sub); white-space:nowrap; font-variant-numeric:tabular-nums}
+  .menu-tbl tr:last-child td{border-bottom:none}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 4px}
+  .btn{font:inherit; font-size:13px; font-weight:600; padding:9px 14px; border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer}
+  .btn.accent{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .btn.ghost{background:#fff}
+  .btn.danger{color:var(--danger); border-color:#f0c4bd}
+
+  .startbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:13px}
+  .startbar input{font:inherit; padding:7px 9px; border:1px solid var(--line); border-radius:9px}
+  footer.disc{font-size:11.5px; color:var(--sub); text-align:center; margin:26px 6px 0; line-height:1.7}
+  .savehint{position:fixed; left:50%; bottom:16px; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; font-size:12px; padding:7px 14px; border-radius:99px; opacity:0; transition:.25s; pointer-events:none; z-index:50}
+  .savehint.show{opacity:.94; transform:translateX(-50%) translateY(0)}
+  @media (max-width:360px){ .day-fields{grid-template-columns:1fr} .drink-detail.show{grid-template-columns:1fr} }
+</style>
+
+<header class="app">
+  <h1>🚶 1ヶ月 無理なく痩せるプラン</h1>
+  <div class="meta">運動・ウォーキング・飲酒を毎日チェック／自動保存</div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+    <div class="progress-label"><span id="plabel">運動実施 0 / 28 日</span><span id="pdays">経過 0 日</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 使い方 -->
+  <details class="acc" open>
+    <summary><span class="ic">📱</span>はじめに（使い方）<span class="chev">▶</span></summary>
+    <div class="body small">
+      <ul class="clean">
+        <li>下に <b>4週間ぶん（28日）</b> のチェックリストがあります。週ごとに折りたたみ表示。</li>
+        <li>各日の <b>大きな左のチェック</b>＝その日の運動を実施したらタップ。緑枠になります。</li>
+        <li>体重・歩数/時間・飲酒量・睡眠・痛みを毎日メモ。<b>入力は自動保存</b>（この端末のブラウザ内に保存）。</li>
+        <li>アプリ不要。<b>ホーム画面に追加</b>すればアプリのように使えます（Safari：共有→ホーム画面に追加）。</li>
+        <li>まず「実行時の注意点」と「中止のサイン」を先に読んでください。</li>
+      </ul>
+      <div class="startbar">
+        <span>開始日：</span>
+        <input type="date" id="startDate">
+        <button class="btn ghost" id="btnToday" type="button">今日から</button>
+      </div>
+      <div class="tiny muted" style="margin-top:6px">※開始日を入れると各日に日付が表示されます（未入力でも使えます）。</div>
+    </div>
+  </details>
+
+  <!-- 実行時の注意点 -->
+  <details class="acc">
+    <summary><span class="ic">⚠️</span>実行時の注意点<span class="chev">▶</span></summary>
+    <div class="body small">
+      <ul class="clean">
+        <li><b>目標は無理のない範囲。</b>1ヶ月で −1〜2kg が現実的。食事・飲酒も整えば −2〜3kg も視野（急激な減量は狙わない）。</li>
+        <li><b>ランニングはしない。</b>膝・腰・足裏の負担を避け、早歩き中心。</li>
+        <li>ウォーキング強度：<span class="pill">会話はできるが歌うのはきつい</span>程度。ゼーハー追い込まない。</li>
+        <li>2〜3時間歩く日は <b>60分ごとに5〜10分休憩</b>。最初の10分・最後の10分は普通歩き。</li>
+        <li>下り坂・硬い路面の長時間歩行は膝に注意。靴はクッション性のあるものを。</li>
+        <li>筋トレは <b>週2回（火・木）</b>。筋肉量を落とさないため。疲れた日はゼロにせず <b>12分ミニメニュー</b>で習慣維持。</li>
+        <li>水分をこまめに。空腹すぎ・満腹すぎの運動は避ける。</li>
+      </ul>
+      <div class="callout danger">
+        <b>🛑 運動を中止または短縮するサイン</b>
+        次のいずれかがある日は無理をしない：胸の痛み／強い息切れ／めまい／動悸／膝・腰・足裏の鋭い痛み／翌日まで残る関節痛／足のしびれ。
+        <span class="tiny" style="display:block;margin-top:4px">症状が強い・続く場合は運動を止めて医療機関に相談してください。</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- 週間スケジュール -->
+  <details class="acc">
+    <summary><span class="ic">🗓️</span>週間スケジュールと4週プラン<span class="chev">▶</span></summary>
+    <div class="body small">
+      <div class="tiny muted">基本の1週間の型</div>
+      <table class="menu-tbl">
+        <tr><td><b>月</b></td><td>休養 or 軽い散歩 15〜20分</td></tr>
+        <tr><td><b>火</b></td><td>筋トレA 20〜30分</td></tr>
+        <tr><td><b>水</b></td><td>軽めウォーキング 20〜30分</td></tr>
+        <tr><td><b>木</b></td><td>筋トレB 20〜30分</td></tr>
+        <tr><td><b>金</b></td><td>軽めウォーキング or 休養 0〜30分</td></tr>
+        <tr><td style="color:#1f6feb"><b>土</b></td><td>ロングウォーキング 120〜180分</td></tr>
+        <tr><td style="color:#c0392b"><b>日</b></td><td>ミドルウォーキング 60〜120分（疲労が強ければ休養寄り）</td></tr>
+      </table>
+      <div class="tiny muted" style="margin-top:10px">4週間の段階プラン（土日の歩行時間を少しずつ伸ばす）</div>
+      <table class="menu-tbl">
+        <tr><td><b>1週目</b></td><td>土90分／日60分・足腰の反応を見る週</td></tr>
+        <tr><td><b>2週目</b></td><td>土120分／日60〜90分・筋トレ2回＋軽い歩き1〜2回</td></tr>
+        <tr><td><b>3週目</b></td><td>土120〜150分／日90分・調子が良ければ増やす</td></tr>
+        <tr><td><b>4週目</b></td><td>土150〜180分／日90〜120分・痛み/疲労あれば短縮</td></tr>
+      </table>
+    </div>
+  </details>
+
+  <!-- 筋トレメニュー -->
+  <details class="acc">
+    <summary><span class="ic">💪</span>筋トレメニュー（A / B / ミニ）<span class="chev">▶</span></summary>
+    <div class="body small">
+      <div class="callout info tiny">最初は2セット、慣れたら3セット。フォーム優先、痛みが出たら中止。</div>
+      <div class="pill" style="margin:6px 0">筋トレA（火曜）道具なし</div>
+      <table class="menu-tbl">
+        <tr><td>椅子スクワット</td><td>10回</td></tr>
+        <tr><td>壁腕立て or 机腕立て</td><td>8〜12回</td></tr>
+        <tr><td>ヒップヒンジ</td><td>10回</td></tr>
+        <tr><td>カーフレイズ</td><td>15回</td></tr>
+        <tr><td>プランク</td><td>20秒</td></tr>
+      </table>
+      <div class="pill" style="margin:10px 0 6px">筋トレB（木曜）道具なし or リュック/ペットボトル</div>
+      <table class="menu-tbl">
+        <tr><td>ステップアップ</td><td>左右各8回</td></tr>
+        <tr><td>リュックローイング</td><td>10回</td></tr>
+        <tr><td>ペットボトルショルダープレス</td><td>10回</td></tr>
+        <tr><td>サイドプランク</td><td>左右15秒</td></tr>
+        <tr><td>グルートブリッジ</td><td>12回</td></tr>
+      </table>
+      <div class="pill warn" style="margin:10px 0 6px">疲れた日の12分ミニメニュー</div>
+      <table class="menu-tbl">
+        <tr><td>その場足踏み</td><td>2分</td></tr>
+        <tr><td>椅子スクワット</td><td>10回</td></tr>
+        <tr><td>壁腕立て</td><td>10回</td></tr>
+        <tr><td>カーフレイズ</td><td>15回</td></tr>
+        <tr><td>プランク</td><td>20秒</td></tr>
+        <tr><td>軽いストレッチ or 散歩</td><td>残り時間</td></tr>
+      </table>
+    </div>
+  </details>
+
+  <!-- 飲酒方針 -->
+  <details class="acc">
+    <summary><span class="ic">🍺</span>飲酒方針<span class="chev">▶</span></summary>
+    <div class="body small">
+      <ul class="clean">
+        <li>禁酒は必須ではないが、飲酒は減量効率を下げやすい。<b>目安は週2〜3日まで</b>。</li>
+        <li>飲む日は <b>純アルコール20gまで</b>。目安：ビール500ml 1本／7%チューハイ350ml 1本。</li>
+        <li><span class="pill danger">避けたい</span> 9%チューハイ500ml（純アルコール量が多い）。</li>
+        <li><b>筋トレ日（火・木）は飲まない。</b>飲むなら水・金・土の最大3日。</li>
+        <li>減量優先なら <b>金・土の2日だけ</b>にする。</li>
+      </ul>
+      <div class="callout warn tiny">
+        <b>飲む日のチェック</b>
+        純アルコール20g以内か／つまみで揚げ物・締めラーメン・菓子を食べすぎていないか／寝酒になっていないか（寝る直前の飲酒は睡眠の質を下げる）。各日カードの「飲酒した」にチェックすると記録欄が開きます。
+      </div>
+    </div>
+  </details>
+
+  <!-- 調整ルール -->
+  <details class="acc">
+    <summary><span class="ic">📉</span>体重が落ちない場合の調整ルール<span class="chev">▶</span></summary>
+    <div class="body small">
+      <div class="callout info tiny">まず <b>2週間は様子を見る</b>。体重は水分で日々±1kg動くので、朝・同じ条件で測り「1週間の平均」で判断する。</div>
+      <ul class="clean">
+        <li><b>2週間ほぼ横ばい</b>なら、まず飲酒を <b>金・土の2日だけ</b>に絞る／つまみ・締めを見直す（ここが一番効きやすい）。</li>
+        <li>次に <b>土日の歩行を各15〜30分</b>延ばす（痛みが無い範囲で）。無理に平日を増やさない。</li>
+        <li>平日は <b>軽めウォーキングの日を+1回</b>、または通勤で1駅歩く・階段を使う。</li>
+        <li>食事は極端に減らさない。<b>夜の主食・間食・甘い飲料を軽く</b>減らす程度から。たんぱく質は確保（筋肉維持）。</li>
+        <li>睡眠不足は食欲を乱す。<b>睡眠時間の確保</b>も減量の一部。</li>
+        <li>それでも1ヶ月 −0kg かつ体調不良・むくみ等があれば、自己流を続けず医師・管理栄養士に相談。</li>
+      </ul>
+      <div class="tiny muted">※1ヶ月 −1〜2kg 前後なら計画通り。焦って一気に減らすとリバウンド・筋肉減の原因に。</div>
+    </div>
+  </details>
+
+  <!-- 代替メニュー -->
+  <details class="acc">
+    <summary><span class="ic">🦵</span>膝・腰・足裏が痛い場合の代替メニュー<span class="chev">▶</span></summary>
+    <div class="body small">
+      <div class="callout danger tiny">鋭い痛み／腫れ／しびれ／体重をかけられない場合は運動を中止し、<b>整形外科など医療機関へ</b>。以下は軽い違和感レベルの代替案です。</div>
+      <ul class="clean">
+        <li><b>ロングウォーキングの代わり：</b>時間を半分にし平地・やわらかい路面へ。下り坂・硬いアスファルトの連続は避ける。</li>
+        <li><b>膝が痛い：</b>ウォーキング→<span class="pill">その場足踏み・水中ウォーク・エアロバイク</span>など衝撃の少ない有酸素へ。スクワットは可動域を浅く、椅子に座る動作までで止める。</li>
+        <li><b>腰が痛い：</b>ヒップヒンジ・ローイングは中止。<span class="pill">グルートブリッジ・軽い体幹（プランク短め）・ストレッチ</span>中心に。前かがみで痛む動作は避ける。</li>
+        <li><b>足裏が痛い（足底）：</b>歩行距離を減らし、クッション靴・インソール。ふくらはぎ/足裏のストレッチ、カーフレイズは痛みの出ない範囲で。</li>
+        <li><b>共通：</b>アイシングや安静で改善するか確認。痛みが2〜3日続く／悪化するなら運動を止めて受診。</li>
+        <li>痛い日は無理せず <b>完全休養</b>でOK。休むのも計画のうち。</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="toolbar">
+    <button class="btn ghost" id="btnExpand" type="button">全週をひらく</button>
+    <button class="btn ghost" id="btnCollapse" type="button">全週をとじる</button>
+    <button class="btn danger" id="btnReset" type="button">データを消去</button>
+  </div>
+
+  <h2 class="sec">🗒️ 28日 チェックリスト</h2>
+  <div id="weeks"></div>
+
+  <footer class="disc">
+    ⚕️ このプランは一般的な運動・生活の目安であり、医療的判断ではありません。<br>
+    <b>高血圧・糖尿病・心疾患・肝機能異常がある方、服薬中の方、膝腰などの持病がある方</b>は、
+    開始前に必ず医師など専門家に相談してください。運動中に胸痛・強い息切れ・めまい等が出たら中止し受診を。<br>
+    入力データはこの端末のブラウザ内（localStorage）にのみ保存され、外部には送信されません。
+  </footer>
+</div>
+
+<div class="savehint" id="savehint">保存しました</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORE_KEY = "wlplan_v1";
+  var WD = ["日","月","火","水","木","金","土"]; // getDay index
+  // 週の型: index 0=月 ... 6=日
+  var WEEK_TEMPLATE = [
+    {wd:"月", plan:"休養 or 軽い散歩 15〜20分", tag:null},
+    {wd:"火", plan:"筋トレA 20〜30分",          tag:"A"},
+    {wd:"水", plan:"軽めウォーキング 20〜30分",  tag:null},
+    {wd:"木", plan:"筋トレB 20〜30分",          tag:"B"},
+    {wd:"金", plan:"軽めウォーキング or 休養 0〜30分", tag:null},
+    {wd:"土", plan:"", tag:"long"},
+    {wd:"日", plan:"", tag:"long"}
+  ];
+  // 週ごとの土日プラン
+  var WEEKEND = [
+    {sat:"ロングウォーキング 90分",     sun:"ミドルウォーキング 60分"},
+    {sat:"ロングウォーキング 120分",    sun:"ミドルウォーキング 60〜90分"},
+    {sat:"ロングウォーキング 120〜150分", sun:"ミドルウォーキング 90分"},
+    {sat:"ロングウォーキング 150〜180分", sun:"ミドルウォーキング 90〜120分"}
+  ];
+  var WEEK_FOCUS = [
+    "足腰の反応を見る週。無理せず様子見。",
+    "平日は筋トレ2回＋軽いウォーキング1〜2回。",
+    "体調が良ければ歩行時間を少し増やす。",
+    "総仕上げ。ただし疲労・痛みがあれば短縮。"
+  ];
+
+  var TRA = [["椅子スクワット","10回"],["壁腕立て/机腕立て","8〜12回"],["ヒップヒンジ","10回"],["カーフレイズ","15回"],["プランク","20秒"]];
+  var TRB = [["ステップアップ","左右各8回"],["リュックローイング","10回"],["ペットボトルショルダープレス","10回"],["サイドプランク","左右15秒"],["グルートブリッジ","12回"]];
+
+  var state = load();
+
+  function load(){
+    try{ var s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s && typeof s==="object"){ s.days=s.days||{}; return s; } }catch(e){}
+    return {startDate:"", days:{}, open:{}};
+  }
+  var saveTimer=null;
+  function save(showHint){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){}
+    if(showHint){ var h=document.getElementById("savehint"); h.classList.add("show"); clearTimeout(saveTimer); saveTimer=setTimeout(function(){h.classList.remove("show");},900); }
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+
+  function dayData(i){ if(!state.days[i]) state.days[i]={}; return state.days[i]; }
+
+  function fmtDate(idx){
+    if(!state.startDate) return "";
+    var d = new Date(state.startDate+"T00:00:00");
+    if(isNaN(d)) return "";
+    d.setDate(d.getDate()+idx);
+    return (d.getMonth()+1)+"/"+d.getDate()+"（"+WD[d.getDay()]+"）";
+  }
+
+  function menuTable(rows){
+    var h='<table class="menu-tbl">';
+    rows.forEach(function(r){ h+='<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>'; });
+    return h+'</table>';
+  }
+
+  function buildDay(idx){
+    var week = Math.floor(idx/7);
+    var t = WEEK_TEMPLATE[idx%7];
+    var isSat = t.wd==="土", isSun = t.wd==="日";
+    var isWeekend = isSat||isSun;
+    var plan = t.plan;
+    if(isSat) plan = WEEKEND[week].sat;
+    if(isSun) plan = WEEKEND[week].sun;
+
+    var d = dayData(idx);
+    var doneCls = d.exercise ? " done" : "";
+    var weCls = isWeekend ? " weekend" : "";
+    var dateStr = fmtDate(idx);
+
+    var tagHtml="";
+    if(t.tag==="A") tagHtml='<span class="dtag tra">筋トレA</span>';
+    if(t.tag==="B") tagHtml='<span class="dtag trb">筋トレB</span>';
+    if(t.tag==="long") tagHtml='<span class="dtag long">ロング</span>';
+
+    var wdCls = isSat?" sat":(isSun?" sun":"");
+
+    var h='<div class="day'+doneCls+weCls+'" data-day="'+idx+'">';
+    // top
+    h+='<div class="day-top">';
+    h+='<input type="checkbox" class="daychk" data-f="exercise" '+(d.exercise?"checked":"")+' aria-label="運動を実施">';
+    h+='<div class="day-title">';
+    h+='<div class="dn">Day '+(idx+1)+' <span class="dwd'+wdCls+'">'+t.wd+'曜'+(dateStr?" ・ "+esc(dateStr):"")+'</span>'+tagHtml+'</div>';
+    h+='<div class="day-plan">'+esc(plan)+'</div>';
+    h+='</div></div>';
+
+    // fields
+    h+='<div class="day-fields">';
+    h+='<div class="field"><label>今日の体重 (kg)</label><input type="number" inputmode="decimal" step="0.1" data-f="weight" value="'+esc(d.weight||"")+'" placeholder="例 88.0"></div>';
+    var walkLabel = isWeekend? "歩行時間 (分)":"歩数 or 時間";
+    h+='<div class="field"><label>'+walkLabel+'</label><input type="text" inputmode="numeric" data-f="walk" value="'+esc(d.walk||"")+'" placeholder="'+(isWeekend?"例 120":"例 6000歩")+'"></div>';
+    h+='<div class="field"><label>睡眠時間 (h)</label><input type="number" inputmode="decimal" step="0.5" data-f="sleep" value="'+esc(d.sleep||"")+'" placeholder="例 7"></div>';
+    h+='<div class="field"><label>膝・腰・足裏の痛み</label><select data-f="pain">'+
+        opt(d.pain,"","なし")+opt(d.pain,"mild","軽い違和感")+opt(d.pain,"strong","強い/鋭い痛み")+'</select></div>';
+
+    // 筋トレ実施 + メニュー
+    h+='<div class="field full"><div class="inline-chk"><input type="checkbox" data-f="strength" '+(d.strength?"checked":"")+'><span>筋トレを実施した</span></div>';
+    if(t.tag==="A"||t.tag==="B"){
+      h+='<details class="menu-fold"><summary class="tiny" style="color:var(--accent);cursor:pointer;list-style:none">▸ '+(t.tag==="A"?"筋トレA":"筋トレB")+'のメニューを見る</summary>'+menuTable(t.tag==="A"?TRA:TRB)+'</details>';
+    }
+    h+='</div>';
+
+    // 週末ロング用ボックス
+    if(isWeekend){
+      h+='<div class="subcard weekendbox"><div class="sc-title">🥾 ロングウォーキング記録</div>';
+      h+='<div class="inline-chk"><input type="checkbox" data-f="restbreak" '+(d.restbreak?"checked":"")+'><span>60分ごとに5〜10分の休憩をとった</span></div>';
+      h+='<div class="inline-chk"><input type="checkbox" data-f="terrain" '+(d.terrain?"checked":"")+'><span>下り坂・硬い路面を避け膝に配慮した</span></div>';
+      h+='<div class="inline-chk"><input type="checkbox" data-f="pace" '+(d.pace?"checked":"")+'><span>最初/最後の10分は普通歩き・追い込まなかった</span></div>';
+      h+='</div>';
+    }
+
+    // 飲酒ボックス
+    var drinkShow = d.drink ? " show":"";
+    h+='<div class="subcard"><div class="sc-title">🍺 飲酒記録</div>';
+    h+='<div class="inline-chk"><input type="checkbox" class="drinktoggle" data-f="drink" '+(d.drink?"checked":"")+'><span>今日は飲酒した</span>';
+    if(t.tag==="A"||t.tag==="B") h+='<span class="pill danger tiny" style="margin-left:auto">筋トレ日は非推奨</span>';
+    h+='</div>';
+    h+='<div class="drink-detail'+drinkShow+'">';
+    h+='<div class="field"><label>種類</label><input type="text" data-f="drinkType" value="'+esc(d.drinkType||"")+'" placeholder="ビール/チューハイ等"></div>';
+    h+='<div class="field"><label>量</label><input type="text" data-f="drinkAmt" value="'+esc(d.drinkAmt||"")+'" placeholder="例 500ml×1"></div>';
+    h+='<div class="field full"><div class="inline-chk"><input type="checkbox" data-f="alc20" '+(d.alc20?"checked":"")+'><span>純アルコール20g以内におさめた</span></div></div>';
+    h+='<div class="field full"><div class="inline-chk"><input type="checkbox" data-f="snack" '+(d.snack?"checked":"")+'><span>揚げ物・締めラーメン・菓子を食べすぎた</span></div></div>';
+    h+='<div class="field full"><div class="inline-chk"><input type="checkbox" data-f="nightcap" '+(d.nightcap?"checked":"")+'><span>寝酒（寝る直前の飲酒）になった</span></div></div>';
+    h+='</div></div>';
+
+    // メモ
+    h+='<div class="field full"><label>メモ</label><textarea data-f="memo" placeholder="体調・気づき・食事など">'+esc(d.memo||"")+'</textarea></div>';
+
+    h+='</div>'; // day-fields
+    h+='</div>'; // day
+    return h;
+  }
+  function opt(cur,val,label){ return '<option value="'+val+'"'+(cur===val?" selected":"")+'>'+label+'</option>'; }
+
+  function weekCount(week){
+    var c=0; for(var i=week*7;i<week*7+7;i++){ if(state.days[i]&&state.days[i].exercise) c++; }
+    return c;
+  }
+
+  function render(){
+    var wrap=document.getElementById("weeks");
+    var html="";
+    for(var w=0; w<4; w++){
+      var openAttr = (state.open && state.open["w"+w]!==false && (state.open?state.open["w"+w]:undefined)!==false) ? "" : "";
+      // default: week 0 open, others closed unless stored
+      var isOpen = state.open && ("w"+w in state.open) ? state.open["w"+w] : (w===0);
+      html+='<details class="acc weekacc" data-week="'+w+'"'+(isOpen?" open":"")+'>';
+      html+='<summary><span class="ic">'+(w+1)+'</span><div class="week-head" style="flex:1"><span>'+(w+1)+'週目</span>'+
+            '<span class="wtag">土日を伸ばす</span><span class="week-count" id="wc'+w+'">運動 '+weekCount(w)+'/7</span>'+
+            '<div class="week-focus">'+esc(WEEK_FOCUS[w])+'</div></div><span class="chev">▶</span></summary>';
+      html+='<div class="body">';
+      for(var i=w*7; i<w*7+7; i++){ html+=buildDay(i); }
+      html+='</div></details>';
+    }
+    wrap.innerHTML=html;
+    updateProgress();
+  }
+
+  function updateProgress(){
+    var done=0, elapsed=0;
+    for(var i=0;i<28;i++){ if(state.days[i]&&state.days[i].exercise) done++; }
+    if(state.startDate){
+      var d0=new Date(state.startDate+"T00:00:00");
+      if(!isNaN(d0)){ var diff=Math.floor((Date.now()-d0.getTime())/86400000); elapsed=Math.max(0,Math.min(28,diff+1)); }
+    }
+    document.getElementById("pfill").style.width=(done/28*100)+"%";
+    document.getElementById("plabel").textContent="運動実施 "+done+" / 28 日";
+    document.getElementById("pdays").textContent = state.startDate? ("経過 "+elapsed+" 日"):"開始日を設定";
+    for(var w=0;w<4;w++){ var el=document.getElementById("wc"+w); if(el) el.textContent="運動 "+weekCount(w)+"/7"; }
+  }
+
+  // event delegation
+  document.getElementById("weeks").addEventListener("input", onField, true);
+  document.getElementById("weeks").addEventListener("change", onField, true);
+
+  function onField(e){
+    var el=e.target;
+    var f=el.getAttribute("data-f");
+    if(!f) return;
+    var dayEl=el.closest(".day"); if(!dayEl) return;
+    var idx=parseInt(dayEl.getAttribute("data-day"),10);
+    var d=dayData(idx);
+    if(el.type==="checkbox"){ d[f]=el.checked; } else { d[f]=el.value; }
+
+    if(f==="exercise"){ dayEl.classList.toggle("done", el.checked); updateProgress(); }
+    if(f==="drink"){
+      var dd=dayEl.querySelector(".drink-detail");
+      if(dd) dd.classList.toggle("show", el.checked);
+    }
+    save(true);
+  }
+
+  // week open/close persistence
+  document.getElementById("weeks").addEventListener("toggle", function(e){
+    var det=e.target;
+    if(det.classList && det.classList.contains("weekacc")){
+      var w=det.getAttribute("data-week");
+      state.open=state.open||{}; state.open["w"+w]=det.open; save(false);
+    }
+  }, true);
+
+  // start date
+  var sd=document.getElementById("startDate");
+  sd.value=state.startDate||"";
+  sd.addEventListener("change", function(){ state.startDate=sd.value; save(true); render(); });
+  document.getElementById("btnToday").addEventListener("click", function(){
+    var t=new Date(); var m=("0"+(t.getMonth()+1)).slice(-2), day=("0"+t.getDate()).slice(-2);
+    state.startDate=t.getFullYear()+"-"+m+"-"+day; sd.value=state.startDate; save(true); render();
+  });
+
+  document.getElementById("btnExpand").addEventListener("click", function(){
+    document.querySelectorAll(".weekacc").forEach(function(d){ d.open=true; });
+  });
+  document.getElementById("btnCollapse").addEventListener("click", function(){
+    document.querySelectorAll(".weekacc").forEach(function(d){ d.open=false; });
+  });
+  document.getElementById("btnReset").addEventListener("click", function(){
+    if(confirm("入力したチェック・記録をすべて消去します。よろしいですか？")){
+      state={startDate:"", days:{}, open:{}}; try{localStorage.removeItem(STORE_KEY);}catch(e){}
+      sd.value=""; render();
+    }
+  });
+
+  render();
+})();
+</script>
