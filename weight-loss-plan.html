@@ -1207,16 +1207,21 @@
     try{
       var q=new URLSearchParams(location.search);
       if(!q.has("steps") && !q.has("weight") && !q.has("exmin")) return;
+      // ショートカットからは「8,432」「8432 歩」「87.4 kg」のような表記でも届くため、数字以外を除去して解釈
+      function numParam(name){
+        var v=q.get(name); if(v==null) return NaN;
+        return parseFloat(String(v).replace(/[^\d.]/g,""));
+      }
       var ti=todayIdx();
       if(ti<0){
         toast("⚠️ 取り込み失敗：開始日が未設定か、今日がプラン期間外です", 4000);
       }else{
         var d=dayData(ti), applied=[];
-        var s=parseInt(q.get("steps"),10);
+        var s=Math.round(numParam("steps"));
         if(s>0){ d.steps=String(s); if(!d.exType) d.exType="walk"; applied.push("歩数 "+s.toLocaleString()); }
-        var w=parseFloat(q.get("weight"));
+        var w=numParam("weight");
         if(w>20 && w<300){ d.weight=String(Math.round(w*10)/10); applied.push("体重 "+(Math.round(w*10)/10)+"kg"); }
-        var m=parseInt(q.get("exmin"),10);
+        var m=Math.round(numParam("exmin"));
         if(m>0){ d.exMin=String(m); if(!d.exType || d.exType==="walk") d.exType="brisk"; applied.push("運動 "+m+"分"); }
         if(applied.length){
           save(false); render();
