@@ -320,6 +320,18 @@
         <tr><td>プランク</td><td>20秒</td></tr>
         <tr><td>軽いストレッチ or 散歩</td><td>残り時間</td></tr>
       </table>
+      <div class="pill ok" style="margin:10px 0 6px">基本メニュー（単品・自由に組み合わせOK）</div>
+      <table class="menu-tbl">
+        <tr><td>スクワット <span class="tiny muted">脚・お尻</span></td><td>10〜15回×2〜3</td></tr>
+        <tr><td>腕立て伏せ（膝つきOK） <span class="tiny muted">胸・腕</span></td><td>8〜12回×2〜3</td></tr>
+        <tr><td>ランジ <span class="tiny muted">脚・お尻</span></td><td>左右各8〜10回×2</td></tr>
+        <tr><td>プランク <span class="tiny muted">体幹</span></td><td>20〜40秒×2〜3</td></tr>
+        <tr><td>クランチ（腹筋） <span class="tiny muted">お腹</span></td><td>10〜15回×2</td></tr>
+        <tr><td>グルートブリッジ <span class="tiny muted">お尻・腰まわり</span></td><td>12〜15回×2</td></tr>
+        <tr><td>カーフレイズ <span class="tiny muted">ふくらはぎ</span></td><td>15〜20回×2</td></tr>
+        <tr><td>ペットボトルショルダープレス <span class="tiny muted">肩・腕</span></td><td>10回×2</td></tr>
+      </table>
+      <div class="tiny muted">各日カードの筋トレ欄で単品メニューを選び、回数を入れると消費カロリーを自動計算します。複数種目やった日は主なものを選び、回数欄に合計回数でOK。</div>
     </div>
   </details>
 
@@ -423,7 +435,7 @@
   </footer>
 </div>
 
-<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="photoInput" accept="image/*" style="display:none">
 <div class="savehint" id="savehint">保存しました</div>
 
 <script>
@@ -466,11 +478,28 @@
     {id:"other",  n:"その他の運動",                 met:4.0}
   ];
   var ST_TYPES = [
-    {id:"",     n:"なし",            met:0,   defMin:0},
-    {id:"A",    n:"筋トレA（火曜）", met:3.5, defMin:25},
-    {id:"B",    n:"筋トレB（木曜）", met:3.5, defMin:25},
-    {id:"mini", n:"12分ミニメニュー", met:3.0, defMin:12}
+    {id:"",       n:"なし",                          met:0,   defMin:0,  g:""},
+    {id:"A",      n:"筋トレA（火曜セット）",          met:3.5, defMin:25, g:"set"},
+    {id:"B",      n:"筋トレB（木曜セット）",          met:3.5, defMin:25, g:"set"},
+    {id:"mini",   n:"12分ミニメニュー",               met:3.0, defMin:12, g:"set"},
+    {id:"squat",  n:"スクワット",                     met:5.0, defMin:10, g:"basic"},
+    {id:"pushup", n:"腕立て伏せ",                     met:3.8, defMin:10, g:"basic"},
+    {id:"lunge",  n:"ランジ",                         met:4.0, defMin:10, g:"basic"},
+    {id:"core",   n:"プランク・腹筋（体幹）",          met:3.8, defMin:10, g:"basic"},
+    {id:"hip",    n:"グルートブリッジ・背筋",          met:3.5, defMin:10, g:"basic"},
+    {id:"upper",  n:"ペットボトル/ダンベル上半身",     met:3.5, defMin:10, g:"basic"},
+    {id:"calf",   n:"カーフレイズ",                   met:3.5, defMin:5,  g:"basic"},
+    {id:"other",  n:"その他の筋トレ",                 met:3.5, defMin:20, g:"basic"}
   ];
+  function stOptions(cur){
+    var h=opt(cur,"","なし");
+    h+='<optgroup label="セットメニュー">';
+    ST_TYPES.forEach(function(x){ if(x.g==="set") h+=opt(cur,x.id,x.n); });
+    h+='</optgroup><optgroup label="基本メニュー（単品）">';
+    ST_TYPES.forEach(function(x){ if(x.g==="basic") h+=opt(cur,x.id,x.n); });
+    h+='</optgroup>';
+    return h;
+  }
 
   // ===== 食事プリセット（1人前の目安kcal） =====
   var MEAL_PRESETS = [
@@ -583,7 +612,12 @@
     var d=dayData(idx), w=weightFor(idx);
     var t=ST_TYPES.find(function(x){return x.id===(d.strengthType||"");})||ST_TYPES[0];
     if(!t.met) return 0;
-    var min=num(d.strengthMin)||t.defMin;
+    // 優先順位: 時間入力 > 回数から換算(1回≒10秒・休憩込み) > メニュー標準時間
+    var min=num(d.strengthMin);
+    if(!min){
+      var reps=num(d.strengthReps);
+      min = reps>0 ? reps/6 : t.defMin;
+    }
     return Math.round(1.05 * t.met * w * (min/60));
   }
   function mealKcal(m){
@@ -695,10 +729,11 @@
     // ===== 筋トレ =====
     h+='<div class="subcard exbox"><div class="sc-title">💪 筋トレ <span class="sc-kcal stkcal">消費 '+(stKcal(idx)||"—")+' kcal</span></div>';
     h+='<div class="sub-grid">';
-    h+='<div class="field"><label>実施メニュー</label><select data-f="strengthType">'+
-        ST_TYPES.map(function(x){return opt(d.strengthType,x.id,x.n);}).join("")+'</select></div>';
-    h+='<div class="field"><label>時間 (分・空欄=標準)</label><input type="number" inputmode="numeric" data-f="strengthMin" value="'+esc(d.strengthMin||"")+'" placeholder="A/B:25 ミニ:12"></div>';
+    h+='<div class="field full"><label>実施メニュー</label><select data-f="strengthType">'+stOptions(d.strengthType)+'</select></div>';
+    h+='<div class="field"><label>回数（合計・任意）</label><input type="number" inputmode="numeric" data-f="strengthReps" value="'+esc(d.strengthReps||"")+'" placeholder="例 30"></div>';
+    h+='<div class="field"><label>時間（分・任意）</label><input type="number" inputmode="numeric" data-f="strengthMin" value="'+esc(d.strengthMin||"")+'" placeholder="例 25"></div>';
     h+='</div>';
+    h+='<div class="tiny muted" style="margin-top:4px">時間を入れれば時間で、回数だけなら回数から換算（1回≒10秒・休憩込み）。両方空欄はメニューの標準時間で計算。</div>';
     if(t.tag==="A"||t.tag==="B"){
       h+='<details style="margin-top:4px"><summary class="tiny" style="color:var(--accent);cursor:pointer;list-style:none">▸ 今日の'+(t.tag==="A"?"筋トレA":"筋トレB")+'メニューを見る</summary>'+menuTable(t.tag==="A"?TRA:TRB)+'</details>';
     }
@@ -718,7 +753,7 @@
     h+='<div class="subcard mealbox"><div class="sc-title">🍽 食事記録 <span class="sc-kcal mealkcal">摂取 '+(ik===null?"—":ik)+' kcal</span></div>';
     h+='<div class="meal-list"></div>';
     h+='<button type="button" class="addmeal">＋ 食事を追加</button>';
-    h+='<div class="tiny muted" style="margin-top:4px">📷で料理写真を保存→見ながら量を選ぶ。kcal欄に直接入力すると上書きできます。</div>';
+    h+='<div class="tiny muted" style="margin-top:4px">📷でその場撮影のほか、撮影済みの写真も選べます。kcal欄に直接入力すると上書きできます。</div>';
     h+='</div>';
 
     // ===== 飲酒（行動チェック） =====
@@ -926,7 +961,7 @@
     box.addEventListener("pointerleave", function(){ tip.classList.remove("show"); });
   })();
 
-  var KCAL_FIELDS={weight:1,exType:1,exMin:1,steps:1,strengthType:1,strengthMin:1};
+  var KCAL_FIELDS={weight:1,exType:1,exMin:1,steps:1,strengthType:1,strengthMin:1,strengthReps:1};
 
   function onField(e){
     var el=e.target;
