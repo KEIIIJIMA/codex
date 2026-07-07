@@ -404,6 +404,20 @@
     </div>
   </details>
 
+  <!-- ヘルスケア連携 -->
+  <details class="acc">
+    <summary><span class="ic">⌚</span>Apple Watch・ヘルスケア連携<span class="chev">▶</span></summary>
+    <div class="body small">
+      <p style="margin:0 0 6px">iPhoneの「ショートカット」アプリを使うと、<b>ヘルスケアの歩数や体重を1タップで今日のカードに取り込めます</b>。このページをURLの後ろにデータを付けて開くだけの仕組みです。</p>
+      <div class="callout info tiny">
+        <b>使えるパラメータ</b>
+        <code>?steps=歩数</code>／<code>&amp;weight=体重</code>／<code>&amp;exmin=運動分数</code><br>
+        例：<code>…/codex/?steps=8432&amp;weight=87.4</code> → 今日の歩数と体重に自動入力されます（歩数を入れると運動種類が未設定なら「普通歩き」になります）。
+      </div>
+      <p class="tiny muted" style="margin:6px 0 0">ショートカットの作り方はチャットの案内を参照してください。セキュリティ上、Webページはヘルスケアに直接アクセスできないため、完全自動の同期はできません（ショートカットのオートメーションで毎晩の半自動実行は可能です）。</p>
+    </div>
+  </details>
+
   <!-- バックアップ -->
   <details class="acc">
     <summary><span class="ic">💾</span>データのバックアップ・復元<span class="chev">▶</span></summary>
@@ -1186,6 +1200,33 @@
   if(!storageOK){
     document.getElementById("storeBanner").style.display="block";
   }
+
+  // ===== ヘルスケア連携（ショートカット経由のURLパラメータ取り込み） =====
+  // 例: https://.../?steps=8432&weight=87.4&exmin=35
+  (function(){
+    try{
+      var q=new URLSearchParams(location.search);
+      if(!q.has("steps") && !q.has("weight") && !q.has("exmin")) return;
+      var ti=todayIdx();
+      if(ti<0){
+        toast("⚠️ 取り込み失敗：開始日が未設定か、今日がプラン期間外です", 4000);
+      }else{
+        var d=dayData(ti), applied=[];
+        var s=parseInt(q.get("steps"),10);
+        if(s>0){ d.steps=String(s); if(!d.exType) d.exType="walk"; applied.push("歩数 "+s.toLocaleString()); }
+        var w=parseFloat(q.get("weight"));
+        if(w>20 && w<300){ d.weight=String(Math.round(w*10)/10); applied.push("体重 "+(Math.round(w*10)/10)+"kg"); }
+        var m=parseInt(q.get("exmin"),10);
+        if(m>0){ d.exMin=String(m); if(!d.exType || d.exType==="walk") d.exType="brisk"; applied.push("運動 "+m+"分"); }
+        if(applied.length){
+          save(false); render();
+          toast("✅ ヘルスケアから取り込みました："+applied.join("・"), 4000);
+          jumpToDay(ti);
+        }
+      }
+      history.replaceState(null,"",location.pathname);
+    }catch(e){}
+  })();
 })();
 </script>
 </body>
