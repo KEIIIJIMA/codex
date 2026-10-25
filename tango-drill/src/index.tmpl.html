@@ -195,7 +195,7 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 @media (max-width:560px){.sgrid{grid-template-columns:1fr}}
 .lvbar{display:flex;align-items:center;gap:10px;font-size:.85rem;margin-top:8px}
-.lvbar .lab{width:5.5em;color:var(--muted);flex:none}
+.lvbar .lab{width:6.5em;color:var(--muted);flex:none}
 .lvbar .track{flex:1;height:8px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
 .lvbar .track i{display:block;height:100%;background:var(--accent)}
 .lvbar .v{width:4.5em;text-align:right;flex:none}
@@ -210,7 +210,7 @@ footer.about{margin-top:36px;font-size:.78rem;color:var(--muted);text-align:cent
 </head><!--SKEL-->
 <body><!--SKEL-->
 <header class="top"><div class="wrap">
-  <div class="brand"><h1>単語ドリル</h1><span class="lv">難関国公立・準難関私大レベル</span></div>
+  <div class="brand"><h1>単語ドリル</h1><span class="lv">共通テスト〜最難関大レベル</span></div>
   <div class="switch" role="tablist" aria-label="科目">
     <button role="tab" data-subj="kobun" aria-selected="true">古文</button>
     <button role="tab" data-subj="eigo" aria-selected="false">英単語</button>
@@ -234,11 +234,13 @@ footer.about{margin-top:36px;font-size:.78rem;color:var(--muted);text-align:cent
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const KEY='tango-drill-v1';
-const SUBJ={kobun:{name:'古文単語',cls:'ja',qm:'意味',qw:'語'},eigo:{name:'英単語',cls:'en',qm:'意味',qw:'単語'}};
+const SUBJ={kobun:{name:'古文単語',cls:'ja',qw:'語',lv:{1:'必修',2:'発展'},lvd:{1:'必修（どの難関大でも必要）',2:'発展（最難関向け）'}},eigo:{name:'英単語',cls:'en',qw:'単語',lv:{1:'基礎',2:'標準',3:'発展',4:'最難関'},lvd:{1:'基礎（共通テスト・高校必修）',2:'標準（MARCH・関関同立・地方国公立）',3:'発展（早慶上智・旧帝大）',4:'最難関（東大京大・早慶上位・医学部）'}}};
+const lvName=(it)=>SUBJ[S.subj].lv[it.lv]||('Lv'+it.lv);
 const DATA={
   kobun:KOBUN_RAW.map(r=>({id:'k:'+r[0]+(r[1]?'|'+r[1]:''),w:r[0],k:r[1],pos:r[2],m:r[3],ex:r[4],tr:r[5],note:r[6],lv:r[7],tags:r[8]})),
   eigo:EIGO_RAW.map(r=>({id:'e:'+r[0],w:r[0],k:'',pos:r[1],m:r[2],ex:r[3],tr:r[4],der:r[5],lv:r[6],tags:r[7]}))
 };
+DATA.kobun.sort((a,b)=>a.w.localeCompare(b.w,'ja'));DATA.eigo.sort((a,b)=>a.lv-b.lv||a.w.localeCompare(b.w,'en'));
 const TAGS={};for(const s in DATA){const t=new Set();DATA[s].forEach(it=>it.tags.forEach(x=>t.add(x)));TAGS[s]=[...t];}
 const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
 
@@ -267,8 +269,7 @@ function pool(subj,range){const all=DATA[subj];
   if(range==='new')return all.filter(it=>status(it)==='new');
   if(range==='weak')return all.filter(it=>status(it)==='weak');
   if(range==='notok')return all.filter(it=>status(it)!=='ok');
-  if(range==='lv1')return all.filter(it=>it.lv===1);
-  if(range==='lv2')return all.filter(it=>it.lv===2);
+  if(/^lv\d$/.test(range))return all.filter(it=>it.lv===+range[2]);
   if(range.startsWith('tag:')){const t=range.slice(4);return all.filter(it=>it.tags.includes(t));}
   return all.slice();}
 function order(items,mode){
@@ -302,7 +303,7 @@ function render(){
   try{window.scrollTo({top:0});}catch(e){}
 }
 function wordHtml(it,cls){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${it.k?`<div class="kanji">${esc(it.k)}</div>`:''}`;}
-function chipsHtml(it){return `<div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${it.lv===1?'必修':'発展'}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
+function chipsHtml(it){return `<div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 function detailHtml(it){const c=SUBJ[S.subj].cls;
   return `<ol class="means">${it.m.map(m=>`<li><span>${esc(m)}</span></li>`).join('')}</ol>
   ${it.ex?`<div class="ex"><div class="q ${c}">${esc(it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
@@ -330,8 +331,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
         <option value="notok"${sel('notok')}>未習得のみ（苦手＋学習中＋未学習）</option>
         <option value="weak"${sel('weak')}>苦手のみ</option>
         <option value="new"${sel('new')}>未学習のみ</option>
-        <option value="lv1"${sel('lv1')}>必修レベル</option>
-        <option value="lv2"${sel('lv2')}>発展レベル（最難関向け）</option>
+        ${Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>レベル${l}: ${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
         <option value="all"${sel('all')}>すべて</option>
         ${tagOpts}</select></div>
       <div class="opt"><label for="o-count">問題数</label><select id="o-count" data-pref="count">
@@ -362,7 +362,7 @@ function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.leng
   if(!sess.choices)sess.choices=makeChoices(it);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const prompt=toM?`<div class="qprompt">${S.subj==='kobun'?'この語の意味は？':'この単語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it)}`
-    :`<div class="qprompt">この意味を表す${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${it.lv===1?'必修':'発展'}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(it.m.join('　／　'))}</p>`;
+    :`<div class="qprompt">この意味を表す${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(it.m.join('　／　'))}</p>`;
   const picked=sess.picked;
   const choices=sess.choices.map((x,i)=>{let cls='choice';if(picked!==null){if(x.id===it.id)cls+=' correct';else if(i===picked)cls+=' wrong';else cls+=' dim';}
     return `<button class="${cls}" data-pick="${i}"${picked!==null?' disabled':''}><span class="n">${i+1}</span><span class="txt ${toM?'':c}">${esc(choiceText(x,toM))}</span></button>`;}).join('');
@@ -383,22 +383,22 @@ function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(
 function viewList(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase();
   let items=DATA[S.subj].filter(it=>L.st==='all'||status(it)===L.st).filter(it=>L.lv==='all'||it.lv===+L.lv);
   if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')).toLowerCase().includes(q));
+  const total=items.length,CAP=200;items=items.slice(0,CAP);
   const chip=(k,v,lab)=>`<button class="fchip" data-f="${k}" data-v="${v}" aria-pressed="${String(L[k])===v}">${lab}</button>`;
   return `<input type="search" id="q" placeholder="語・意味で検索" value="${esc(L.q)}" autocomplete="off">
-  <div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${chip('lv','all','全レベル')}${chip('lv','1','必修')}${chip('lv','2','発展')}</div>
-  <div class="count num">${items.length} 語</div>
+  <div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${chip('lv','all','全レベル')}${Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
+  <div class="count num">${total} 語${total>CAP?`（先頭 ${CAP} 語を表示。検索や絞り込みで狭めてください）`:''}</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
     return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="vw ${c}">${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${esc(it.m.join('／'))}</span></button>
     ${open?`<div class="vdet">${detailHtml(it)}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>`
   :'<div class="empty">該当する語がありません</div>'}`;}
 
 function viewStats(){const c=SUBJ[S.subj].cls;
-  const subjBlock=s=>{const cc=counts(s),all=DATA[s];const lv=n=>{const a=all.filter(it=>it.lv===n),o=a.filter(it=>status(it)==='ok').length;return{a:a.length,o};};const l1=lv(1),l2=lv(2);
+  const subjBlock=s=>{const cc=counts(s),all=DATA[s];const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
     return `<div class="panel"><h2>${esc(SUBJ[s].name)} <span class="sub">${cc.total}語</span></h2>
     <div class="bar"><i class="ok" style="width:${cc.ok/cc.total*100}%"></i><i class="learning" style="width:${cc.learning/cc.total*100}%"></i><i class="weak" style="width:${cc.weak/cc.total*100}%"></i></div>
     <div class="legend" style="margin-bottom:6px"><span class="ok">習得 ${cc.ok}</span><span class="learning">学習中 ${cc.learning}</span><span class="weak">苦手 ${cc.weak}</span><span>未学習 ${cc.new}</span></div>
-    <div class="lvbar"><span class="lab">必修</span><div class="track"><i style="width:${l1.a?l1.o/l1.a*100:0}%"></i></div><span class="v num">${l1.o}/${l1.a}</span></div>
-    <div class="lvbar"><span class="lab">発展</span><div class="track"><i style="width:${l2.a?l2.o/l2.a*100:0}%"></i></div><span class="v num">${l2.o}/${l2.a}</span></div></div>`;};
+    ${lvs.map(l=>`<div class="lvbar"><span class="lab">${l.n} ${esc(l.lab)}</span><div class="track"><i style="width:${l.a?l.o/l.a*100:0}%"></i></div><span class="v num">${l.o}/${l.a}</span></div>`).join('')}</div>`;};
   // 14日間の回答数
   const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({k:today(d),d,n:store.days[today(d)]||0});}
   const max=Math.max(1,...days.map(x=>x.n)),W=560,H=120,pad=22,bw=(W-pad*2)/14;
