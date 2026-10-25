@@ -286,6 +286,7 @@ function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mo
   const cand=shuffle(all.filter(x=>x.id!==it.id&&x.w!==it.w));cand.sort((a,b)=>Math.abs(a.lv-it.lv)-Math.abs(b.lv-it.lv));
   const picks=[];for(const x of cand){if(seen.has(key(x)))continue;seen.add(key(x));picks.push(x);if(picks.length===3)break;}
   return shuffle([it,...picks]);}
+function hideWord(it){const re=new RegExp(it.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig');return it.m.map(m=>m.replace(/[（(][^）)]*[A-Za-z][^）)]*[）)]/g,'').replace(re,'＿＿').replace(/^[・\s]+|[・\s]+$/g,'')).filter(Boolean);}
 function choiceText(x,toM){return toM?x.m.slice(0,2).join('／'):x.w;}
 function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});}
 function next(){const sess=S.session;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;render();}
@@ -362,7 +363,7 @@ function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.leng
   if(!sess.choices)sess.choices=makeChoices(it);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const prompt=toM?`<div class="qprompt">${S.subj==='kobun'?'この語の意味は？':'この単語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it)}`
-    :`<div class="qprompt">この意味を表す${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(it.m.join('　／　'))}</p>`;
+    :`<div class="qprompt">この意味を表す${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(hideWord(it).join('　／　'))}</p>`;
   const picked=sess.picked;
   const choices=sess.choices.map((x,i)=>{let cls='choice';if(picked!==null){if(x.id===it.id)cls+=' correct';else if(i===picked)cls+=' wrong';else cls+=' dim';}
     return `<button class="${cls}" data-pick="${i}"${picked!==null?' disabled':''}><span class="n">${i+1}</span><span class="txt ${toM?'':c}">${esc(choiceText(x,toM))}</span></button>`;}).join('');
