@@ -1,0 +1,2711 @@
+[
+[
+"participate",
+"動",
+[
+"参加する",
+"関与する"
+],
+"All students are encouraged to participate in the school festival.",
+"全生徒が文化祭に参加するよう奨励されている。",
+"participation 名 参加 / participant 名 参加者",
+1,
+[
+"社会",
+"行動"
+]
+],
+[
+"passage",
+"名",
+[
+"(文章の)一節",
+"通路",
+"(時の)経過"
+],
+"Read the following passage and answer the questions below.",
+"次の一節を読み、下の問いに答えなさい。",
+"pass 動 通過する",
+1,
+[
+"言語",
+"学習"
+]
+],
+[
+"patient",
+"名・形",
+[
+"患者",
+"忍耐強い"
+],
+"The doctor was patient with every worried patient who came in.",
+"その医師は来院する不安げな患者一人ひとりに辛抱強く接した。",
+"patience 名 忍耐 ↔ impatient",
+1,
+[
+"身体・健康",
+"性格"
+]
+],
+[
+"pattern",
+"名",
+[
+"型",
+"様式",
+"模様"
+],
+"Scientists noticed a clear pattern in the way the birds migrated.",
+"科学者たちは鳥の渡りの方法に明確なパターンがあることに気づいた。",
+"",
+1,
+[
+"科学",
+"抽象"
+]
+],
+[
+"perform",
+"動",
+[
+"行う",
+"遂行する",
+"演じる"
+],
+"The surgeon performed the operation with remarkable skill.",
+"その外科医は驚くべき技術で手術を行った。",
+"performance 名 演技・成績 / performer 名 演者",
+1,
+[
+"行動"
+]
+],
+[
+"period",
+"名",
+[
+"期間",
+"時代",
+"終止符"
+],
+"The country enjoyed a long period of peace after the war.",
+"その国は戦後、長い平和の時代を享受した。",
+"periodic 形 周期的な",
+1,
+[
+"時間"
+]
+],
+[
+"permit",
+"動・名",
+[
+"許す",
+"許可証"
+],
+"The law does not permit children to work in factories.",
+"その法律は子どもが工場で働くことを許していない。",
+"permission 名 許可 / permissible 形 許される",
+1,
+[
+"政治・法"
+]
+],
+[
+"perspective",
+"名",
+[
+"視点",
+"見通し",
+"遠近法"
+],
+"Travel helps us see our own culture from a different perspective.",
+"旅行は私たちが自国の文化を別の視点から見る助けとなる。",
+"in perspective 全体を見て",
+1,
+[
+"思考",
+"抽象"
+]
+],
+[
+"persuade",
+"動",
+[
+"説得する",
+"納得させる"
+],
+"She persuaded her parents to let her study abroad.",
+"彼女は両親を説得して留学させてもらった。",
+"persuasion 名 説得 / persuasive 形 説得力のある",
+1,
+[
+"行動",
+"言語"
+]
+],
+[
+"policy",
+"名",
+[
+"政策",
+"方針"
+],
+"The government announced a new policy to reduce carbon emissions.",
+"政府は二酸化炭素排出量を減らす新たな政策を発表した。",
+"politics 名 政治 / policymaker 名 政策立案者",
+1,
+[
+"政治・法",
+"社会"
+]
+],
+[
+"population",
+"名",
+[
+"人口",
+"(全)住民"
+],
+"The population of the city has doubled over the last thirty years.",
+"その都市の人口はこの30年間で倍増した。",
+"populate 動 居住する / populous 形 人口の多い",
+1,
+[
+"社会"
+]
+],
+[
+"positive",
+"形",
+[
+"肯定的な",
+"前向きな",
+"明確な"
+],
+"A positive attitude can make difficult tasks feel easier.",
+"前向きな態度は困難な作業を楽に感じさせてくれることがある。",
+"↔ negative",
+1,
+[
+"性格",
+"評価"
+]
+],
+[
+"possess",
+"動",
+[
+"所有する",
+"(能力などを)持つ"
+],
+"Few people possess the courage to speak against the majority.",
+"多数派に異を唱える勇気を持つ人はほとんどいない。",
+"possession 名 所有(物) / possessive 形 独占欲の強い",
+1,
+[
+"抽象"
+]
+],
+[
+"potential",
+"名・形",
+[
+"可能性",
+"潜在能力",
+"潜在的な"
+],
+"Every child has the potential to develop great talent.",
+"どの子どもも優れた才能を伸ばす可能性を秘めている。",
+"potentially 副 潜在的に",
+1,
+[
+"抽象",
+"評価"
+]
+],
+[
+"poverty",
+"名",
+[
+"貧困",
+"欠乏"
+],
+"Education is a powerful tool for escaping poverty.",
+"教育は貧困から抜け出すための強力な手段である。",
+"poor 形 貧しい ↔ wealth",
+1,
+[
+"社会",
+"経済"
+]
+],
+[
+"practical",
+"形",
+[
+"実用的な",
+"現実的な",
+"実際の"
+],
+"The course gives students practical experience as well as theory.",
+"その課程は学生に理論だけでなく実践的な経験も与える。",
+"practice 名 実践 / practically 副 事実上",
+1,
+[
+"学習",
+"評価"
+]
+],
+[
+"praise",
+"動・名",
+[
+"称賛する",
+"称賛"
+],
+"The teacher praised the students for their hard work.",
+"教師は生徒たちの努力を称賛した。",
+"praiseworthy 形 称賛に値する ↔ criticize",
+1,
+[
+"評価",
+"行動"
+]
+],
+[
+"predict",
+"動",
+[
+"予測する",
+"予言する"
+],
+"Nobody could predict how quickly the technology would spread.",
+"その技術がどれほど速く普及するか誰にも予測できなかった。",
+"prediction 名 予測 / predictable 形 予測できる",
+1,
+[
+"科学",
+"思考"
+]
+],
+[
+"prefer",
+"動",
+[
+"〜の方を好む"
+],
+"Many young people prefer reading news online to buying newspapers.",
+"多くの若者は新聞を買うよりオンラインでニュースを読む方を好む。",
+"preference 名 好み / preferable 形 望ましい",
+1,
+[
+"行動"
+]
+],
+[
+"preserve",
+"動・名",
+[
+"保存する",
+"保護する",
+"保護区"
+],
+"We must preserve the forests for future generations.",
+"私たちは将来の世代のために森林を保護しなければならない。",
+"preservation 名 保存 / preservative 名 防腐剤",
+1,
+[
+"環境"
+]
+],
+[
+"pressure",
+"名",
+[
+"圧力",
+"重圧",
+"気圧"
+],
+"Students often feel great pressure to succeed in entrance exams.",
+"学生は入試で成功しなければという大きな重圧をしばしば感じる。",
+"press 動 押す / peer pressure 同調圧力",
+1,
+[
+"心理",
+"社会"
+]
+],
+[
+"principle",
+"名",
+[
+"原則",
+"主義",
+"原理"
+],
+"She refused the offer on principle, not because of the money.",
+"彼女は金のためではなく、主義としてその申し出を断った。",
+"principal 形 主要な (同音語に注意)",
+1,
+[
+"抽象",
+"思考"
+]
+],
+[
+"process",
+"名・動",
+[
+"過程",
+"処理する"
+],
+"Learning a language is a slow process that requires patience.",
+"言語の習得は忍耐を要するゆっくりとした過程である。",
+"procession 名 行列 / in the process of 〜の最中",
+1,
+[
+"科学",
+"抽象"
+]
+],
+[
+"profession",
+"名",
+[
+"職業(専門職)",
+"同業者"
+],
+"Teaching is a demanding profession that requires constant learning.",
+"教職は絶えず学び続けることを求められる大変な職業である。",
+"professional 形・名 専門の/プロ / professor 名 教授",
+1,
+[
+"社会"
+]
+],
+[
+"profit",
+"名・動",
+[
+"利益",
+"利益を得る"
+],
+"The company made a large profit despite the weak economy.",
+"その会社は景気が弱いにもかかわらず大きな利益を上げた。",
+"profitable 形 儲かる / non-profit 形 非営利の",
+1,
+[
+"経済"
+]
+],
+[
+"progress",
+"名・動",
+[
+"進歩",
+"前進する"
+],
+"Medical science has made remarkable progress in recent decades.",
+"医学はここ数十年で目覚ましい進歩を遂げた。",
+"progressive 形 進歩的な ↔ regress",
+1,
+[
+"変化",
+"科学"
+]
+],
+[
+"promote",
+"動",
+[
+"促進する",
+"昇進させる",
+"宣伝する"
+],
+"The campaign aims to promote healthy eating among teenagers.",
+"そのキャンペーンは10代の健康的な食生活を促進することを目指している。",
+"promotion 名 昇進・促進",
+1,
+[
+"行動",
+"社会"
+]
+],
+[
+"propose",
+"動",
+[
+"提案する",
+"結婚を申し込む"
+],
+"The mayor proposed building a new library near the station.",
+"市長は駅の近くに新しい図書館を建てることを提案した。",
+"proposal 名 提案 / proposition 名 主張",
+1,
+[
+"行動",
+"言語"
+]
+],
+[
+"protect",
+"動",
+[
+"保護する",
+"守る"
+],
+"Sunscreen protects the skin from harmful ultraviolet rays.",
+"日焼け止めは有害な紫外線から肌を守る。",
+"protection 名 保護 / protective 形 保護の",
+1,
+[
+"環境",
+"行動"
+]
+],
+[
+"provide",
+"動",
+[
+"提供する",
+"備える"
+],
+"The school provides lunch for all of its students.",
+"その学校は全生徒に昼食を提供している。",
+"provision 名 供給 / provider 名 提供者 / provided that 〜という条件で",
+1,
+[
+"行動",
+"社会"
+]
+],
+[
+"psychology",
+"名",
+[
+"心理学",
+"心理"
+],
+"She became interested in psychology after reading about human memory.",
+"彼女は人間の記憶について読んで心理学に興味を持つようになった。",
+"psychological 形 心理的な / psychologist 名 心理学者",
+1,
+[
+"心理",
+"学習"
+]
+],
+[
+"publish",
+"動",
+[
+"出版する",
+"公表する"
+],
+"The professor published his findings in a leading scientific journal.",
+"その教授は研究成果を一流の科学雑誌に発表した。",
+"publication 名 出版 / publisher 名 出版社",
+1,
+[
+"文化",
+"言語"
+]
+],
+[
+"purchase",
+"動・名",
+[
+"購入する",
+"購入(品)"
+],
+"Customers can purchase tickets online up to a week in advance.",
+"客は最大1週間前までオンラインでチケットを購入できる。",
+"",
+1,
+[
+"経済",
+"日常"
+]
+],
+[
+"purpose",
+"名",
+[
+"目的",
+"意図"
+],
+"The purpose of this survey is to understand student lifestyles.",
+"この調査の目的は学生の生活様式を理解することだ。",
+"on purpose わざと / purposeful 形 目的のある",
+1,
+[
+"抽象"
+]
+],
+[
+"qualify",
+"動",
+[
+"資格を得る",
+"資格を与える",
+"限定する"
+],
+"She qualified as a nurse after three years of training.",
+"彼女は3年間の訓練を経て看護師の資格を得た。",
+"qualification 名 資格 / qualified 形 資格のある",
+1,
+[
+"学習",
+"社会"
+]
+],
+[
+"quality",
+"名・形",
+[
+"質",
+"特質",
+"良質の"
+],
+"Customers care more about quality than about low prices.",
+"客は安い価格より品質を重視する。",
+"qualitative 形 質的な ↔ quantity",
+1,
+[
+"評価"
+]
+],
+[
+"quantity",
+"名",
+[
+"量",
+"数量"
+],
+"A large quantity of water is needed to grow rice.",
+"米を育てるには大量の水が必要だ。",
+"quantify 動 数量化する / quantitative 形 量的な",
+1,
+[
+"科学"
+]
+],
+[
+"quote",
+"動・名",
+[
+"引用する",
+"引用(文)",
+"見積もり"
+],
+"The author quotes several historians to support her argument.",
+"著者は自説を裏づけるために数人の歴史家の言葉を引用している。",
+"quotation 名 引用",
+1,
+[
+"言語",
+"学習"
+]
+],
+[
+"pollution",
+"名",
+[
+"汚染",
+"公害"
+],
+"Air pollution in large cities has become a serious health issue.",
+"大都市の大気汚染は深刻な健康問題となっている。",
+"pollute 動 汚染する / pollutant 名 汚染物質",
+1,
+[
+"環境"
+]
+],
+[
+"portion",
+"名",
+[
+"部分",
+"一人前",
+"分け前"
+],
+"A large portion of the budget is spent on education.",
+"予算の大部分が教育に費やされている。",
+"proportion 名 割合",
+1,
+[
+"抽象"
+]
+],
+[
+"presence",
+"名",
+[
+"存在",
+"出席",
+"面前"
+],
+"The presence of the police made the crowd calm down.",
+"警察の存在が群衆を落ち着かせた。",
+"present 形 出席している ↔ absence",
+1,
+[
+"日常",
+"抽象"
+]
+],
+[
+"proceed",
+"動",
+[
+"進む",
+"続ける",
+"(〜に)取りかかる"
+],
+"After a short break, the speaker proceeded with his talk.",
+"短い休憩の後、講演者は話を続けた。",
+"procedure 名 手順 / proceeding 名 進行",
+1,
+[
+"行動"
+]
+],
+[
+"procedure",
+"名",
+[
+"手順",
+"手続き"
+],
+"The hospital follows a strict procedure before every operation.",
+"その病院はあらゆる手術の前に厳格な手順に従う。",
+"proceed 動 進む / process 名 過程",
+1,
+[
+"科学",
+"社会"
+]
+],
+[
+"previous",
+"形",
+[
+"以前の",
+"前の"
+],
+"The previous owner of the house left several old paintings.",
+"その家の前の所有者はいくつかの古い絵を残していった。",
+"previously 副 以前に ↔ following",
+1,
+[
+"時間"
+]
+],
+[
+"pretend",
+"動",
+[
+"〜のふりをする",
+"装う"
+],
+"He pretended not to notice that his friend was upset.",
+"彼は友人が動揺していることに気づかないふりをした。",
+"pretense 名 見せかけ",
+1,
+[
+"行動",
+"心理"
+]
+],
+[
+"prevent",
+"動",
+[
+"防ぐ",
+"妨げる"
+],
+"Regular exercise can prevent many serious diseases.",
+"定期的な運動は多くの重い病気を防ぐことができる。",
+"prevention 名 予防 / preventive 形 予防の",
+1,
+[
+"行動",
+"身体・健康"
+]
+],
+[
+"property",
+"名",
+[
+"財産",
+"所有物",
+"特性"
+],
+"Water has the property of expanding when it freezes.",
+"水は凍ると膨張する性質を持つ。",
+"proper 形 適切な",
+1,
+[
+"経済",
+"科学"
+]
+],
+[
+"proportion",
+"名",
+[
+"割合",
+"釣り合い"
+],
+"A growing proportion of the population is over sixty-five.",
+"人口に占める65歳以上の割合が高まっている。",
+"proportional 形 比例した / in proportion to 〜に比例して",
+1,
+[
+"科学",
+"社会"
+]
+],
+[
+"pose",
+"動・名",
+[
+"(問題などを)引き起こす",
+"ポーズをとる",
+"姿勢"
+],
+"Plastic waste poses a serious threat to marine life.",
+"プラスチックごみは海洋生物に深刻な脅威をもたらしている。",
+"pose a question 質問を投げかける",
+1,
+[
+"環境",
+"行動"
+]
+],
+[
+"prospect",
+"名",
+[
+"見込み",
+"展望",
+"(複数形で)将来性"
+],
+"There is little prospect of a quick solution to the problem.",
+"その問題がすぐ解決する見込みはほとんどない。",
+"prospective 形 将来の / prospects 名 見通し",
+1,
+[
+"時間",
+"抽象"
+]
+],
+[
+"prove",
+"動",
+[
+"証明する",
+"〜だと判明する"
+],
+"The experiment proved that the original theory was correct.",
+"その実験は当初の理論が正しいことを証明した。",
+"proof 名 証拠 / proven 形 実証された",
+1,
+[
+"科学",
+"思考"
+]
+],
+[
+"parallel",
+"形・名",
+[
+"平行の",
+"類似した",
+"類似点"
+],
+"There are striking parallels between the two historical events.",
+"その二つの歴史的事件には著しい類似点がある。",
+"in parallel with 〜と並行して",
+2,
+[
+"抽象",
+"思考"
+]
+],
+[
+"partial",
+"形",
+[
+"部分的な",
+"不公平な",
+"(〜が)好きな"
+],
+"The plan was only a partial success because of limited funds.",
+"その計画は資金不足のため部分的な成功にとどまった。",
+"partially 副 部分的に / impartial 形 公平な",
+2,
+[
+"評価"
+]
+],
+[
+"passive",
+"形",
+[
+"受動的な",
+"消極的な"
+],
+"Students learn more when they are not passive listeners.",
+"学生は受け身の聞き手でないほうがより多くを学ぶ。",
+"↔ active / passivity 名 受動性",
+2,
+[
+"性格",
+"言語"
+]
+],
+[
+"patent",
+"名",
+[
+"特許"
+],
+"The inventor applied for a patent to protect his new device.",
+"その発明者は新装置を守るために特許を申請した。",
+"patent 形 明白な",
+2,
+[
+"政治・法",
+"科学"
+]
+],
+[
+"peer",
+"名",
+[
+"同僚",
+"仲間",
+"同等の人"
+],
+"Teenagers are often strongly influenced by their peers.",
+"10代の若者は仲間から強い影響を受けることが多い。",
+"peer review 査読",
+2,
+[
+"社会",
+"心理"
+]
+],
+[
+"penalty",
+"名",
+[
+"刑罰",
+"罰金",
+"不利益"
+],
+"The penalty for driving without a license is a heavy fine.",
+"無免許運転の罰則は高額の罰金である。",
+"penalize 動 罰する",
+2,
+[
+"政治・法"
+]
+],
+[
+"perception",
+"名",
+[
+"認識",
+"知覚",
+"見方"
+],
+"Public perception of the new law differs greatly by region.",
+"その新法に対する世間の受け止め方は地域によって大きく異なる。",
+"perceive 動 知覚する",
+2,
+[
+"心理",
+"思考"
+]
+],
+[
+"permanent",
+"形",
+[
+"永続的な",
+"常設の"
+],
+"The accident left him with a permanent injury to his knee.",
+"その事故で彼は膝に一生治らない傷を負った。",
+"permanently 副 永久に ↔ temporary",
+2,
+[
+"時間"
+]
+],
+[
+"persist",
+"動",
+[
+"固執する",
+"持続する",
+"やり抜く"
+],
+"If the symptoms persist, you should see a doctor.",
+"症状が続くようなら、医師の診察を受けるべきだ。",
+"persistence 名 粘り強さ / persistent 形 持続的な",
+2,
+[
+"行動",
+"時間"
+]
+],
+[
+"pessimistic",
+"形",
+[
+"悲観的な"
+],
+"Many economists are pessimistic about the future of the industry.",
+"多くの経済学者はその産業の将来について悲観的だ。",
+"pessimism 名 悲観論 ↔ optimistic",
+2,
+[
+"性格",
+"心理"
+]
+],
+[
+"phase",
+"名",
+[
+"段階",
+"局面"
+],
+"The project is now entering its final phase of development.",
+"そのプロジェクトは今や開発の最終段階に入っている。",
+"",
+2,
+[
+"時間",
+"変化"
+]
+],
+[
+"philosophy",
+"名",
+[
+"哲学",
+"人生観",
+"理念"
+],
+"Her philosophy of life is to live simply and honestly.",
+"彼女の人生哲学は簡素に誠実に生きることだ。",
+"philosopher 名 哲学者 / philosophical 形 哲学的な",
+2,
+[
+"思考",
+"学習"
+]
+],
+[
+"pioneer",
+"名・動",
+[
+"先駆者",
+"開拓者",
+"開拓する"
+],
+"He was a pioneer in the field of computer science.",
+"彼はコンピューター科学の分野の先駆者だった。",
+"",
+2,
+[
+"科学",
+"社会"
+]
+],
+[
+"plot",
+"名・動",
+[
+"筋",
+"陰謀",
+"企む"
+],
+"The plot of the novel is simple, but its message is deep.",
+"その小説の筋は単純だが、そのメッセージは深い。",
+"",
+2,
+[
+"文化",
+"言語"
+]
+],
+[
+"plunge",
+"動・名",
+[
+"急落する",
+"飛び込む",
+"突入"
+],
+"Stock prices plunged after the unexpected announcement.",
+"予期せぬ発表の後、株価は急落した。",
+"",
+2,
+[
+"経済",
+"変化"
+]
+],
+[
+"portray",
+"動",
+[
+"描く",
+"演じる",
+"〜として表現する"
+],
+"The film portrays the daily life of farmers in the 1930s.",
+"その映画は1930年代の農民の日常生活を描いている。",
+"portrait 名 肖像画 / portrayal 名 描写",
+2,
+[
+"文化",
+"言語"
+]
+],
+[
+"postpone",
+"動",
+[
+"延期する"
+],
+"The match was postponed until next week because of heavy rain.",
+"試合は大雨のため来週に延期された。",
+"",
+2,
+[
+"時間",
+"行動"
+]
+],
+[
+"precise",
+"形",
+[
+"正確な",
+"まさにその"
+],
+"The scientist took precise measurements of the water temperature.",
+"その科学者は水温を正確に測定した。",
+"precisely 副 正確に / precision 名 正確さ",
+2,
+[
+"科学",
+"評価"
+]
+],
+[
+"predecessor",
+"名",
+[
+"前任者",
+"前身"
+],
+"The new director plans to change the policies of his predecessor.",
+"新しい理事は前任者の方針を変更する予定だ。",
+"↔ successor",
+2,
+[
+"社会",
+"時間"
+]
+],
+[
+"preference",
+"名",
+[
+"好み",
+"優先"
+],
+"Consumer preferences have shifted toward environmentally friendly products.",
+"消費者の好みは環境に優しい製品へと移ってきた。",
+"prefer 動 好む / preferential 形 優先的な",
+2,
+[
+"経済",
+"心理"
+]
+],
+[
+"premise",
+"名",
+[
+"前提",
+"(複数形で)構内"
+],
+"His argument is based on the premise that people are rational.",
+"彼の議論は人間は合理的だという前提に基づいている。",
+"on the premises 構内で",
+2,
+[
+"思考",
+"抽象"
+]
+],
+[
+"prescribe",
+"動",
+[
+"処方する",
+"規定する"
+],
+"The doctor prescribed medicine to lower his blood pressure.",
+"医師は血圧を下げる薬を処方した。",
+"prescription 名 処方箋",
+2,
+[
+"身体・健康"
+]
+],
+[
+"presume",
+"動",
+[
+"推定する",
+"〜と思い込む",
+"厚かましくも〜する"
+],
+"I presume that you have already read the instructions.",
+"あなたはすでに説明書を読んだものと思います。",
+"presumption 名 推定 / presumably 副 おそらく",
+2,
+[
+"思考"
+]
+],
+[
+"prior",
+"形",
+[
+"前の",
+"優先する"
+],
+"Visitors must get prior permission before entering the laboratory.",
+"訪問者は研究室に入る前に事前の許可を得なければならない。",
+"prior to 〜より前に / priority 名 優先事項",
+2,
+[
+"時間"
+]
+],
+[
+"privilege",
+"名",
+[
+"特権",
+"特典",
+"光栄"
+],
+"Access to clean water should be a right, not a privilege.",
+"きれいな水を使えることは特権ではなく権利であるべきだ。",
+"privileged 形 特権のある",
+2,
+[
+"社会",
+"政治・法"
+]
+],
+[
+"probable",
+"形",
+[
+"ありそうな",
+"見込みの高い"
+],
+"It is probable that prices will rise again next year.",
+"来年も物価が再び上がる公算が大きい。",
+"probably 副 おそらく / probability 名 確率",
+2,
+[
+"思考"
+]
+],
+[
+"prohibit",
+"動",
+[
+"禁止する",
+"妨げる"
+],
+"The law prohibits the sale of alcohol to minors.",
+"その法律は未成年者への酒類の販売を禁じている。",
+"prohibition 名 禁止 ↔ permit",
+2,
+[
+"政治・法"
+]
+],
+[
+"prolong",
+"動",
+[
+"延長する",
+"長引かせる"
+],
+"Modern medicine can prolong life, but not always its quality.",
+"現代医学は寿命を延ばせるが、その質まで高めるとは限らない。",
+"prolonged 形 長期の",
+2,
+[
+"時間",
+"身体・健康"
+]
+],
+[
+"prompt",
+"形・動",
+[
+"迅速な",
+"促す",
+"即座の"
+],
+"Prompt action by the firefighters saved many lives.",
+"消防士の迅速な行動が多くの命を救った。",
+"promptly 副 すぐに",
+2,
+[
+"行動",
+"時間"
+]
+],
+[
+"pronounce",
+"動",
+[
+"発音する",
+"宣言する"
+],
+"Many learners find it hard to pronounce this word correctly.",
+"多くの学習者はこの語を正しく発音するのが難しいと感じる。",
+"pronunciation 名 発音 / pronouncement 名 声明",
+2,
+[
+"言語"
+]
+],
+[
+"protest",
+"名・動",
+[
+"抗議",
+"抗議する"
+],
+"Thousands of citizens protested against the new tax.",
+"数千人の市民が新税に抗議した。",
+"protester 名 抗議者",
+2,
+[
+"社会",
+"政治・法"
+]
+],
+[
+"provision",
+"名",
+[
+"供給",
+"準備",
+"(法律の)条項"
+],
+"The law makes provision for the care of elderly people.",
+"その法律は高齢者の介護に関する規定を設けている。",
+"provide 動 提供する / provisional 形 暫定的な",
+2,
+[
+"政治・法",
+"社会"
+]
+],
+[
+"publicity",
+"名",
+[
+"宣伝",
+"世間の注目"
+],
+"The film received a great deal of publicity before its release.",
+"その映画は公開前に大いに宣伝された。",
+"publicize 動 公表する",
+2,
+[
+"文化",
+"経済"
+]
+],
+[
+"pursuit",
+"名",
+[
+"追求",
+"趣味",
+"追跡"
+],
+"Many people regard the pursuit of happiness as life's goal.",
+"多くの人が幸福の追求を人生の目標と考える。",
+"pursue 動 追求する",
+2,
+[
+"行動",
+"抽象"
+]
+],
+[
+"quarrel",
+"名・動",
+[
+"口論",
+"口論する"
+],
+"The two brothers quarreled over who should inherit the land.",
+"兄弟二人はだれが土地を相続するかで口論した。",
+"",
+2,
+[
+"行動",
+"社会"
+]
+],
+[
+"qualification",
+"名",
+[
+"資格",
+"条件",
+"限定"
+],
+"A teaching qualification is required for this position.",
+"この職には教員資格が必要だ。",
+"qualify 動 資格を得る",
+2,
+[
+"学習",
+"社会"
+]
+],
+[
+"quantify",
+"動",
+[
+"数量化する"
+],
+"It is difficult to quantify the benefits of a good education.",
+"良い教育の恩恵を数値化することは難しい。",
+"quantity 名 量 / quantitative 形 量的な",
+2,
+[
+"科学",
+"思考"
+]
+],
+[
+"quotation",
+"名",
+[
+"引用(文)",
+"見積書"
+],
+"The essay opens with a famous quotation from Shakespeare.",
+"そのエッセイはシェイクスピアの有名な引用文で始まる。",
+"quote 動 引用する",
+2,
+[
+"言語"
+]
+],
+[
+"perish",
+"動",
+[
+"滅びる",
+"死ぬ"
+],
+"Thousands of people perished in the earthquake and the fires that followed.",
+"数千人が地震とその後の火災で命を落とした。",
+"perishable 形 腐りやすい",
+2,
+[
+"社会"
+]
+],
+[
+"plague",
+"名・動",
+[
+"疫病",
+"災難",
+"悩ませる"
+],
+"The plague killed a third of Europe's population in the 14th century.",
+"14世紀、疫病はヨーロッパの人口の3分の1を死に至らしめた。",
+"be plagued by 〜に悩まされる",
+2,
+[
+"社会",
+"身体・健康"
+]
+],
+[
+"pledge",
+"名・動",
+[
+"誓約",
+"公約",
+"誓う"
+],
+"The candidate pledged to cut taxes if elected.",
+"その候補者は当選すれば減税すると公約した。",
+"",
+2,
+[
+"政治・法",
+"言語"
+]
+],
+[
+"plentiful",
+"形",
+[
+"豊富な",
+"たくさんの"
+],
+"Fish were plentiful in the river before the factory was built.",
+"工場が建つ前、その川には魚がたくさんいた。",
+"plenty 名 たっぷり / plenty of たくさんの",
+2,
+[
+"環境"
+]
+],
+[
+"precaution",
+"名",
+[
+"予防措置",
+"用心"
+],
+"Take precautions against fire when you camp in the forest.",
+"森でキャンプをするときは火事に対する用心をしなさい。",
+"precautionary 形 予防の",
+2,
+[
+"行動",
+"身体・健康"
+]
+],
+[
+"precedent",
+"名",
+[
+"前例",
+"先例"
+],
+"The court's decision set a precedent for similar cases.",
+"その裁判所の判決は同様の事件の前例となった。",
+"unprecedented 形 前例のない",
+2,
+[
+"政治・法"
+]
+],
+[
+"precision",
+"名",
+[
+"正確さ",
+"精密さ"
+],
+"Surgeons need great precision when they operate on the brain.",
+"外科医は脳の手術では高い正確さを必要とする。",
+"precise 形 正確な",
+2,
+[
+"科学"
+]
+],
+[
+"premature",
+"形",
+[
+"時期尚早の",
+"早産の"
+],
+"It would be premature to draw conclusions from such limited data.",
+"そんなわずかなデータから結論を出すのは時期尚早だろう。",
+"↔ mature",
+2,
+[
+"時間",
+"思考"
+]
+],
+[
+"prestige",
+"名",
+[
+"威信",
+"名声"
+],
+"The university enjoys great prestige throughout the world.",
+"その大学は世界中で高い名声を得ている。",
+"prestigious 形 名声のある",
+2,
+[
+"社会",
+"評価"
+]
+],
+[
+"prevalent",
+"形",
+[
+"広く行き渡った",
+"流行している"
+],
+"Smartphones have become prevalent among elderly people as well.",
+"スマートフォンは高齢者の間にも広く普及した。",
+"prevail 動 普及する / prevalence 名 普及",
+2,
+[
+"社会",
+"変化"
+]
+],
+[
+"primitive",
+"形",
+[
+"原始的な",
+"初期の"
+],
+"Primitive humans used simple tools made of stone and bone.",
+"原始人は石や骨でできた簡単な道具を使っていた。",
+"",
+2,
+[
+"科学",
+"時間"
+]
+],
+[
+"productive",
+"形",
+[
+"生産的な",
+"実りのある"
+],
+"We had a productive discussion and reached an agreement.",
+"私たちは実りある議論をして合意に達した。",
+"productivity 名 生産性 / produce 動 生み出す",
+2,
+[
+"経済",
+"評価"
+]
+],
+[
+"promising",
+"形",
+[
+"有望な",
+"見込みのある"
+],
+"The new treatment looks promising for patients with heart disease.",
+"その新治療は心臓病患者にとって有望に見える。",
+"promise 名 約束・見込み",
+2,
+[
+"評価",
+"時間"
+]
+],
+[
+"propaganda",
+"名",
+[
+"(政治的)宣伝",
+"プロパガンダ"
+],
+"During the war, the government used propaganda to control public opinion.",
+"戦時中、政府は世論を操るために宣伝工作を用いた。",
+"",
+2,
+[
+"政治・法",
+"社会"
+]
+],
+[
+"prosecute",
+"動",
+[
+"起訴する",
+"遂行する"
+],
+"The man was prosecuted for stealing from his employer.",
+"その男は雇用主から盗んだ罪で起訴された。",
+"prosecution 名 起訴 / prosecutor 名 検察官",
+2,
+[
+"政治・法"
+]
+],
+[
+"province",
+"名",
+[
+"州",
+"地方",
+"分野"
+],
+"The northern province is known for its cold winters and skiing.",
+"北部の州は寒い冬とスキーで知られている。",
+"provincial 形 地方の",
+2,
+[
+"社会"
+]
+],
+[
+"proximity",
+"名",
+[
+"近いこと",
+"近接"
+],
+"The house is popular because of its proximity to the station.",
+"その家は駅に近いため人気がある。",
+"proximate 形 最も近い",
+2,
+[
+"抽象"
+]
+],
+[
+"punish",
+"動",
+[
+"罰する"
+],
+"Children should not be punished for things they cannot control.",
+"子どもは自分で制御できないことで罰せられるべきではない。",
+"punishment 名 罰",
+2,
+[
+"政治・法",
+"行動"
+]
+],
+[
+"pitfall",
+"名",
+[
+"落とし穴",
+"隠れた危険"
+],
+"The article explains common pitfalls of learning a new language.",
+"その記事は新しい言語を学ぶ際のよくある落とし穴を説明している。",
+"",
+2,
+[
+"思考",
+"学習"
+]
+],
+[
+"pregnant",
+"形",
+[
+"妊娠した",
+"含みのある"
+],
+"Pregnant women are advised to avoid alcohol and tobacco.",
+"妊婦は酒とたばこを避けるよう勧められている。",
+"pregnancy 名 妊娠",
+2,
+[
+"身体・健康"
+]
+],
+[
+"proclaim",
+"動",
+[
+"宣言する",
+"公表する"
+],
+"The new republic was proclaimed in the main square of the capital.",
+"新しい共和国は首都の中央広場で宣言された。",
+"proclamation 名 宣言",
+2,
+[
+"政治・法",
+"言語"
+]
+],
+[
+"pending",
+"形",
+[
+"未決の",
+"差し迫った"
+],
+"The decision remains pending until more evidence is collected.",
+"より多くの証拠が集まるまで、決定は保留のままだ。",
+"pend 動 未決である",
+2,
+[
+"政治・法",
+"時間"
+]
+],
+[
+"paramount",
+"形",
+[
+"最重要の",
+"至上の"
+],
+"Safety is of paramount importance in the construction industry.",
+"建設業界では安全が最も重要である。",
+"",
+3,
+[
+"抽象",
+"評価"
+]
+],
+[
+"partisan",
+"形・名",
+[
+"党派的な",
+"熱烈な支持者"
+],
+"Partisan politics often prevents the parliament from passing useful laws.",
+"党派的な政治のせいで議会が有益な法律を可決できないことが多い。",
+"bipartisan 形 超党派の",
+3,
+[
+"政治・法"
+]
+],
+[
+"patronize",
+"動",
+[
+"見下した態度をとる",
+"ひいきにする"
+],
+"He hated the way the manager patronized the younger staff.",
+"彼は部長が若手社員を見下した態度で扱うのが嫌だった。",
+"patron 名 後援者 / patronizing 形 恩着せがましい",
+3,
+[
+"行動",
+"性格"
+]
+],
+[
+"penetrate",
+"動",
+[
+"貫通する",
+"浸透する",
+"見抜く"
+],
+"Sunlight cannot penetrate the deepest parts of the ocean.",
+"日光は海の最深部には届かない。",
+"penetration 名 浸透",
+3,
+[
+"科学",
+"環境"
+]
+],
+[
+"perennial",
+"形",
+[
+"長年の",
+"絶え間ない",
+"多年生の"
+],
+"Traffic congestion is a perennial problem in large cities.",
+"交通渋滞は大都市における長年の問題である。",
+"",
+3,
+[
+"時間",
+"社会"
+]
+],
+[
+"peripheral",
+"形",
+[
+"周辺の",
+"二次的な"
+],
+"Cost is a peripheral issue compared with the safety of patients.",
+"費用は患者の安全に比べれば二次的な問題だ。",
+"periphery 名 周辺 ↔ central",
+3,
+[
+"抽象"
+]
+],
+[
+"perpetual",
+"形",
+[
+"絶え間ない",
+"永続的な"
+],
+"The residents lived in perpetual fear of another earthquake.",
+"住民たちは再び地震が来る恐怖の中で絶えず暮らしていた。",
+"perpetuate 動 永続させる",
+3,
+[
+"時間",
+"心理"
+]
+],
+[
+"perplex",
+"動",
+[
+"当惑させる"
+],
+"The strange results of the experiment perplexed the researchers.",
+"実験の奇妙な結果は研究者たちを当惑させた。",
+"perplexity 名 当惑 / perplexed 形 困惑した",
+3,
+[
+"心理"
+]
+],
+[
+"pertinent",
+"形",
+[
+"適切な",
+"関連のある"
+],
+"Please provide all information pertinent to the case.",
+"その件に関連する情報はすべて提供してください。",
+"pertain 動 関係する (pertain to)",
+3,
+[
+"思考",
+"評価"
+]
+],
+[
+"pervade",
+"動",
+[
+"行き渡る",
+"充満する"
+],
+"A sense of optimism pervaded the whole country after the victory.",
+"勝利の後、国じゅうに楽観的な空気が行き渡った。",
+"pervasive 形 広がっている",
+3,
+[
+"社会",
+"抽象"
+]
+],
+[
+"pivotal",
+"形",
+[
+"極めて重要な",
+"中心的な"
+],
+"The leader played a pivotal role in ending the conflict.",
+"その指導者は紛争を終わらせる上で極めて重要な役割を果たした。",
+"pivot 名 要・軸",
+3,
+[
+"評価",
+"抽象"
+]
+],
+[
+"plight",
+"名",
+[
+"苦境",
+"窮状"
+],
+"The film draws attention to the plight of refugee children.",
+"その映画は難民の子どもたちの窮状に関心を向けさせる。",
+"",
+3,
+[
+"社会"
+]
+],
+[
+"ponder",
+"動",
+[
+"熟考する"
+],
+"She pondered the offer for days before giving her answer.",
+"彼女は返事をする前に何日もその申し出を熟考した。",
+"ponderous 形 重苦しい",
+3,
+[
+"思考"
+]
+],
+[
+"potent",
+"形",
+[
+"強力な",
+"効力のある"
+],
+"Social media has become a potent tool for political movements.",
+"ソーシャルメディアは政治運動にとって強力な道具となった。",
+"potency 名 効力 / impotent 形 無力な",
+3,
+[
+"社会",
+"評価"
+]
+],
+[
+"pragmatic",
+"形",
+[
+"実利的な",
+"実用主義の"
+],
+"The mayor took a pragmatic approach to the budget crisis.",
+"市長は財政危機に対して現実的な手法をとった。",
+"pragmatism 名 実用主義",
+3,
+[
+"思考",
+"性格"
+]
+],
+[
+"precipitate",
+"動・形",
+[
+"急激に引き起こす",
+"性急な"
+],
+"The sudden resignation precipitated a political crisis.",
+"突然の辞任は政治危機を急激に引き起こした。",
+"precipitation 名 降水量",
+3,
+[
+"変化",
+"政治・法"
+]
+],
+[
+"predispose",
+"動",
+[
+"(〜の)傾向を持たせる",
+"素因を与える"
+],
+"Certain genes may predispose people to heart disease.",
+"ある種の遺伝子は人を心臓病になりやすくするかもしれない。",
+"predisposition 名 素因",
+3,
+[
+"身体・健康",
+"科学"
+]
+],
+[
+"prerogative",
+"名",
+[
+"特権",
+"専権"
+],
+"Setting the budget is the prerogative of the board of directors.",
+"予算を決めるのは取締役会の特権だ。",
+"",
+3,
+[
+"政治・法",
+"社会"
+]
+],
+[
+"pretext",
+"名",
+[
+"口実",
+"言い訳"
+],
+"He used illness as a pretext to avoid attending the meeting.",
+"彼は会議を欠席する口実に病気を使った。",
+"on the pretext of 〜を口実に",
+3,
+[
+"行動",
+"言語"
+]
+],
+[
+"procure",
+"動",
+[
+"調達する",
+"入手する"
+],
+"The hospital struggled to procure enough medical supplies for patients.",
+"その病院は患者のための医療物資を十分調達するのに苦労した。",
+"procurement 名 調達",
+3,
+[
+"経済",
+"行動"
+]
+],
+[
+"prodigious",
+"形",
+[
+"莫大な",
+"驚異的な"
+],
+"The young pianist showed prodigious talent from an early age.",
+"その若いピアニストは幼い頃から驚異的な才能を示した。",
+"prodigy 名 神童",
+3,
+[
+"評価"
+]
+],
+[
+"proficient",
+"形",
+[
+"熟達した",
+"堪能な"
+],
+"Applicants should be proficient in at least one foreign language.",
+"応募者は少なくとも一つの外国語に堪能であるべきだ。",
+"proficiency 名 熟練",
+3,
+[
+"学習",
+"評価"
+]
+],
+[
+"profuse",
+"形",
+[
+"豊富な",
+"大量の"
+],
+"The patient lost blood in profuse amounts after the accident.",
+"患者は事故の後、大量に出血した。",
+"profusely 副 大量に / profusion 名 豊富",
+3,
+[
+"抽象"
+]
+],
+[
+"proliferate",
+"動",
+[
+"急増する",
+"増殖する"
+],
+"Online shops have proliferated since the arrival of high-speed internet.",
+"高速インターネットの登場以来、ネットショップが急増した。",
+"proliferation 名 急増",
+3,
+[
+"変化",
+"社会"
+]
+],
+[
+"prolific",
+"形",
+[
+"多作の",
+"多産の"
+],
+"She was a prolific writer who published over fifty novels.",
+"彼女は50冊以上の小説を出版した多作な作家だった。",
+"",
+3,
+[
+"文化",
+"評価"
+]
+],
+[
+"propensity",
+"名",
+[
+"傾向",
+"性向"
+],
+"Humans have a natural propensity to seek out company.",
+"人間には仲間を求めるという生来の傾向がある。",
+"",
+3,
+[
+"心理",
+"性格"
+]
+],
+[
+"propriety",
+"名",
+[
+"礼儀正しさ",
+"妥当性"
+],
+"The scandal raised doubts about the propriety of his conduct.",
+"そのスキャンダルは彼の行動の妥当性への疑いを生んだ。",
+"proper 形 適切な ↔ impropriety",
+3,
+[
+"行動",
+"社会"
+]
+],
+[
+"protagonist",
+"名",
+[
+"主人公",
+"主導者"
+],
+"The protagonist of the novel is a young girl from a small village.",
+"その小説の主人公は小さな村出身の少女だ。",
+"↔ antagonist",
+3,
+[
+"文化"
+]
+],
+[
+"provisional",
+"形",
+[
+"暫定的な",
+"仮の"
+],
+"A provisional government was formed until elections could be held.",
+"選挙が行えるまで暫定政権が樹立された。",
+"provision 名 規定",
+3,
+[
+"政治・法",
+"時間"
+]
+],
+[
+"provocative",
+"形",
+[
+"挑発的な",
+"刺激的な"
+],
+"The professor's provocative lecture sparked a heated debate.",
+"教授の刺激的な講義は白熱した議論を引き起こした。",
+"provoke 動 挑発する / provocation 名 挑発",
+3,
+[
+"言語",
+"評価"
+]
+],
+[
+"prowess",
+"名",
+[
+"優れた能力",
+"腕前"
+],
+"The team is famous for its athletic prowess and discipline.",
+"そのチームは卓越した運動能力と規律で有名だ。",
+"",
+3,
+[
+"評価",
+"性格"
+]
+],
+[
+"pungent",
+"形",
+[
+"刺激臭の",
+"辛辣な"
+],
+"A pungent smell of garlic filled the small kitchen.",
+"ニンニクの刺激的なにおいが狭い台所に満ちていた。",
+"",
+3,
+[
+"日常",
+"身体・健康"
+]
+],
+[
+"purport",
+"動",
+[
+"〜と称する",
+"〜という趣旨である"
+],
+"The document purports to show the true cause of the accident.",
+"その文書は事故の真の原因を示すものとされている。",
+"purported 形 自称の",
+3,
+[
+"言語",
+"思考"
+]
+],
+[
+"quota",
+"名",
+[
+"割り当て",
+"定員"
+],
+"The country set a quota on the amount of rice imported.",
+"その国は米の輸入量に割り当てを設けた。",
+"",
+3,
+[
+"経済",
+"政治・法"
+]
+],
+[
+"quench",
+"動",
+[
+"(渇きを)癒やす",
+"抑える"
+],
+"A cold drink quenched his thirst after the long hike.",
+"長いハイキングの後、冷たい飲み物が彼の渇きを癒やした。",
+"",
+3,
+[
+"身体・健康",
+"日常"
+]
+],
+[
+"qualm",
+"名",
+[
+"不安",
+"良心の呵責"
+],
+"She had no qualms about telling the truth to her boss.",
+"彼女は上司に真実を告げることに何のためらいもなかった。",
+"",
+3,
+[
+"心理"
+]
+],
+[
+"quaint",
+"形",
+[
+"古風で趣のある",
+"風変わりな"
+],
+"We stayed in a quaint village with narrow cobbled streets.",
+"私たちは石畳の細い道がある古風で趣のある村に泊まった。",
+"",
+3,
+[
+"文化",
+"評価"
+]
+],
+[
+"quirk",
+"名",
+[
+"癖",
+"奇妙な点",
+"偶然"
+],
+"Every writer has a few quirks that make the style unique.",
+"どの作家にもその文体を独特にする癖がいくつかある。",
+"quirky 形 風変わりな",
+3,
+[
+"性格",
+"行動"
+]
+],
+[
+"pedantic",
+"形",
+[
+"学者ぶった",
+"細かいことにこだわる"
+],
+"The editor was pedantic about even the smallest grammatical errors.",
+"編集者はごく小さな文法の誤りにまで細かくこだわった。",
+"pedant 名 衒学者",
+3,
+[
+"性格",
+"言語"
+]
+],
+[
+"placid",
+"形",
+[
+"穏やかな",
+"平静な"
+],
+"The lake was placid, with not a single ripple on its surface.",
+"湖は穏やかで、水面にはさざ波ひとつなかった。",
+"",
+3,
+[
+"性格",
+"環境"
+]
+],
+[
+"pathetic",
+"形",
+[
+"哀れな",
+"お粗末な"
+],
+"The team put on a pathetic performance in the final match.",
+"そのチームは決勝戦でお粗末な試合を演じた。",
+"pathos 名 哀感",
+3,
+[
+"評価",
+"心理"
+]
+],
+[
+"parochial",
+"形",
+[
+"狭量な",
+"教区の"
+],
+"Critics accused the politician of having a parochial view of the world.",
+"批評家たちはその政治家の世界観が狭量だと非難した。",
+"",
+3,
+[
+"思考",
+"社会"
+]
+],
+[
+"paradigm",
+"名",
+[
+"理論的枠組み",
+"典型",
+"パラダイム"
+],
+"The discovery forced scientists to rethink the dominant paradigm of physics.",
+"その発見は科学者に物理学の支配的な枠組みを再考させた。",
+"paradigm shift 発想の大転換",
+4,
+[
+"科学",
+"思考"
+]
+],
+[
+"panacea",
+"名",
+[
+"万能薬",
+"特効薬"
+],
+"Technology is not a panacea for every social problem.",
+"技術はあらゆる社会問題の万能薬ではない。",
+"",
+4,
+[
+"社会",
+"抽象"
+]
+],
+[
+"paragon",
+"名",
+[
+"模範",
+"典型"
+],
+"She was regarded as a paragon of honesty and generosity.",
+"彼女は誠実さと寛大さの模範と見なされていた。",
+"",
+4,
+[
+"評価",
+"性格"
+]
+],
+[
+"penchant",
+"名",
+[
+"強い好み",
+"傾向"
+],
+"He has a penchant for collecting rare books from foreign countries.",
+"彼は外国の希少本を集めるのが大好きだ。",
+"",
+4,
+[
+"性格",
+"行動"
+]
+],
+[
+"perfunctory",
+"形",
+[
+"おざなりの",
+"形だけの"
+],
+"The guard gave the passports only a perfunctory glance.",
+"警備員はパスポートをおざなりに一瞥しただけだった。",
+"",
+4,
+[
+"行動",
+"評価"
+]
+],
+[
+"pernicious",
+"形",
+[
+"有害な",
+"破壊的な"
+],
+"The pernicious effects of the rumor lasted for years.",
+"そのうわさの有害な影響は何年も続いた。",
+"",
+4,
+[
+"評価",
+"社会"
+]
+],
+[
+"platitude",
+"名",
+[
+"陳腐な言葉",
+"決まり文句"
+],
+"His speech was full of platitudes and said nothing new.",
+"彼の演説は陳腐な決まり文句ばかりで、何ら新しいことを述べなかった。",
+"platitudinous 形 平凡な",
+4,
+[
+"言語",
+"評価"
+]
+],
+[
+"plethora",
+"名",
+[
+"過剰",
+"多すぎること"
+],
+"The Internet offers a plethora of information, not all of it reliable.",
+"インターネットは大量の情報を提供するが、すべてが信頼できるわけではない。",
+"",
+4,
+[
+"抽象"
+]
+],
+[
+"polemic",
+"名",
+[
+"論争",
+"激しい議論"
+],
+"The book is a polemic against the influence of big business.",
+"その本は大企業の影響力に対する激しい論駁である。",
+"polemical 形 論争的な",
+4,
+[
+"言語",
+"政治・法"
+]
+],
+[
+"precursor",
+"名",
+[
+"先駆者",
+"前兆"
+],
+"Early computers were the precursors of today's smartphones.",
+"初期のコンピューターは今日のスマートフォンの先駆けだった。",
+"",
+4,
+[
+"変化",
+"科学"
+]
+],
+[
+"pristine",
+"形",
+[
+"汚れのない",
+"原始のままの"
+],
+"The expedition reached a pristine forest untouched by human activity.",
+"探検隊は人間の活動に手つかずの原生林にたどり着いた。",
+"",
+4,
+[
+"環境"
+]
+],
+[
+"proscribe",
+"動",
+[
+"禁止する",
+"排斥する"
+],
+"The treaty proscribes the use of chemical weapons in war.",
+"その条約は戦争における化学兵器の使用を禁じている。",
+"↔ prescribe",
+4,
+[
+"政治・法"
+]
+],
+[
+"quixotic",
+"形",
+[
+"非現実的で理想主義的な"
+],
+"Many people dismissed his plan to end poverty as quixotic.",
+"多くの人は貧困をなくすという彼の計画を非現実的な理想論だと一蹴した。",
+"",
+4,
+[
+"性格",
+"思考"
+]
+],
+[
+"quintessential",
+"形",
+[
+"典型的な",
+"本質的な"
+],
+"Kyoto is the quintessential example of a traditional Japanese city.",
+"京都は伝統的な日本の都市の典型例である。",
+"quintessence 名 真髄",
+4,
+[
+"文化",
+"評価"
+]
+],
+[
+"quell",
+"動",
+[
+"鎮圧する",
+"(感情を)抑える"
+],
+"Police used tear gas to quell the riot in the capital.",
+"警察は首都での暴動を鎮圧するために催涙ガスを使った。",
+"",
+4,
+[
+"政治・法",
+"心理"
+]
+],
+[
+"palliate",
+"動",
+[
+"(苦痛を)和らげる",
+"言い繕う"
+],
+"The drug can only palliate the pain, not cure the disease.",
+"その薬は痛みを和らげるだけで病気を治すことはできない。",
+"palliative 形 緩和的な",
+4,
+[
+"身体・健康"
+]
+],
+[
+"parsimonious",
+"形",
+[
+"けちな",
+"極端に倹約する"
+],
+"The parsimonious old man refused to spend money on heating.",
+"そのけちな老人は暖房に金を使うことを拒んだ。",
+"parsimony 名 倹約",
+4,
+[
+"性格",
+"経済"
+]
+]
+]
