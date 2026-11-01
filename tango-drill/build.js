@@ -16,6 +16,10 @@ const exsDir = path.join(root, 'src/exs'); const eigoExs = {};
 if (fs.existsSync(exsDir)) for (const f of fs.readdirSync(exsDir).filter(f => /^eigo_.*\.json$/.test(f)).sort())
   { try { for (const r of JSON.parse(fs.readFileSync(path.join(exsDir, f), 'utf8'))) eigoExs[r.w] = r.exs; } catch (e) { console.warn('skip ' + f + ': ' + e.message); } }
 extra += `\nconst EIGO_EXS=${JSON.stringify(eigoExs)};`;
+const kobunExs = {};
+if (fs.existsSync(exsDir)) for (const f of fs.readdirSync(exsDir).filter(f => /^kobun_.*\.json$/.test(f)).sort())
+  { try { for (const r of JSON.parse(fs.readFileSync(path.join(exsDir, f), 'utf8'))) kobunExs[r.key] = r.exs; } catch (e) { console.warn('skip ' + f + ': ' + e.message); } }
+extra += `\nconst KOBUN_EXS=${JSON.stringify(kobunExs)};`;
 // 任意: node build.js --extra <data.js> [--extra ...] --out <file.html>
 // 個人用データ（公開リポジトリに入れないもの）を追加し、Artifact 形式で --out にだけ書き出す。
 const args = process.argv.slice(2), extras = [], outIdx = args.indexOf('--out');
