@@ -130,6 +130,9 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .note{margin-top:12px;font-size:.86rem;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:8px 12px}
 .note b{color:var(--warn);margin-right:6px}
 .der{margin-top:10px;font-size:.86rem;color:var(--muted)}
+.means.per{gap:10px}.means.per li>span{min-width:0;flex:1}
+.ex.sm{display:block;margin:6px 0 0;padding:7px 12px;font-weight:400;font-size:.95rem}
+.ex.sm .q,.ex.sm .tr{display:block}.ex.sm .tr{font-size:.85rem}
 .rel{margin-top:12px;font-size:.88rem}
 .rel>b{display:block;margin-bottom:4px;font-size:.8rem;color:var(--muted);letter-spacing:.06em}
 .rel ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
@@ -771,7 +774,8 @@ const DATA={
   eigo:EIGO_RAW.map(r=>({id:'e:'+r[0],w:r[0],k:'',pos:r[1],m:r[2],ex:r[3],tr:r[4],der:r[5],lv:r[6],tags:r[7]}))
 };
 let BOOKREL=[];
-if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],pos:r[3],m:r[4],ex:r[5],tr:r[6],note:r[7],lv:r[8],tags:r[9],rel:r[10]||[]}));
+if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],pos:r[3],m:r[4],ex:r[5],tr:r[6],note:r[7],lv:r[8],tags:r[9],rel:r[10]||[],exs:r[11]||null}));
+  DATA.book.forEach(it=>{if(it.exs&&it.exs[0]){it.ex=it.exs[0][0];it.tr=it.exs[0][1];}});
   DATA.book.forEach(it=>it.rel.forEach((x,i)=>BOOKREL.push({id:'br:'+it.num+':'+i,num:it.num,w:x[0],k:'',pos:x[1],m:x[2].split('・'),ex:'',tr:'',note:'「'+it.w+'」（No.'+it.num+'）の関連語',lv:it.lv,tags:['関連語'],rel:[],isRel:true,parent:it})));}
 if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],ex:'',tr:'',note:r[3],lv:1,tags:[],yomi:true}));
 const findAny=id=>{for(const s in DATA){const x=DATA[s].find(it=>it.id===id);if(x)return x;}return BOOKREL.find(it=>it.id===id);};
@@ -816,7 +820,7 @@ function order(items,mode){
   return items.map((it,i)=>({it,k:w[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
 function start(mode,items){const p=prefsOf();
   if(!items){items=order(pool(S.subj,p.range),p.order);if(p.count!=='all')items=items.slice(0,+p.count);}
-  if(mode.startsWith('cloze'))items=items.filter(it=>findForm(it));
+  if(mode.startsWith('cloze'))items=items.filter(it=>findForm(it)||(it.exs&&it.exs.some(e=>findForm(it,e[0]))));
   if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
   S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
 function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mode==='quiz';
@@ -824,12 +828,12 @@ function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mo
   const cand=shuffle(all.filter(x=>x.id!==it.id&&x.w!==it.w));cand.sort((a,b)=>Math.abs(a.lv-it.lv)-Math.abs(b.lv-it.lv));
   const picks=[];for(const x of cand){if(seen.has(key(x)))continue;seen.add(key(x));picks.push(x);if(picks.length===3)break;}
   return shuffle([it,...picks]);}
-function findForm(it){const ex=it.ex||'';if(!ex||/[〜・]/.test(it.w))return null;const w=it.w;
+function findForm(it,sent){const ex=(sent!==undefined?sent:it.ex)||'';if(!ex||/[〜・]/.test(it.w))return null;const w=it.w;
   if(S.subj==='eigo'){const esc_=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const b=esc_(w),e=w.endsWith('e')?esc_(w.slice(0,-1)):null,y=w.endsWith('y')?esc_(w.slice(0,-1)):null,last=esc_(w.slice(-1));
     const pats=[b,b+'(?:s|es|ed|d|ing|ly|er|est|ness|ment|al|ity|ive|ion|ions|ally)',e&&e+'(?:ing|ed|es|er|ion|ation|ive|ity|ure|al|ly)',y&&y+'(?:ies|ied|ier|ily|iness)',b+last+'(?:ing|ed|er)',w.length>=6&&esc_(w.slice(0,-2))+'\\w{0,6}'].filter(Boolean);
     for(const p of pats){const m=new RegExp('\\b'+p+'\\b','i').exec(ex);if(m)return{pre:ex.slice(0,m.index),hit:m[0],post:ex.slice(m.index+m[0].length)};}return null;}
   for(const st of [w,w.length>=3?w.slice(0,-1):null,w.length>=4?w.slice(0,-2):null].filter(Boolean)){const i=ex.indexOf(st);if(i>=0){let j=i+st.length;return{pre:ex.slice(0,i),hit:ex.slice(i,j),post:ex.slice(j)};}}return null;}
-function clozeOk(it,ans){const f=findForm(it);ans=String(ans||'').trim().toLowerCase();return !!ans&&(ans===it.w.toLowerCase()||(f&&ans===f.hit.toLowerCase()));}
+function clozeOk(it,ans,f){f=f||findForm(it);ans=String(ans||'').trim().toLowerCase();return !!ans&&(ans===it.w.toLowerCase()||(f&&ans===f.hit.toLowerCase()));}
 function hideWord(it){const re=new RegExp(it.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig');return it.m.map(m=>m.replace(/[（(][^）)]*[A-Za-z][^）)]*[）)]/g,'').replace(re,'＿＿').replace(/^[・\s]+|[・\s]+$/g,'')).filter(Boolean);}
 function choiceText(x,toM){return toM?x.m.slice(0,2).join('／'):x.w;}
 function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});}
@@ -851,8 +855,9 @@ function render(){
 function wordHtml(it,cls){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${it.k?`<div class="kanji">${esc(it.k)}</div>`:''}`;}
 function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 function detailHtml(it){const c=SUBJ[S.subj].cls;
-  return `<ol class="means">${it.m.map(m=>`<li><span>${esc(m)}</span></li>`).join('')}</ol>
-  ${it.ex?`<div class="ex"><div class="q ${c}">${esc(it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
+  const per=it.exs&&it.exs.length===it.m.length;
+  return `<ol class="means${per?' per':''}">${it.m.map((m,i)=>`<li><span>${esc(m)}${per?`<span class="ex sm"><span class="q ${c}">${esc(it.exs[i][0])}</span><span class="tr">${esc(it.exs[i][1])}</span></span>`:''}</span></li>`).join('')}</ol>
+  ${it.ex&&!per?`<div class="ex"><div class="q ${c}">${esc(it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
   ${it.note?`<div class="note"><b>${it.yomi?'意味':'注'}</b>${esc(it.note)}</div>`:''}
   ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(x[0])}</span><span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
   ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}`;}
@@ -926,11 +931,15 @@ function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.leng
     <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`;}
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div><div class="choices">${choices}</div>${after}`;}
 
-function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,typed=sess.mode==='clozeT',c=SUBJ[S.subj].cls,f=findForm(it);
+function curCloze(sess){const it=sess.items[sess.i];sess.cz=sess.cz||{};
+  if(it.exs){if(sess.cz[sess.i]===undefined){const ok=it.exs.map((e,j)=>findForm(it,e[0])?j:-1).filter(j=>j>=0);sess.cz[sess.i]=ok.length?ok[Math.floor(Math.random()*ok.length)]:-1;}
+    const j=sess.cz[sess.i];if(j>=0)return{f:findForm(it,it.exs[j][0]),tr:it.exs[j][1],mi:j};}
+  return{f:findForm(it),tr:it.tr,mi:-1};}
+function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,typed=sess.mode==='clozeT',c=SUBJ[S.subj].cls,cz=curCloze(sess),f=cz.f;
   if(!typed&&!sess.choices)sess.choices=makeChoices(it);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const done=sess.picked!==null;const ok=done&&(typed?sess.picked===true:sess.choices[sess.picked].id===it.id);
-  const sent=`<p class="cloze ${c}">${esc(f.pre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(f.post)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(it.tr)}</div>`;
+  const sent=`<p class="cloze ${c}">${esc(f.pre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(f.post)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(cz.tr)}</div>${done&&cz.mi>=0?`<div class="hint" style="margin:8px 0 0">この用例は意味${'①②③④⑤⑥'[cz.mi]}「${esc(it.m[cz.mi])}」</div>`:''}`;
   const prompt=`<div class="qprompt">空所に入る${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${typed?`<span class="chip">${esc(it.w[0])}${'・'.repeat(Math.max(0,it.w.length-1))}（${it.w.length}字）</span>`:''}</div>${sent}`;
   let body='';
   if(typed){body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${S.subj==='eigo'?'英単語を入力':'ひらがなで入力'}" lang="${S.subj==='eigo'?'en':'ja'}"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;}
@@ -1027,7 +1036,7 @@ view.addEventListener('click',e=>{
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
-view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i],nk=x=>String(x).replace(/[\s　]/g,'');const ok=sess.mode==='typeY'?nk(v)===nk(it_.m[0]):clozeOk(it_,v);sess.picked=ok;answer(ok);render();});
+view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i],nk=x=>String(x).replace(/[\s　]/g,'');const ok=sess.mode==='typeY'?nk(v)===nk(it_.m[0]):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
 document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
     if(e.key===' '){e.preventDefault();if(!sess.flipped){sess.flipped=true;render();}return;}
