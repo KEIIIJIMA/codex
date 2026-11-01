@@ -56,7 +56,7 @@ h1,h2,h3{margin:0;text-wrap:balance;line-height:1.3}
 .brand h1{font-family:var(--serif-ja);font-weight:700;font-size:1.15rem;letter-spacing:.04em}
 .brand .lv{font-size:.72rem;color:var(--muted);letter-spacing:.08em}
 .switch{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:3px}
-.switch button{border:0;background:transparent;border-radius:999px;padding:6px 16px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
+.switch{flex-wrap:wrap}.switch button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
 .switch button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px}
 .tabs button{border:0;background:transparent;padding:12px 14px 10px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
@@ -125,6 +125,12 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .note{margin-top:12px;font-size:.86rem;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:8px 12px}
 .note b{color:var(--warn);margin-right:6px}
 .der{margin-top:10px;font-size:.86rem;color:var(--muted)}
+.rel{margin-top:12px;font-size:.88rem}
+.rel>b{display:block;margin-bottom:4px;font-size:.8rem;color:var(--muted);letter-spacing:.06em}
+.rel ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rel li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;padding:6px 10px;background:var(--surface2);border-radius:8px}
+.rel .rw{font-family:var(--serif-ja);font-weight:700}.rel .rp{font-size:.72rem;color:var(--muted)}.rel .rm{flex:1 1 160px;min-width:0}
+.chip.num{background:var(--fg);color:var(--bg);border-color:var(--fg);font-variant-numeric:tabular-nums}
 .der b{color:var(--fg);font-weight:500;margin-right:6px}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 16px;font-weight:700;font-size:1rem;transition:transform .1s,background .15s}
@@ -750,11 +756,18 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const KEY='tango-drill-v1';
 const SUBJ={kobun:{name:'古文単語',cls:'ja',qw:'語',lv:{1:'必修',2:'発展'},lvd:{1:'必修（どの難関大でも必要）',2:'発展（最難関向け）'}},eigo:{name:'英単語',cls:'en',qw:'単語',lv:{1:'基礎',2:'標準',3:'発展',4:'最難関'},lvd:{1:'基礎（共通テスト・高校必修）',2:'標準（MARCH・関関同立・地方国公立）',3:'発展（早慶上智・旧帝大）',4:'最難関（東大京大・早慶上位・医学部）'}}};
+if(typeof BOOK_RAW!=='undefined')SUBJ.book=Object.assign({name:'単語集',cls:'ja',qw:'語',book:true,lv:{1:'1章',2:'2章',3:'3章',4:'4章',5:'5章'},lvd:{1:'1章',2:'2章',3:'3章',4:'4章',5:'5章'}},typeof BOOK_META!=='undefined'?BOOK_META:{});
+if(typeof YOMI_RAW!=='undefined')SUBJ.yomi={name:'読み',cls:'ja',qw:'漢字',yomi:true,lv:{1:'読み'},lvd:{1:'読み重要語'}};
 const lvName=(it)=>SUBJ[S.subj].lv[it.lv]||('Lv'+it.lv);
 const DATA={
   kobun:KOBUN_RAW.map(r=>({id:'k:'+r[0]+(r[1]?'|'+r[1]:''),w:r[0],k:r[1],pos:r[2],m:r[3],ex:r[4],tr:r[5],note:r[6],lv:r[7],tags:r[8]})),
   eigo:EIGO_RAW.map(r=>({id:'e:'+r[0],w:r[0],k:'',pos:r[1],m:r[2],ex:r[3],tr:r[4],der:r[5],lv:r[6],tags:r[7]}))
 };
+let BOOKREL=[];
+if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],pos:r[3],m:r[4],ex:r[5],tr:r[6],note:r[7],lv:r[8],tags:r[9],rel:r[10]||[]}));
+  DATA.book.forEach(it=>it.rel.forEach((x,i)=>BOOKREL.push({id:'br:'+it.num+':'+i,num:it.num,w:x[0],k:'',pos:x[1],m:x[2].split('・'),ex:'',tr:'',note:'「'+it.w+'」（No.'+it.num+'）の関連語',lv:it.lv,tags:['関連語'],rel:[],isRel:true,parent:it})));}
+if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],ex:'',tr:'',note:r[3],lv:1,tags:[],yomi:true}));
+const findAny=id=>{for(const s in DATA){const x=DATA[s].find(it=>it.id===id);if(x)return x;}return BOOKREL.find(it=>it.id===id);};
 DATA.kobun.sort((a,b)=>a.w.localeCompare(b.w,'ja'));DATA.eigo.sort((a,b)=>a.lv-b.lv||a.w.localeCompare(b.w,'en'));
 const TAGS={};for(const s in DATA){const t=new Set();DATA[s].forEach(it=>it.tags.forEach(x=>t.add(x)));TAGS[s]=[...t];}
 const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
@@ -774,12 +787,14 @@ function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(
 
 /* ---- state ---- */
 const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null},confirm:false,msg:''};
-const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart'},store.prefs[S.subj]||{});
+const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart',rel:'no',from:'',to:''},store.prefs[S.subj]||{});
 function setPref(k,v){store.prefs[S.subj]=Object.assign(prefsOf(),{[k]:v});save();}
 
 /* ---- session ---- */
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function pool(subj,range){const all=DATA[subj];
+function pool(subj,range){let all=DATA[subj];
+  if(SUBJ[subj].book){const p=prefsOf();if(p.rel==='with')all=all.concat(BOOKREL);else if(p.rel==='only')all=BOOKREL.slice();
+    const a=parseInt(p.from)||1,b=parseInt(p.to)||330;all=all.filter(it=>it.num>=a&&it.num<=b);}
   if(range==='auto'||range==='all')return all.slice();
   if(range==='new')return all.filter(it=>status(it)==='new');
   if(range==='weak')return all.filter(it=>status(it)==='weak');
@@ -788,7 +803,7 @@ function pool(subj,range){const all=DATA[subj];
   if(range.startsWith('tag:')){const t=range.slice(4);return all.filter(it=>it.tags.includes(t));}
   return all.slice();}
 function order(items,mode){
-  if(mode==='index')return items;
+  if(mode==='index')return items[0]&&items[0].num?items.slice().sort((a,b)=>a.num-b.num||(a.isRel?1:0)-(b.isRel?1:0)):items;
   if(mode==='random')return shuffle(items);
   const w={weak:0,new:1,learning:2,ok:3};shuffle(items);
   return items.map((it,i)=>({it,k:w[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
@@ -819,7 +834,7 @@ function render(){
   document.querySelectorAll('.switch [data-subj]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.subj===S.subj)));
   document.querySelectorAll('.tabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));
   const v=$('#view');
-  if(S.session){v.innerHTML=S.session.i>=S.session.items.length?viewResult():(S.session.mode==='flash'?viewFlash():S.session.mode.startsWith('cloze')?viewCloze():viewQuiz());}
+  if(S.session){v.innerHTML=S.session.i>=S.session.items.length?viewResult():(S.session.mode==='flash'?viewFlash():S.session.mode.startsWith('cloze')?viewCloze():S.session.mode==='typeY'?viewTypeY():viewQuiz());}
   else if(S.tab==='home')v.innerHTML=viewHome();
   else if(S.tab==='list')v.innerHTML=viewList();
   else v.innerHTML=viewStats();
@@ -827,11 +842,12 @@ function render(){
   const a=$('#ans');if(a&&S.session&&S.session.picked===null)a.focus();
 }
 function wordHtml(it,cls){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${it.k?`<div class="kanji">${esc(it.k)}</div>`:''}`;}
-function chipsHtml(it){return `<div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
+function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 function detailHtml(it){const c=SUBJ[S.subj].cls;
   return `<ol class="means">${it.m.map(m=>`<li><span>${esc(m)}</span></li>`).join('')}</ol>
   ${it.ex?`<div class="ex"><div class="q ${c}">${esc(it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
-  ${it.note?`<div class="note"><b>注</b>${esc(it.note)}</div>`:''}
+  ${it.note?`<div class="note"><b>${it.yomi?'意味':'注'}</b>${esc(it.note)}</div>`:''}
+  ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(x[0])}</span><span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
   ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}`;}
 
 function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,sk=streak();
@@ -855,7 +871,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
         <option value="notok"${sel('notok')}>未習得のみ（苦手＋学習中＋未学習）</option>
         <option value="weak"${sel('weak')}>苦手のみ</option>
         <option value="new"${sel('new')}>未学習のみ</option>
-        ${Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>レベル${l}: ${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
+        ${Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${SUBJ[S.subj].book||SUBJ[S.subj].yomi?'':'レベル'+l+': '}${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
         <option value="all"${sel('all')}>すべて</option>
         ${tagOpts}</select></div>
       <div class="opt"><label for="o-count">問題数</label><select id="o-count" data-pref="count">
@@ -865,17 +881,22 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
         <option value="random"${p.order==='random'?' selected':''}>ランダム</option>
         <option value="index"${p.order==='index'?' selected':''}>収録順</option></select></div>
     </div>
+    ${SUBJ[S.subj].book?`<div class="opts" style="margin-top:12px">
+      <div class="opt"><label for="o-from">番号（から）</label><input type="number" id="o-from" data-pref="from" min="1" max="330" inputmode="numeric" placeholder="1" value="${esc(p.from)}"></div>
+      <div class="opt"><label for="o-to">番号（まで）</label><input type="number" id="o-to" data-pref="to" min="1" max="330" inputmode="numeric" placeholder="330" value="${esc(p.to)}"></div>
+      <div class="opt"><label for="o-rel">関連語</label><select id="o-rel" data-pref="rel"><option value="no"${p.rel==='no'?' selected':''}>見出し語のみ</option><option value="with"${p.rel==='with'?' selected':''}>関連語も出題（${BOOKREL.length}語）</option><option value="only"${p.rel==='only'?' selected':''}>関連語だけ</option></select></div></div>`:''}
     ${S.msg?`<p class="hint" style="color:var(--bad);margin:10px 0 0">${esc(S.msg)}</p>`:''}
   </section>
   <section class="modes">
     <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">語を見て意味を思い出し、めくって確認。「覚えた／まだ」を自分で判定します。</span></button>
-    <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${S.subj==='kobun'?'語 → 意味':'単語 → 意味'}</span><span class="d">読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。</span></button>
-    <button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${S.subj==='kobun'?'用例':'例文'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span></button>
-    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span></button>
-    <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${S.subj==='kobun'?'意味 → 語':'意味 → 単語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>
+    <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':S.subj==='eigo'?'単語 → 意味':'語 → 意味'}</span><span class="d">読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。</span></button>
+    ${SUBJ[S.subj].yomi?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがな（歴史的仮名遣い）で入力します。</span></button>`:''}
+    ${SUBJ[S.subj].yomi?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${S.subj==='kobun'?'用例':'例文'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span></button>
+    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span></button>`}
+    <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':S.subj==='eigo'?'意味 → 単語':'意味 → 語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>
   </section>
   <p class="hint">キーボード操作: Space で裏返す、← まだ ／ → 覚えた、1〜4 で選択、Enter で答え合わせ・次へ。</p>
-  <div class="share"><b>共有について</b>このページのURLをそのまま友人や生徒に渡せます。学習記録（習得・苦手）は開いた端末のブラウザごとに保存され、他の人には見えません。別の端末へ移すときは「成績」タブのバックアップを使ってください。</div>`;}
+  <div class="share"><b>${SUBJ.book?'このページについて':'共有について'}</b>${SUBJ.book?'このページは個人用です。URLを他の人に渡さないでください。':'このページのURLをそのまま友人や生徒に渡せます。'}学習記録（習得・苦手）は開いた端末のブラウザごとに保存され、他の人には見えません。別の端末へ移すときは「成績」タブのバックアップを使ってください。</div>`;}
 
 function viewFlash(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length;
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
@@ -887,8 +908,8 @@ function viewFlash(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
 function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,toM=sess.mode==='quiz',c=SUBJ[S.subj].cls;
   if(!sess.choices)sess.choices=makeChoices(it);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
-  const prompt=toM?`<div class="qprompt">${S.subj==='kobun'?'この語の意味は？':'この単語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it)}`
-    :`<div class="qprompt">この意味を表す${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(hideWord(it).join('　／　'))}</p>`;
+  const prompt=toM?`<div class="qprompt">${SUBJ[S.subj].yomi?'この漢字の読みは？':S.subj==='eigo'?'この単語の意味は？':'この語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it)}`
+    :`<div class="qprompt">${SUBJ[S.subj].yomi?'この読みの漢字は？':'この意味を表す'+SUBJ[S.subj].qw+'は？'}</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(hideWord(it).join('　／　'))}</p>`;
   const picked=sess.picked;
   const choices=sess.choices.map((x,i)=>{let cls='choice';if(picked!==null){if(x.id===it.id)cls+=' correct';else if(i===picked)cls+=' wrong';else cls+=' dim';}
     return `<button class="${cls}" data-pick="${i}"${picked!==null?' disabled':''}><span class="n">${i+1}</span><span class="txt ${toM?'':c}">${esc(choiceText(x,toM))}</span></button>`;}).join('');
@@ -913,6 +934,14 @@ function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
     <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`;}
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
 
+function viewTypeY(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,done=sess.picked!==null,ok=sess.picked===true;
+  const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
+  const prompt=`<div class="qprompt">この漢字の読みは？（ひらがな・歴史的仮名遣い）</div>${chipsHtml(it)}${wordHtml(it)}`;
+  const body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ひらがなで入力" lang="ja"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;
+  const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.m[0])}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`:'';
+  return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
+
 function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(r=>r.ok).length,wrong=sess.res.filter(r=>!r.ok).map(r=>r.it),pct=n?Math.round(ok/n*100):0,c=SUBJ[S.subj].cls;
   const r=52,circ=2*Math.PI*r;
   return `<section class="panel"><div class="score">
@@ -923,14 +952,14 @@ function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(
 
 function viewList(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase();
   let items=DATA[S.subj].filter(it=>L.st==='all'||status(it)===L.st).filter(it=>L.lv==='all'||it.lv===+L.lv);
-  if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')).toLowerCase().includes(q));
+  if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')+' '+(it.rel||[]).map(x=>x[0]+' '+x[2]).join(' ')+' '+(it.num||'')).toLowerCase().includes(q));
   const total=items.length,CAP=200;items=items.slice(0,CAP);
   const chip=(k,v,lab)=>`<button class="fchip" data-f="${k}" data-v="${v}" aria-pressed="${String(L[k])===v}">${lab}</button>`;
   return `<input type="search" id="q" placeholder="語・意味で検索" value="${esc(L.q)}" autocomplete="off">
   <div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${chip('lv','all','全レベル')}${Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
   <div class="count num">${total} 語${total>CAP?`（先頭 ${CAP} 語を表示。検索や絞り込みで狭めてください）`:''}</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
-    return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="vw ${c}">${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${esc(it.m.join('／'))}</span></button>
+    return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${esc(it.m.join('／'))}</span></button>
     ${open?`<div class="vdet">${detailHtml(it)}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>`
   :'<div class="empty">該当する語がありません</div>'}`;}
 
@@ -946,7 +975,7 @@ function viewStats(){const c=SUBJ[S.subj].cls;
   const bars=days.map((x,i)=>{const h=x.n/max*(H-40);const bx=pad+i*bw+3;return `<rect x="${bx.toFixed(1)}" y="${(H-24-h).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${x.n?'var(--accent)':'var(--line)'}"/>${x.n?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${(H-28-h).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.n}</text>`:''}${i%2===1?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.d.getMonth()+1}/${x.d.getDate()}</text>`:''}`;}).join('');
   const weak=DATA[S.subj].filter(it=>status(it)==='weak').map(it=>({it,r:store.prog[it.id]})).sort((a,b)=>(b.r.x-b.r.c)-(a.r.x-a.r.c)).slice(0,15);
   const total=Object.values(store.days).reduce((a,b)=>a+b,0);
-  return `<div class="sgrid">${subjBlock('kobun')}${subjBlock('eigo')}</div>
+  return `<div class="sgrid">${Object.keys(SUBJ).map(subjBlock).join('')}</div>
   <section class="panel"><h2>学習の記録 <span class="sub">直近14日 ／ 累計 ${total} 問 ／ 連続 ${streak()} 日</span></h2>
     <svg class="act" viewBox="0 0 ${W} ${H}" role="img" aria-label="直近14日間の回答数"><line x1="${pad}" y1="${H-24}" x2="${W-pad}" y2="${H-24}" stroke="var(--line)"/>${bars}</svg></section>
   <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15</span></h2>
@@ -991,19 +1020,22 @@ view.addEventListener('click',e=>{
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
-view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const ok=clozeOk(sess.items[sess.i],v);sess.picked=ok;answer(ok);render();});
+view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i],nk=x=>String(x).replace(/[\s　]/g,'');const ok=sess.mode==='typeY'?nk(v)===nk(it_.m[0]):clozeOk(it_,v);sess.picked=ok;answer(ok);render();});
 document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
     if(e.key===' '){e.preventDefault();if(!sess.flipped){sess.flipped=true;render();}return;}
     if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();answer(false);next();return;}
     if(e.key==='ArrowRight'||e.key==='2'){e.preventDefault();answer(true);next();return;}
   }else{
-    if(sess.mode==='clozeT'&&sess.picked===null)return;
+    if((sess.mode==='clozeT'||sess.mode==='typeY')&&sess.picked===null)return;
     if(/^[1-4]$/.test(e.key)&&sess.picked===null&&sess.choices){const i=+e.key-1;sess.picked=i;answer(sess.choices[i].id===sess.items[sess.i].id);render();return;}
     if((e.key==='Enter'||e.key===' ')&&sess.picked!==null){e.preventDefault();next();return;}
   }});
 
 $('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
+{const sw=document.querySelector('.switch');for(const k of ['book','yomi'])if(SUBJ[k]){const b=document.createElement('button');b.setAttribute('role','tab');b.dataset.subj=k;b.setAttribute('aria-selected','false');b.textContent=SUBJ[k].name;sw.appendChild(b);}
+ if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
+if(!SUBJ[S.subj])S.subj='kobun';
 function boot(d){try{if(d&&d.S){S.subj=d.S.subj||S.subj;S.tab=d.S.tab||S.tab;if(d.S.session)S.session=d.S.session;}}catch(e){}render();}
 try{if(window.claude&&window.claude.hot&&window.claude.hot.snapshot)window.claude.hot.snapshot(()=>({S:{subj:S.subj,tab:S.tab,session:S.session}}));}catch(e){}
 (window.claude&&window.claude.hot&&window.claude.hot.ready)?window.claude.hot.ready(boot):boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
