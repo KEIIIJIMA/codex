@@ -205,6 +205,15 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
       <label for="persona">追加の指示（任意）</label>
       <textarea id="persona" placeholder="例: 関西弁で話して。仕事の予定を聞かれたらまず確認を取って。"></textarea>
     </div>
+    <h3>記憶 <span id="memCount" style="font-weight:400"></span></h3>
+    <div class="field">
+      <label for="memText">覚えていること（1行1件。編集・追加・削除できます。別の端末へ引き継ぐときはコピーして貼り付け）</label>
+      <textarea id="memText" style="min-height:110px" placeholder="まだ何もありません。会話の中で「覚えておいて」と言うと増えていきます。"></textarea>
+      <div class="row" style="justify-content:space-between">
+        <div class="note">会話中に知った名前・好み・予定などは、ジャービスが自分で保存します。このブラウザにだけ保存されます。</div>
+        <div class="row"><button class="ghost" id="memCopy" type="button">コピー</button><button class="ghost" id="memClear" type="button">全部忘れる</button></div>
+      </div>
+    </div>
     <div class="note">音声認識はブラウザ内蔵機能（Chrome / Edge / Safari 推奨）、読み上げはOSの音声を使います。マイクを使うため https か localhost で開いてください。</div>
     <div class="dlg-actions">
       <button class="ghost" id="dlgTest" type="button">声をテスト</button>
@@ -385,6 +394,28 @@ function handleUtterance(text) {
 }
 
 /* =========================================================
+   長期記憶（ユーザーについて覚えたこと。localStorage に保存）
+   ========================================================= */
+const MEM_KEY = 'jarvis.memory.v1', MEM_MAX = 80;
+let memory = [];
+try { memory = JSON.parse(localStorage.getItem(MEM_KEY) || '[]'); if (!Array.isArray(memory)) memory = []; } catch {}
+const saveMemory = () => { try { localStorage.setItem(MEM_KEY, JSON.stringify(memory)); } catch {} };
+const today = () => new Date().toISOString().slice(0, 10);
+function addMemory(text, at) {
+  text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 200); if (!text) return null;
+  const dup = memory.find(m => m.text === text); if (dup) return dup;
+  const m = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), text, at: at || today() };
+  memory.push(m); while (memory.length > MEM_MAX) memory.shift(); saveMemory(); return m;
+}
+function forgetMemory(query) {
+  const q = String(query || '').trim(); if (!q) return [];
+  const n = /^\d+$/.test(q) ? parseInt(q, 10) : 0;
+  const removed = memory.filter((m, i) => (n ? i + 1 === n : m.text.includes(q)));
+  memory = memory.filter(m => !removed.includes(m)); saveMemory(); return removed;
+}
+const memoryLines = () => memory.map((m, i) => `${i + 1}. ${m.text}（${m.at}）`).join('\n');
+
+/* =========================================================
    クライアント側ツール（ブラウザで実行）
    ========================================================= */
 const timers = new Map();
@@ -398,6 +429,12 @@ const TOOLS = [
       timers.set(id, {h, label, at: Date.now()+seconds*1000});
       return {ok:true, id, fires_at: new Date(Date.now()+seconds*1000).toLocaleTimeString('ja-JP')};
     } },
+  { name:'remember', description:'ユーザーについて次回以降も役立つことを長期記憶に保存する（名前・家族・仕事・好み・習慣・予定・よく使うものなど）。「覚えておいて」と言われたときはもちろん、言われなくても大事そうな事実を知ったら保存する。一時的な話題や、すでに覚えていることは保存しない。',
+    input_schema:{ type:'object', properties:{ text:{type:'string', description:'覚える内容。主語を明確にした短い1文（例: ユーザーはコーヒーはブラック派）'} }, required:['text'], additionalProperties:false }, strict:true,
+    run: ({text}) => { const m = addMemory(text); if (!m) return {ok:false, error:'empty'}; addSys(`📝 覚えました: ${m.text}`); return {ok:true, total: memory.length}; } },
+  { name:'forget', description:'長期記憶から項目を消す。間違っていた・古くなった・ユーザーが「忘れて」と言った情報に使う。',
+    input_schema:{ type:'object', properties:{ query:{type:'string', description:'消したい項目に含まれる言葉、または「覚えていること」一覧の番号'} }, required:['query'], additionalProperties:false }, strict:true,
+    run: ({query}) => { const r = forgetMemory(query); if (r.length) addSys(`🗑 忘れました: ${r.map(m => m.text).join(' / ')}`); return {ok:true, removed: r.map(m => m.text)}; } },
   { name:'cancel_timers', description:'セット済みのタイマーをすべて取り消す。',
     input_schema:{ type:'object', properties:{}, required:[], additionalProperties:false }, strict:true,
     run: () => { const n = timers.size; for (const t of timers.values()) clearTimeout(t.h); timers.clear(); return {cancelled:n}; } },
@@ -437,8 +474,10 @@ function systemPrompt() {
     `- 音声認識の誤変換があり得るので、文脈から意図を推測し、本当に分からないときだけ短く聞き返す。`,
     `- タイマーや時間に関する依頼は set_timer / cancel_timers を使う。Webサイトを開く依頼は open_url を使う。`,
     `- 天気・ニュース・株価・最新の出来事など、今の情報が必要なときは web_search で調べてから答える（使えない場合は正直にそう言う）。`,
+    `- 長期記憶: 下の「覚えていること」はこれまでの会話で保存した事実。会話に自然に活かす（わざわざ列挙しない）。ユーザーについて新しく分かった、次回以降も役立つことは remember で保存し、保存したときは「覚えておきますね」程度に一言だけ添える。間違い・古い情報・「忘れて」と言われたものは forget で消す。`,
+    S.persona ? `追加の指示: ${S.persona}` : '',
     `現在日時: ${dt}（日本時間とは限らない。端末のローカル時刻）。`,
-    S.persona ? `追加の指示: ${S.persona}` : ''
+    memory.length ? `## 覚えていること（${memory.length}件）\n${memoryLines()}` : `## 覚えていること\nまだ何もない。会話の中でユーザーについて分かったことは remember で保存する。`
   ].filter(Boolean).join('\n');
 }
 
@@ -667,8 +706,17 @@ function openSettings() {
   $('apiKey').value = S.apiKey; $('model').value = S.model; $('effort').value = S.effort; $('webSearch').checked = S.webSearch;
   loadVoices(); $('rate').value = S.rate; $('rateVal').textContent = S.rate; $('wake').value = S.wake; $('lang').value = S.lang; $('wakeAlways').checked = S.wakeAlways;
   $('botName').value = S.botName; $('userName').value = S.userName; $('persona').value = S.persona;
+  $('memText').value = memory.map(m => m.text).join('\n'); $('memCount').textContent = memory.length ? `${memory.length}件` : '';
   dlg.showModal();
 }
+function memoryFromTextarea() {
+  const lines = $('memText').value.split('\n').map(l => l.replace(/^\d+[.．、)]\s*/, '').trim()).filter(Boolean);
+  const old = memory; memory = [];
+  for (const l of lines) { const prev = old.find(m => m.text === l); addMemory(l, prev ? prev.at : undefined); }
+  saveMemory();
+}
+$('memCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('memText').value); $('memCopy').textContent = 'コピーしました'; setTimeout(() => $('memCopy').textContent = 'コピー', 1500); } catch { $('memText').select(); } });
+$('memClear').addEventListener('click', () => { if (confirm('覚えていることをすべて消します。よろしいですか？')) { $('memText').value = ''; } });
 $('btnSettings').addEventListener('click', openSettings);
 $('rate').addEventListener('input', e => $('rateVal').textContent = e.target.value);
 $('lang').addEventListener('change', () => { S.lang = $('lang').value; loadVoices(); });
@@ -682,6 +730,7 @@ $('dlgSave').addEventListener('click', () => {
   S.apiKey = $('apiKey').value.trim(); S.model = $('model').value; S.effort = $('effort').value; S.webSearch = $('webSearch').checked;
   S.voice = $('voice').value; S.rate = +$('rate').value; S.wake = $('wake').value.trim() || 'ジャービス'; S.lang = $('lang').value; S.wakeAlways = $('wakeAlways').checked;
   S.botName = $('botName').value.trim() || 'ジャービス'; S.userName = $('userName').value.trim(); S.persona = $('persona').value.trim();
+  memoryFromTextarea();
   saveSettings(); dlg.close(); setMode(S.mode);
 });
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
