@@ -17,9 +17,21 @@
 - モデル（Opus 5.5 / Sonnet 5.5 / Haiku 5.5）、考える深さ、声・話速、名前・呼び名・追加の人格指示を設定画面で変更
 - 会話ログの文字入力欄からも話しかけられる（音声認識非対応ブラウザ向け）
 
+## 頭脳は Claude と Gemini から選べる
+
+| | Claude（既定） | Gemini |
+| --- | --- | --- |
+| 料金 | 前払いクレジット（Opus 5.5 で1往復 数円） | 無料枠あり。カード不要 |
+| 用意するもの | Claude Console の API キー | Google アカウントと [AI Studio](https://aistudio.google.com/apikey) の API キー |
+| 品質 | 高い | 日常会話には十分 |
+| Web 検索 | `web_search` サーバーツール（検索ごとに追加料金） | Google 検索グラウンディング。無料枠では使えないモデルがあり、その場合は自動で検索なしで続行 |
+| 注意 | 自分専用で使う | 無料枠では送った内容が Google のサービス改善に使われる規約。仕事の機密は話さない |
+
+設定画面の「頭脳」で切り替えます。切り替えると会話はリセットされますが、記憶は共通です。Gemini のモデル名は一覧から選ぶほか、新しいモデルが出たら直接入力できます（既定は無料枠が広めの `gemini-3.5-flash-lite`）。
+
 ## 使い方
 
-1. [Claude Console](https://platform.claude.com/) で API キーを発行する
+1. [Claude Console](https://platform.claude.com/) で API キーを発行する（Gemini を使うなら [AI Studio](https://aistudio.google.com/apikey) で）
 2. `https://<GitHub Pages のURL>/jarvis/` を **Chrome / Edge / Safari** で開く（ローカルなら `index.html` を直接開くか、`localhost` で配信。マイクのため http の公開URLでは動きません）
 3. 最初に開く設定画面に API キーを貼って保存
 4. 球体を押しながら話す。ハンズフリーに切り替えると、タップで待機を開始し「ジャービス」と呼ぶと応答
@@ -33,6 +45,8 @@ API キーはこのブラウザの `localStorage` にだけ保存され、リク
 - Claude API: `POST /v1/messages` を `stream: true` で呼び、SSE を自前でパース。`thinking` / `tool_use` / `server_tool_use` ブロックをそのまま履歴に保持して、ツール結果の往復と `pause_turn` の再開に対応
 - 既定モデルは `claude-opus-5-5`、会話向けに `output_config.effort = "low"`。安全分類器に拒否された場合は `fallbacks: "default"`（ベータ `server-side-fallback-2026-07-01`）で別モデルに自動再実行（Haiku は非対応なので送らない）
 - 会話履歴は直近 24 メッセージまで。`tool_use` と `tool_result` が泣き別れないよう user 境界で切り詰め
+- Gemini は `v1beta/models/{model}:streamGenerateContent?alt=sse` を `x-goog-api-key` で直接呼ぶ。ツールは `functionDeclarations`（+ 有効なら `googleSearch`）、会話向けに `thinkingConfig.thinkingLevel` を effort に合わせて指定。Gemini 3 系が要求する `thoughtSignature` は、応答の `parts` をそのまま履歴に保持して返すことで満たす。`functionResponse` は `user` ターンで返す。モデルが「組み込みツールと関数の併用不可」や `thinkingConfig` を 400 で弾いた場合は、その設定を外して1回だけ再試行し、以後のターンでは最初から外す
+- 会話履歴は使用中プロバイダの形式で保持し、プロバイダを切り替えたときにリセット（記憶は `localStorage` で共通）
 - HUD の数値は飾りではなく実データ。トークン使用量は SSE の `message_start` / `message_delta` の `usage` を日付ごとに `localStorage`（`jarvis.usage.v1`）へ積算し、概算コストは各モデルの公開単価で計算
 - 長期記憶は `localStorage`（`jarvis.memory.v1`）に最大 80 件。毎回のリクエストでシステムプロンプト末尾に「覚えていること」として渡す。モデル自体は学習しないので、記憶を消せば元に戻る
 
