@@ -275,6 +275,8 @@ if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],po
 if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],ex:'',tr:'',note:r[3],lv:1,tags:[],yomi:true}));
 for(const l of [1,2,3,4])DATA['eigo'+l]=DATA.eigo.filter(it=>it.lv===l);
 const findAny=id=>{for(const s in DATA){const x=DATA[s].find(it=>it.id===id);if(x)return x;}return BOOKREL.find(it=>it.id===id);};
+if(typeof EIGO_EXS!=='undefined')DATA.eigo.forEach(it=>{const e=EIGO_EXS[it.w];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
+for(const k of ['kobun','eigo','book'])(DATA[k]||[]).forEach(it=>{if(!it.exs&&it.m.length===1&&it.ex)it.exs=[[it.ex,it.tr]];});
 DATA.kobun.sort((a,b)=>a.w.localeCompare(b.w,'ja'));DATA.eigo.sort((a,b)=>a.lv-b.lv||a.w.localeCompare(b.w,'en'));
 const TAGS={};for(const s in DATA){const t=new Set();DATA[s].forEach(it=>it.tags.forEach(x=>t.add(x)));TAGS[s]=[...t];}
 const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
