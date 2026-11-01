@@ -1,0 +1,3086 @@
+[
+ {
+  "w": "abandon",
+  "exs": [
+   [
+    "The owners abandoned the dog on a quiet country road.",
+    "飼い主たちはその犬を静かな田舎道に置き去りにして見捨てた。"
+   ],
+   [
+    "They had to abandon the project due to lack of funding.",
+    "資金不足のため彼らはその計画を断念せざるを得なかった。"
+   ]
+  ]
+ },
+ {
+  "w": "abate",
+  "exs": [
+   [
+    "The pain began to abate soon after he took the medicine.",
+    "薬を飲んだ後まもなく、痛みは和らぎ始めた。"
+   ],
+   [
+    "The storm finally abated after raging for nearly two days.",
+    "嵐は2日近く荒れ狂った末、ようやく弱まった。"
+   ]
+  ]
+ },
+ {
+  "w": "aberration",
+  "exs": [
+   [
+    "Such violent behavior was an aberration for a man known for his kindness.",
+    "親切で知られた男にとって、そのような乱暴な行為は常軌を逸したものだった。"
+   ],
+   [
+    "The poor result was an aberration, not a sign of decline.",
+    "その不振な結果は例外的な逸脱であり、衰退の兆しではなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "abeyance",
+  "exs": [
+   [
+    "The plan fell into abeyance when the mayor suddenly resigned.",
+    "市長が突然辞任すると、その計画は一時停止の状態になった。"
+   ],
+   [
+    "The project has been held in abeyance until funds are found.",
+    "そのプロジェクトは資金が見つかるまで保留にされている。"
+   ]
+  ]
+ },
+ {
+  "w": "abide",
+  "exs": [
+   [
+    "Everyone must abide by the rules of the competition.",
+    "全員が競技のルールを守らなければならない。"
+   ],
+   [
+    "I cannot abide people who talk loudly in the library.",
+    "図書館で大声で話す人には我慢できない。"
+   ]
+  ]
+ },
+ {
+  "w": "abrasive",
+  "exs": [
+   [
+    "His abrasive manner made him unpopular with his colleagues.",
+    "彼のとげとげしい態度は同僚の間で不評だった。"
+   ],
+   [
+    "The abrasive surface of the sandpaper removed the old paint.",
+    "紙やすりの研磨性の高い表面が古い塗料を落とした。"
+   ]
+  ]
+ },
+ {
+  "w": "abrogate",
+  "exs": [
+   [
+    "Parliament voted to abrogate the outdated law last week.",
+    "議会は先週、その時代遅れの法律を廃止することを票決した。"
+   ],
+   [
+    "The new government abrogated the treaty signed by its predecessor.",
+    "新政権は前政権が署名した条約を破棄した。"
+   ]
+  ]
+ },
+ {
+  "w": "abrupt",
+  "exs": [
+   [
+    "The meeting came to an abrupt end when the power went out.",
+    "停電したため、会議は突然終わった。"
+   ],
+   [
+    "Her abrupt reply made him feel that he was not welcome.",
+    "彼女のぶっきらぼうな返事に、彼は歓迎されていないと感じた。"
+   ]
+  ]
+ },
+ {
+  "w": "absolute",
+  "exs": [
+   [
+    "There is no absolute standard for deciding what counts as beauty.",
+    "何が美であるかを決める絶対的な基準は存在しない。"
+   ],
+   [
+    "The room was in absolute silence while the exam was taking place.",
+    "試験の間、部屋は完全な静寂に包まれていた。"
+   ]
+  ]
+ },
+ {
+  "w": "absolve",
+  "exs": [
+   [
+    "The new rule absolves small businesses of the duty to file monthly reports.",
+    "新しい規則により、小企業は月次報告書を提出する義務を免除される。"
+   ],
+   [
+    "The jury absolved the defendant of all charges against him.",
+    "陪審は被告人に対するすべての容疑について無罪とした。"
+   ]
+  ]
+ },
+ {
+  "w": "absorb",
+  "exs": [
+   [
+    "Plants absorb carbon dioxide from the air and release oxygen.",
+    "植物は空気中から二酸化炭素を吸収し、酸素を放出する。"
+   ],
+   [
+    "She was so absorbed in her novel that she missed her stop.",
+    "彼女は小説に夢中になるあまり、降りる駅を乗り過ごした。"
+   ]
+  ]
+ },
+ {
+  "w": "abstract",
+  "exs": [
+   [
+    "Justice is an abstract concept that is hard to define.",
+    "正義は定義しにくい抽象的な概念だ。"
+   ],
+   [
+    "Please submit an abstract of no more than 200 words with your paper.",
+    "論文と一緒に200語以内の要約を提出してください。"
+   ]
+  ]
+ },
+ {
+  "w": "absurd",
+  "exs": [
+   [
+    "It is absurd to expect perfect results without any effort.",
+    "何の努力もなしに完璧な結果を期待するのはばかげている。"
+   ],
+   [
+    "The theory leads to an absurd conclusion that contradicts common sense.",
+    "その理論は常識に反する不合理な結論に至る。"
+   ]
+  ]
+ },
+ {
+  "w": "abuse",
+  "exs": [
+   [
+    "Child abuse is a serious problem that demands the attention of society.",
+    "児童虐待は社会の関心を必要とする深刻な問題だ。"
+   ],
+   [
+    "The abuse of antibiotics has led to the growth of resistant bacteria.",
+    "抗生物質の乱用は耐性菌の増加を招いた。"
+   ],
+   [
+    "Some leaders abuse their power to gain personal benefits.",
+    "自分の利益を得るために権力を悪用する指導者もいる。"
+   ]
+  ]
+ },
+ {
+  "w": "abysmal",
+  "exs": [
+   [
+    "The hotel's abysmal service ruined our entire holiday.",
+    "そのホテルの最悪のサービスのせいで、私たちの休暇は台無しになった。"
+   ],
+   [
+    "The explorers stared into the abysmal depths of the canyon below.",
+    "探検家たちは下に広がる峡谷の底なしの深みをじっと見つめた。"
+   ]
+  ]
+ },
+ {
+  "w": "academic",
+  "exs": [
+   [
+    "Academic research requires a great deal of patience and discipline.",
+    "学問的な研究には多大な忍耐と規律が必要だ。"
+   ],
+   [
+    "Her academic performance improved greatly after she changed her study habits.",
+    "勉強の習慣を変えてから、彼女の学業成績は大きく向上した。"
+   ]
+  ]
+ },
+ {
+  "w": "accentuate",
+  "exs": [
+   [
+    "The speaker used gestures to accentuate his main points.",
+    "話し手は主な論点を強調するために身振りを使った。"
+   ],
+   [
+    "The dark background accentuates the bright colors of the painting.",
+    "暗い背景がその絵の鮮やかな色彩を際立たせている。"
+   ]
+  ]
+ },
+ {
+  "w": "access",
+  "exs": [
+   [
+    "The only access to the village is a narrow mountain road.",
+    "その村へ行く唯一の手段は狭い山道だ。"
+   ],
+   [
+    "Students have free access to the library's online database.",
+    "学生は図書館のオンラインデータベースを無料で利用できる。"
+   ],
+   [
+    "You can access your account from any computer connected to the internet.",
+    "インターネットに接続したコンピューターなら、どれからでも自分のアカウントにアクセスできる。"
+   ]
+  ]
+ },
+ {
+  "w": "accessible",
+  "exs": [
+   [
+    "The museum is easily accessible by public transportation.",
+    "その博物館は公共交通機関で簡単に行ける。"
+   ],
+   [
+    "The author explains difficult ideas in an accessible way.",
+    "著者は難しい考えを理解しやすい方法で説明している。"
+   ]
+  ]
+ },
+ {
+  "w": "acclaim",
+  "exs": [
+   [
+    "The novel received critical acclaim when it was first published.",
+    "その小説は最初に出版されたとき、批評家から称賛を受けた。"
+   ],
+   [
+    "The film was widely acclaimed as a masterpiece of modern cinema.",
+    "その映画は現代映画の傑作として広く称賛された。"
+   ]
+  ]
+ },
+ {
+  "w": "accommodate",
+  "exs": [
+   [
+    "The hotel can accommodate up to 500 guests.",
+    "そのホテルは最大500人の客を収容できる。"
+   ],
+   [
+    "The school tried to accommodate students with special needs.",
+    "学校は特別な支援が必要な生徒に便宜を図ろうとした。"
+   ]
+  ]
+ },
+ {
+  "w": "accompany",
+  "exs": [
+   [
+    "A guide will accompany the tourists throughout the trip.",
+    "ガイドが旅行の間ずっと観光客に同行する。"
+   ],
+   [
+    "Heavy rain often accompanies strong winds during the typhoon season.",
+    "台風の季節には、強い風を伴って大雨が降ることが多い。"
+   ],
+   [
+    "She accompanied the singer on the piano during the concert.",
+    "彼女はコンサートの間、ピアノで歌手の伴奏をした。"
+   ]
+  ]
+ },
+ {
+  "w": "accomplish",
+  "exs": [
+   [
+    "With teamwork, we accomplished more than we had expected.",
+    "チームワークのおかげで、私たちは予想以上のことを成し遂げた。"
+   ],
+   [
+    "He accomplished his mission and returned home safely.",
+    "彼は任務を果たして無事に帰国した。"
+   ]
+  ]
+ },
+ {
+  "w": "accord",
+  "exs": [
+   [
+    "There was little accord between the witnesses' accounts of the event.",
+    "目撃者たちのその出来事についての説明には、ほとんど一致が見られなかった。"
+   ],
+   [
+    "The results are in accord with what scientists had predicted.",
+    "その結果は科学者たちが予測していたことと一致している。"
+   ],
+   [
+    "The king accorded the knight a high honor for his bravery.",
+    "王はその騎士の勇気に対して高い栄誉を与えた。"
+   ]
+  ]
+ },
+ {
+  "w": "accordingly",
+  "exs": [
+   [
+    "Conditions are changing fast, and we must act accordingly.",
+    "状況は急速に変化しており、私たちはそれに応じて行動しなければならない。"
+   ],
+   [
+    "The evidence was weak; accordingly, the case was dismissed.",
+    "証拠が不十分だった。したがって、その訴えは却下された。"
+   ]
+  ]
+ },
+ {
+  "w": "account",
+  "exs": [
+   [
+    "She gave a detailed account of what happened that night.",
+    "彼女はその夜に起きたことを詳しく説明した。"
+   ],
+   [
+    "He opened a savings account at the local bank last month.",
+    "彼は先月、地元の銀行で貯蓄用の口座を開設した。"
+   ],
+   [
+    "Young people account for most of the website's users.",
+    "若者がそのウェブサイト利用者の大半を占めている。"
+   ]
+  ]
+ },
+ {
+  "w": "accountable",
+  "exs": [
+   [
+    "Politicians should be held accountable for their decisions.",
+    "政治家は自らの決定に対して責任を問われるべきである。"
+   ],
+   [
+    "Public officials are accountable to the citizens they serve.",
+    "公務員は自分たちが仕える市民に対して説明責任がある。"
+   ]
+  ]
+ },
+ {
+  "w": "accumulate",
+  "exs": [
+   [
+    "Over the years, he accumulated a large collection of rare books.",
+    "長年かけて、彼は希少本の大きな蔵書を蓄積した。"
+   ],
+   [
+    "Dust had accumulated on the shelves over the years.",
+    "長年の間に棚にほこりがたまっていた。"
+   ]
+  ]
+ },
+ {
+  "w": "accuse",
+  "exs": [
+   [
+    "She accused him of being careless with other people's feelings.",
+    "彼女は彼が他人の気持ちに無頓着だと非難した。"
+   ],
+   [
+    "He was accused of stealing money from the company.",
+    "彼は会社の金を盗んだとして告発された。"
+   ]
+  ]
+ },
+ {
+  "w": "acerbic",
+  "exs": [
+   [
+    "The critic is known for his acerbic remarks about modern art.",
+    "その批評家は現代美術に関する辛辣な発言で知られている。"
+   ],
+   [
+    "The wine had an acerbic taste that made me frown.",
+    "そのワインは顔をしかめるほどの酸味があった。"
+   ]
+  ]
+ },
+ {
+  "w": "achieve",
+  "exs": [
+   [
+    "She worked hard to achieve her goal of becoming a doctor.",
+    "彼女は医者になるという目標を達成するために懸命に努力した。"
+   ],
+   [
+    "He achieved great success despite many difficulties early in his career.",
+    "彼は経歴の初期に多くの困難があったにもかかわらず、大きな成功を成し遂げた。"
+   ]
+  ]
+ },
+ {
+  "w": "acknowledge",
+  "exs": [
+   [
+    "He refused to acknowledge that he had made a mistake.",
+    "彼は自分が間違いを犯したことを認めようとしなかった。"
+   ],
+   [
+    "Please acknowledge receipt of this letter by return mail.",
+    "この手紙を受け取ったことを返信でお知らせください。"
+   ]
+  ]
+ },
+ {
+  "w": "acquaint",
+  "exs": [
+   [
+    "The guide acquainted the visitors with the history of the castle.",
+    "ガイドは訪問者たちにその城の歴史を知らせた。"
+   ],
+   [
+    "Students should acquaint themselves with the school rules.",
+    "生徒は校則をよく知っておくべきだ。"
+   ]
+  ]
+ },
+ {
+  "w": "acquiesce",
+  "exs": [
+   [
+    "The manager acquiesced in the illegal practice by saying nothing.",
+    "経営者は何も言わないことでその違法な慣行を黙認した。"
+   ],
+   [
+    "The committee reluctantly acquiesced to the demands of the workers.",
+    "委員会はしぶしぶ労働者の要求に従った。"
+   ]
+  ]
+ },
+ {
+  "w": "acute",
+  "exs": [
+   [
+    "The country faces an acute shortage of doctors in rural areas.",
+    "その国は地方における深刻な医師不足に直面している。"
+   ],
+   [
+    "Dogs have an acute sense of smell compared with humans.",
+    "犬は人間と比べて鋭い嗅覚を持っている。"
+   ],
+   [
+    "He was taken to the hospital with acute appendicitis.",
+    "彼は急性虫垂炎で病院に運ばれた。"
+   ]
+  ]
+ },
+ {
+  "w": "adamant",
+  "exs": [
+   [
+    "The mayor was adamant that the plan should go ahead.",
+    "市長はその計画を進めるべきだと断固として主張した。"
+   ],
+   [
+    "She remained adamant and refused to change her decision.",
+    "彼女は頑として譲らず、決定を変えることを拒んだ。"
+   ]
+  ]
+ },
+ {
+  "w": "adapt",
+  "exs": [
+   [
+    "Species that cannot adapt to climate change may go extinct.",
+    "気候変動に適応できない種は絶滅するかもしれない。"
+   ],
+   [
+    "The director adapted the novel into a successful film.",
+    "監督はその小説を成功した映画に改作した。"
+   ]
+  ]
+ },
+ {
+  "w": "addict",
+  "exs": [
+   [
+    "Many addicts need long-term support to recover.",
+    "多くの依存症患者は回復のために長期的な支援を必要とする。"
+   ],
+   [
+    "My brother is a sports addict who watches every match.",
+    "兄はスポーツの熱中者で、すべての試合を見ている。"
+   ]
+  ]
+ },
+ {
+  "w": "adhere",
+  "exs": [
+   [
+    "Some leaders adhere to old ideas even when they fail.",
+    "一部の指導者は、うまくいかなくなっても古い考えに固執する。"
+   ],
+   [
+    "All employees must adhere to the safety rules at the factory.",
+    "全従業員は工場の安全規則に従わなければならない。"
+   ],
+   [
+    "Mud adhered to his boots as he walked across the field.",
+    "野原を歩くと、泥が彼のブーツに付着した。"
+   ]
+  ]
+ },
+ {
+  "w": "adjust",
+  "exs": [
+   [
+    "You can adjust the height of the chair with this lever.",
+    "このレバーで椅子の高さを調整できる。"
+   ],
+   [
+    "It takes time to adjust to life in a foreign country.",
+    "外国での生活に慣れるには時間がかかる。"
+   ]
+  ]
+ },
+ {
+  "w": "administer",
+  "exs": [
+   [
+    "The council administers the funds for the local schools.",
+    "評議会は地元の学校のための資金を管理している。"
+   ],
+   [
+    "The coach administered first aid to the injured player.",
+    "コーチは負傷した選手に応急処置を施した。"
+   ],
+   [
+    "The nurse administered the medicine to the patient every four hours.",
+    "看護師は4時間おきに患者に薬を投与した。"
+   ]
+  ]
+ },
+ {
+  "w": "admire",
+  "exs": [
+   [
+    "Many people admire her courage in speaking out against injustice.",
+    "不正に対して声を上げた彼女の勇気を多くの人が称賛している。"
+   ],
+   [
+    "I admire how calmly she handled the difficult situation.",
+    "私は彼女が困難な状況を落ち着いて処理したことに感心する。"
+   ]
+  ]
+ },
+ {
+  "w": "admission",
+  "exs": [
+   [
+    "Admission to the university depends largely on the entrance exam.",
+    "その大学への入学は主として入学試験によって決まる。"
+   ],
+   [
+    "Admission to the museum is free for children under twelve.",
+    "12歳未満の子どもは博物館への入場が無料だ。"
+   ],
+   [
+    "His admission of guilt surprised everyone in the courtroom.",
+    "彼が自らの罪を認めたことに、法廷にいた全員が驚いた。"
+   ]
+  ]
+ },
+ {
+  "w": "admit",
+  "exs": [
+   [
+    "He finally admitted that he had made a serious mistake.",
+    "彼はついに自分が重大な過ちを犯したことを認めた。"
+   ],
+   [
+    "Only ticket holders will be admitted to the stadium tonight.",
+    "今夜はチケットを持っている人だけがスタジアムへの入場を許可される。"
+   ]
+  ]
+ },
+ {
+  "w": "admonish",
+  "exs": [
+   [
+    "She gently admonished her son to be more careful with his money.",
+    "彼女は息子にお金にもっと注意するよう優しく諭した。"
+   ],
+   [
+    "The teacher admonished the boys for their careless behavior.",
+    "先生は少年たちの不注意な行動を厳しく注意した。"
+   ]
+  ]
+ },
+ {
+  "w": "admonition",
+  "exs": [
+   [
+    "The priest's admonition reminded the villagers of their duties.",
+    "司祭の訓戒は村人たちに自分たちの義務を思い出させた。"
+   ],
+   [
+    "Despite his father's admonition, the boy stayed out late.",
+    "父の戒めにもかかわらず、少年は遅くまで外にいた。"
+   ]
+  ]
+ },
+ {
+  "w": "adolescent",
+  "exs": [
+   [
+    "Adolescents often struggle to find their identity.",
+    "思春期の若者はしばしば自分らしさを見つけるのに苦労する。"
+   ],
+   [
+    "Adolescent behavior is often strongly influenced by friends.",
+    "思春期の行動は友人から強い影響を受けることが多い。"
+   ]
+  ]
+ },
+ {
+  "w": "adopt",
+  "exs": [
+   [
+    "The school decided to adopt a new method of teaching English.",
+    "その学校は英語を教える新しい方法を採用することを決めた。"
+   ],
+   [
+    "The couple adopted a baby girl from an orphanage.",
+    "その夫婦は孤児院から女の赤ちゃんを養子にした。"
+   ]
+  ]
+ },
+ {
+  "w": "adumbrate",
+  "exs": [
+   [
+    "The report adumbrates the main changes planned for next year.",
+    "報告書は来年予定されている主な変更点の概略を示している。"
+   ],
+   [
+    "Dark clouds adumbrated the coming storm.",
+    "黒い雲はやって来る嵐を予示していた。"
+   ]
+  ]
+ },
+ {
+  "w": "advance",
+  "exs": [
+   [
+    "Advances in medicine have greatly extended human life expectancy.",
+    "医学の進歩により人間の平均寿命は大幅に延びた。"
+   ],
+   [
+    "The army advanced slowly across the snowy plain.",
+    "軍は雪に覆われた平原をゆっくりと前進した。"
+   ],
+   [
+    "Please book your tickets well in advance.",
+    "切符はずっと前もって予約してください。"
+   ]
+  ]
+ },
+ {
+  "w": "advantage",
+  "exs": [
+   [
+    "Living in a city has both advantages and disadvantages.",
+    "都市で暮らすことには長所も短所もある。"
+   ],
+   [
+    "Being tall gives him a clear advantage in basketball.",
+    "背が高いことは、彼にバスケットボールで明らかに有利な立場を与える。"
+   ],
+   [
+    "Many shops take advantage of the holiday season to raise prices.",
+    "多くの店が休暇シーズンを利用して値上げをする。"
+   ]
+  ]
+ },
+ {
+  "w": "advent",
+  "exs": [
+   [
+    "The advent of spring brought warmer weather and longer days.",
+    "春の到来は、暖かい気候と長い日をもたらした。"
+   ],
+   [
+    "The advent of the internet changed the way we communicate.",
+    "インターネットの出現は私たちの意思疎通の仕方を変えた。"
+   ]
+  ]
+ },
+ {
+  "w": "advocate",
+  "exs": [
+   [
+    "She advocates stricter regulations on air pollution.",
+    "彼女は大気汚染に対するより厳しい規制を主張している。"
+   ],
+   [
+    "He is a strong advocate of free education for all.",
+    "彼は全員への無償教育の強力な提唱者だ。"
+   ]
+  ]
+ },
+ {
+  "w": "aesthetic",
+  "exs": [
+   [
+    "The building was designed with aesthetic as well as practical considerations.",
+    "その建物は実用面だけでなく美的な配慮をもって設計された。"
+   ],
+   [
+    "The aesthetic of the 1960s influenced fashion for decades.",
+    "1960年代の美意識は何十年にもわたってファッションに影響を与えた。"
+   ]
+  ]
+ },
+ {
+  "w": "affable",
+  "exs": [
+   [
+    "The affable waiter greeted us with a warm smile.",
+    "愛想のよいウェイターが温かい笑顔で私たちを迎えてくれた。"
+   ],
+   [
+    "The owner was an affable man who greeted every guest warmly.",
+    "店主は気さくな人で、どの客にも温かく挨拶した。"
+   ]
+  ]
+ },
+ {
+  "w": "affair",
+  "exs": [
+   [
+    "The scandal was a shocking affair that shook the entire nation.",
+    "そのスキャンダルは国中を揺るがす衝撃的な出来事だった。"
+   ],
+   [
+    "Students should take an interest in current affairs.",
+    "学生は時事問題に関心を持つべきだ。"
+   ],
+   [
+    "The politician resigned after his secret affair was revealed.",
+    "その政治家は秘密の情事が発覚した後に辞職した。"
+   ]
+  ]
+ },
+ {
+  "w": "affect",
+  "exs": [
+   [
+    "Lack of sleep can seriously affect your ability to concentrate.",
+    "睡眠不足は集中力に深刻な影響を及ぼしうる。"
+   ],
+   [
+    "The sad ending of the film deeply affected the audience.",
+    "その映画の悲しい結末は観客を深く感動させた。"
+   ]
+  ]
+ },
+ {
+  "w": "affinity",
+  "exs": [
+   [
+    "Many children feel a natural affinity for animals.",
+    "多くの子どもは動物に自然な親しみを感じる。"
+   ],
+   [
+    "Linguists noticed an affinity between the two ancient languages.",
+    "言語学者たちはその二つの古代言語の間に類似性があることに気づいた。"
+   ],
+   [
+    "Cheese has a natural affinity with red wine.",
+    "チーズは赤ワインと相性がよい。"
+   ]
+  ]
+ },
+ {
+  "w": "affirm",
+  "exs": [
+   [
+    "The witness affirmed that he had seen the suspect at the scene.",
+    "目撃者は現場で容疑者を見たと断言した。"
+   ],
+   [
+    "The survey affirmed the value of early childhood education.",
+    "その調査は幼児教育の価値を肯定した。"
+   ]
+  ]
+ },
+ {
+  "w": "aftermath",
+  "exs": [
+   [
+    "In the aftermath of the earthquake, many people lost their homes.",
+    "地震の余波で多くの人が家を失った。"
+   ],
+   [
+    "Reporters described the quiet aftermath of the battle.",
+    "記者たちは戦闘直後の静かな状況を伝えた。"
+   ]
+  ]
+ },
+ {
+  "w": "agenda",
+  "exs": [
+   [
+    "Climate change is high on the agenda at the summit.",
+    "気候変動はその首脳会議の最重要議題の一つである。"
+   ],
+   [
+    "Please check the agenda for tomorrow's schedule before the meeting.",
+    "会議の前に、明日の予定表を確認してください。"
+   ],
+   [
+    "The new president has set an ambitious agenda for reform.",
+    "新大統領は改革に向けた野心的な課題を掲げた。"
+   ]
+  ]
+ },
+ {
+  "w": "aggravate",
+  "exs": [
+   [
+    "Stress can aggravate many existing health problems.",
+    "ストレスは多くの既存の健康問題を悪化させうる。"
+   ],
+   [
+    "His constant complaining aggravated everyone in the office.",
+    "彼のたえまない不平は事務所の全員をいらいらさせた。"
+   ]
+  ]
+ },
+ {
+  "w": "aggregate",
+  "exs": [
+   [
+    "The aggregate demand for energy continues to rise.",
+    "エネルギーの総需要は増え続けている。"
+   ],
+   [
+    "The city is an aggregate of many small villages.",
+    "その市は多くの小さな村の集合体だ。"
+   ],
+   [
+    "Researchers aggregate data from hundreds of hospitals.",
+    "研究者たちは何百もの病院のデータを集計する。"
+   ]
+  ]
+ },
+ {
+  "w": "aggression",
+  "exs": [
+   [
+    "Some studies link violent video games to increased aggression.",
+    "暴力的なゲームと攻撃性の増大を関連づける研究もある。"
+   ],
+   [
+    "The treaty was meant to prevent aggression between neighboring states.",
+    "その条約は隣接する国々の間の侵略を防ぐことを目的としていた。"
+   ]
+  ]
+ },
+ {
+  "w": "aggressive",
+  "exs": [
+   [
+    "Aggressive dogs should not be left alone with small children.",
+    "攻撃的な犬を小さな子どもと二人きりにしてはならない。"
+   ],
+   [
+    "The company launched an aggressive advertising campaign overseas.",
+    "その会社は海外で積極的な広告キャンペーンを展開した。"
+   ]
+  ]
+ },
+ {
+  "w": "agile",
+  "exs": [
+   [
+    "Cats are agile animals that can jump to great heights.",
+    "猫は非常に高く跳べる敏しょうな動物である。"
+   ],
+   [
+    "She has an agile mind and solves problems quickly.",
+    "彼女は頭の回転が速く、問題をすばやく解決する。"
+   ]
+  ]
+ },
+ {
+  "w": "aim",
+  "exs": [
+   [
+    "The new policy aims to reduce the amount of plastic waste.",
+    "その新政策はプラスチックごみの量を減らすことを目指している。"
+   ],
+   [
+    "The hunter aimed his rifle at the deer in the distance.",
+    "猟師は遠くにいるシカにライフルで狙いを定めた。"
+   ],
+   [
+    "The aim of this study is to examine the effects of sleep.",
+    "この研究の目的は睡眠の影響を調べることだ。"
+   ]
+  ]
+ },
+ {
+  "w": "alacrity",
+  "exs": [
+   [
+    "The firefighters responded to the emergency call with alacrity.",
+    "消防士たちは緊急通報に敏速に対応した。"
+   ],
+   [
+    "She accepted the offer with alacrity.",
+    "彼女は喜んでその申し出をすぐに受け入れた。"
+   ]
+  ]
+ },
+ {
+  "w": "alert",
+  "exs": [
+   [
+    "Drivers must stay alert when traveling at night.",
+    "運転手は夜間に走行するとき、注意を怠ってはならない。"
+   ],
+   [
+    "The government alerted residents to the danger of flooding.",
+    "政府は住民に洪水の危険を警戒するよう呼びかけた。"
+   ],
+   [
+    "A tsunami alert was issued along the entire coast.",
+    "沿岸一帯に津波警報が発令された。"
+   ]
+  ]
+ },
+ {
+  "w": "alienate",
+  "exs": [
+   [
+    "Constant criticism can alienate a child from his family.",
+    "絶え間ない批判は子どもを家族から疎外しかねない。"
+   ],
+   [
+    "His harsh remarks alienated many of his supporters.",
+    "彼の辛辣な発言は支持者の多くを遠ざけた。"
+   ]
+  ]
+ },
+ {
+  "w": "align",
+  "exs": [
+   [
+    "Align the edges of the paper before you fold it.",
+    "折る前に紙の端を一直線にそろえなさい。"
+   ],
+   [
+    "The senator aligned himself with the environmental groups.",
+    "その上院議員は環境団体と提携した。"
+   ],
+   [
+    "Member states must align their policies to deal with the crisis.",
+    "加盟国は危機に対処するために政策の足並みをそろえなければならない。"
+   ]
+  ]
+ },
+ {
+  "w": "alliance",
+  "exs": [
+   [
+    "The two countries formed an alliance to protect their trade.",
+    "その二国は貿易を守るために同盟を結んだ。"
+   ],
+   [
+    "The two firms formed an alliance to develop electric cars.",
+    "その2社は電気自動車を開発するために提携した。"
+   ]
+  ]
+ },
+ {
+  "w": "allowance",
+  "exs": [
+   [
+    "Employees receive a housing allowance from the company.",
+    "従業員は会社から住宅手当を受け取る。"
+   ],
+   [
+    "Children in my town receive a small monthly allowance.",
+    "私の町の子どもは毎月少額のお小遣いをもらっている。"
+   ],
+   [
+    "The airline sets a baggage allowance of twenty kilograms per passenger.",
+    "その航空会社は乗客1人あたり20キロの手荷物許容量を定めている。"
+   ]
+  ]
+ },
+ {
+  "w": "allude",
+  "exs": [
+   [
+    "In his speech, he alluded to problems within the party.",
+    "演説で彼は党内の問題にそれとなく言及した。"
+   ],
+   [
+    "She alluded to her illness without giving any details.",
+    "彼女は詳しいことは言わずに自分の病気をほのめかした。"
+   ]
+  ]
+ },
+ {
+  "w": "aloof",
+  "exs": [
+   [
+    "He remained aloof from the other students and ate alone.",
+    "彼は他の生徒たちと距離を置き、一人で食事をしていた。"
+   ],
+   [
+    "The judge remained aloof from the heated political debate.",
+    "裁判官は白熱した政治論争に対して超然とした態度を保った。"
+   ]
+  ]
+ },
+ {
+  "w": "alternate",
+  "exs": [
+   [
+    "Periods of heavy rain alternate with dry spells in this region.",
+    "この地域では激しい雨の時期と乾燥した時期が交互に訪れる。"
+   ],
+   [
+    "The road was lined with alternate rows of red and white flowers.",
+    "道には赤と白の花が交互の列になって並んでいた。"
+   ]
+  ]
+ },
+ {
+  "w": "alternative",
+  "exs": [
+   [
+    "We need to find an alternative to fossil fuels as soon as possible.",
+    "私たちは化石燃料に代わるものを一刻も早く見つける必要がある。"
+   ],
+   [
+    "We should consider an alternative plan in case this one fails.",
+    "この案が失敗した場合に備えて、代わりの案を検討すべきだ。"
+   ],
+   [
+    "The government faced a stark alternative: raise taxes or cut spending.",
+    "政府は増税か歳出削減かという二者択一に直面した。"
+   ]
+  ]
+ },
+ {
+  "w": "amateur",
+  "exs": [
+   [
+    "The tournament is open to both professionals and amateurs.",
+    "その大会はプロとアマチュアの両方に開かれている。"
+   ],
+   [
+    "Even an amateur can take wonderful photos with a smartphone.",
+    "素人でもスマートフォンですばらしい写真が撮れる。"
+   ]
+  ]
+ },
+ {
+  "w": "ambition",
+  "exs": [
+   [
+    "His political ambition drove him to run for the senate.",
+    "彼の政治的な野心が、彼を上院議員選挙への立候補へと駆り立てた。"
+   ],
+   [
+    "Her ambition to become an astronaut began in childhood.",
+    "宇宙飛行士になるという彼女の大志は子どものころに始まった。"
+   ]
+  ]
+ },
+ {
+  "w": "ambitious",
+  "exs": [
+   [
+    "The mayor announced an ambitious plan to make the city carbon-neutral.",
+    "市長は市を炭素中立にする野心的な計画を発表した。"
+   ],
+   [
+    "The city began an ambitious project to rebuild its old harbor.",
+    "市は古い港を再建する大がかりな事業を始めた。"
+   ]
+  ]
+ },
+ {
+  "w": "ambivalent",
+  "exs": [
+   [
+    "She felt ambivalent about leaving her hometown for a new job.",
+    "彼女は新しい仕事のために故郷を離れることに複雑な思いを抱いた。"
+   ],
+   [
+    "The voters remained ambivalent about the two candidates.",
+    "有権者は2人の候補者についてどっちつかずのままだった。"
+   ]
+  ]
+ },
+ {
+  "w": "ameliorate",
+  "exs": [
+   [
+    "New policies were introduced to ameliorate the living conditions of the poor.",
+    "貧しい人々の生活環境を改善するために新しい政策が導入された。"
+   ],
+   [
+    "Medicine can ameliorate the symptoms but cannot cure the disease.",
+    "薬は症状を軽減できるが、その病気を治すことはできない。"
+   ]
+  ]
+ },
+ {
+  "w": "amenable",
+  "exs": [
+   [
+    "The horse was amenable and easy to train.",
+    "その馬は従順で、訓練しやすかった。"
+   ],
+   [
+    "The manager was amenable to changes in the work schedule.",
+    "部長は勤務予定の変更を快く受け入れた。"
+   ]
+  ]
+ },
+ {
+  "w": "amend",
+  "exs": [
+   [
+    "The government plans to amend the law on working hours.",
+    "政府は労働時間に関する法律を改正する計画だ。"
+   ],
+   [
+    "Please amend the report to include the latest figures.",
+    "最新の数字を含めるように報告書を修正してください。"
+   ]
+  ]
+ },
+ {
+  "w": "amid",
+  "exs": [
+   [
+    "The team won the final amid cheers from thousands of fans.",
+    "チームは数千人のファンの歓声の中で決勝戦に勝った。"
+   ],
+   [
+    "The old temple stands amid tall trees on the hill.",
+    "その古い寺は丘の上の高い木々に囲まれて建っている。"
+   ]
+  ]
+ },
+ {
+  "w": "amorphous",
+  "exs": [
+   [
+    "Clouds are amorphous masses that constantly change shape.",
+    "雲は絶えず形を変える不定形の塊だ。"
+   ],
+   [
+    "The amorphous plan gave workers no clear direction.",
+    "その漠然とした計画は従業員に明確な方向を示さなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "amount",
+  "exs": [
+   [
+    "A large amount of water is wasted in the process of farming.",
+    "農業の過程で大量の水が無駄になっている。"
+   ],
+   [
+    "The total amount of the bill was higher than I expected.",
+    "請求書の総額は私が予想したより高かった。"
+   ],
+   [
+    "His debts amount to more than ten million yen.",
+    "彼の借金は総計で1000万円以上になる。"
+   ]
+  ]
+ },
+ {
+  "w": "amplify",
+  "exs": [
+   [
+    "Social media can amplify rumors and spread them quickly.",
+    "ソーシャルメディアはうわさを増幅し、素早く広めることがある。"
+   ],
+   [
+    "The media coverage amplified the effects of the crisis.",
+    "メディアの報道は危機の影響を拡大した。"
+   ]
+  ]
+ },
+ {
+  "w": "analogy",
+  "exs": [
+   [
+    "Reasoning by analogy, scientists applied the results from mice to humans.",
+    "類推によって、科学者たちはマウスでの結果を人間に当てはめた。"
+   ],
+   [
+    "The teacher used an analogy to explain how electricity flows.",
+    "先生は電気の流れを説明するためにたとえを用いた。"
+   ]
+  ]
+ },
+ {
+  "w": "ancient",
+  "exs": [
+   [
+    "Ancient people used the stars to find their way at night.",
+    "古代の人々は夜に道を見つけるのに星を利用した。"
+   ],
+   [
+    "They still follow an ancient custom of sharing food with neighbors.",
+    "彼らは今も近所の人と食べ物を分け合う古くからの習慣に従っている。"
+   ]
+  ]
+ },
+ {
+  "w": "annihilate",
+  "exs": [
+   [
+    "The invading army was annihilated in a single battle.",
+    "侵略軍は一度の戦闘で全滅させられた。"
+   ],
+   [
+    "Our team annihilated the rivals by a score of ten to zero.",
+    "私たちのチームは10対0でライバルを完敗させた。"
+   ]
+  ]
+ },
+ {
+  "w": "announce",
+  "exs": [
+   [
+    "The company announced plans to build a new factory next year.",
+    "その会社は来年新工場を建設する計画を発表した。"
+   ],
+   [
+    "The loudspeaker announced that the train would be delayed.",
+    "拡声器は列車が遅れることを告げた。"
+   ]
+  ]
+ },
+ {
+  "w": "annoy",
+  "exs": [
+   [
+    "Loud noise from the construction site annoyed the neighbors.",
+    "工事現場の大きな騒音は近隣住民をいらだたせた。"
+   ],
+   [
+    "Mosquitoes annoyed the campers all night long.",
+    "蚊が一晩中キャンプをする人たちを悩ませた。"
+   ]
+  ]
+ },
+ {
+  "w": "annual",
+  "exs": [
+   [
+    "The company holds an annual meeting for all of its shareholders.",
+    "その会社は全株主のための年1回の総会を開く。"
+   ],
+   [
+    "The annual festival attracts thousands of visitors from all over Japan.",
+    "その例年の祭りには日本中から数千人が訪れる。"
+   ]
+  ]
+ },
+ {
+  "w": "anomaly",
+  "exs": [
+   [
+    "Scientists noticed an anomaly in the data from the satellite.",
+    "科学者たちはその衛星のデータに異常があることに気づいた。"
+   ],
+   [
+    "The warm winter was an anomaly in an otherwise cold decade.",
+    "その暖冬は、寒かった10年間における例外だった。"
+   ]
+  ]
+ },
+ {
+  "w": "antagonism",
+  "exs": [
+   [
+    "There was deep antagonism between the two rival political groups.",
+    "二つの対立する政治団体の間には深い敵意があった。"
+   ],
+   [
+    "Antagonism between the two groups made cooperation almost impossible.",
+    "二つの集団の対立が、協力をほとんど不可能にした。"
+   ]
+  ]
+ },
+ {
+  "w": "anticipate",
+  "exs": [
+   [
+    "We did not anticipate such a strong reaction from the public.",
+    "私たちは世間からこれほど強い反応があるとは予想していなかった。"
+   ],
+   [
+    "Children eagerly anticipate the arrival of summer vacation.",
+    "子どもたちは夏休みの到来を楽しみに待っている。"
+   ]
+  ]
+ },
+ {
+  "w": "antidote",
+  "exs": [
+   [
+    "The doctor gave him an antidote to the snake's poison.",
+    "医師は彼にそのヘビの毒に対する解毒剤を与えた。"
+   ],
+   [
+    "Travel is often an antidote to boredom and narrow thinking.",
+    "旅行はしばしば退屈や視野の狭さに対する対抗手段となる。"
+   ]
+  ]
+ },
+ {
+  "w": "anxiety",
+  "exs": [
+   [
+    "Many students feel anxiety before taking important entrance exams.",
+    "多くの学生は重要な入試の前に不安を感じる。"
+   ],
+   [
+    "Her anxiety about her son's health kept her awake all night.",
+    "息子の健康への心配のせいで、彼女は一晩中眠れなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "anxious",
+  "exs": [
+   [
+    "She was anxious about her son's safety during the storm.",
+    "彼女は嵐の間、息子の安全を心配していた。"
+   ],
+   [
+    "He was anxious to start his new job as soon as possible.",
+    "彼は新しい仕事をできるだけ早く始めたいと切望していた。"
+   ]
+  ]
+ },
+ {
+  "w": "apathy",
+  "exs": [
+   [
+    "Voter apathy has become a serious problem in many democracies.",
+    "有権者の無関心は多くの民主主義国家で深刻な問題となっている。"
+   ],
+   [
+    "After months of failure, the workers fell into apathy.",
+    "何か月もの失敗の後、労働者たちは無気力に陥った。"
+   ]
+  ]
+ },
+ {
+  "w": "apocryphal",
+  "exs": [
+   [
+    "The quote is often attributed to Einstein, but it is apocryphal.",
+    "その言葉はよくアインシュタインのものとされるが、出所は疑わしい。"
+   ],
+   [
+    "The story about the president's childhood is probably apocryphal.",
+    "その大統領の幼少期についての話はおそらく作り話だろう。"
+   ]
+  ]
+ },
+ {
+  "w": "apparatus",
+  "exs": [
+   [
+    "The laboratory has a lot of expensive scientific apparatus.",
+    "その研究室には高価な科学器具がたくさんある。"
+   ],
+   [
+    "Divers wear a breathing apparatus when they go deep underwater.",
+    "ダイバーは深く潜るとき呼吸用の装置を身につける。"
+   ],
+   [
+    "The state apparatus was too slow to respond to the crisis.",
+    "国家の機構は危機への対応があまりに遅かった。"
+   ]
+  ]
+ },
+ {
+  "w": "apparent",
+  "exs": [
+   [
+    "It soon became apparent that the plan would fail.",
+    "その計画が失敗することはすぐに明らかになった。"
+   ],
+   [
+    "Despite his apparent calm, he was extremely nervous inside.",
+    "見せかけの落ち着きにもかかわらず、彼は内心とても緊張していた。"
+   ]
+  ]
+ },
+ {
+  "w": "appeal",
+  "exs": [
+   [
+    "The charity appealed to the public for donations after the flood.",
+    "その慈善団体は洪水の後、一般の人々に寄付を求めて訴えかけた。"
+   ],
+   [
+    "The city's main appeal is its beautiful old streets.",
+    "その市の最大の魅力は美しい古い街並みだ。"
+   ],
+   [
+    "The defendant appealed to a higher court against the verdict.",
+    "被告は判決を不服として上級裁判所に上訴した。"
+   ]
+  ]
+ },
+ {
+  "w": "appease",
+  "exs": [
+   [
+    "The government tried to appease angry citizens by lowering taxes.",
+    "政府は減税によって怒れる市民をなだめようとした。"
+   ],
+   [
+    "The mayor offered extra pay to appease the strikers' demands.",
+    "市長はストライキ参加者の要求を和らげるために追加の賃金を提示した。"
+   ]
+  ]
+ },
+ {
+  "w": "appetite",
+  "exs": [
+   [
+    "Hard exercise gave the boys a huge appetite.",
+    "激しい運動で少年たちは大変な食欲がわいた。"
+   ],
+   [
+    "The public has a growing appetite for news about space travel.",
+    "世間では宇宙旅行についてのニュースへの欲求が高まっている。"
+   ]
+  ]
+ },
+ {
+  "w": "applaud",
+  "exs": [
+   [
+    "The audience stood up and applauded the performers loudly.",
+    "観客は立ち上がり、出演者に盛大な拍手を送った。"
+   ],
+   [
+    "Critics applauded the mayor's decision to protect the forest.",
+    "批評家たちは森を守るという市長の決定を称賛した。"
+   ]
+  ]
+ },
+ {
+  "w": "applicable",
+  "exs": [
+   [
+    "The same rule is applicable to every member of the team.",
+    "同じ規則がチームのすべてのメンバーに当てはまる。"
+   ],
+   [
+    "This discount is not applicable to sale items.",
+    "この割引はセール品には適用されない。"
+   ]
+  ]
+ },
+ {
+  "w": "applicant",
+  "exs": [
+   [
+    "Applicants for the scholarship must submit an essay in English.",
+    "奨学金の志願者は英語の小論文を提出しなければならない。"
+   ],
+   [
+    "There were over a hundred applicants for the position.",
+    "その職には100人以上の応募者がいた。"
+   ]
+  ]
+ },
+ {
+  "w": "apply",
+  "exs": [
+   [
+    "You can apply for the scholarship online until the end of May.",
+    "5月末までオンラインで奨学金に申し込める。"
+   ],
+   [
+    "This rule does not apply to students under the age of ten.",
+    "この規則は10歳未満の生徒には当てはまらない。"
+   ],
+   [
+    "Engineers apply scientific knowledge to solve practical problems.",
+    "技術者は実際的な問題を解決するために科学的知識を応用する。"
+   ]
+  ]
+ },
+ {
+  "w": "appoint",
+  "exs": [
+   [
+    "The president appointed her as the head of the new committee.",
+    "社長は彼女を新しい委員会の委員長に任命した。"
+   ],
+   [
+    "Both sides agreed to meet at the appointed time and place.",
+    "双方は指定された日時と場所で会うことに同意した。"
+   ]
+  ]
+ },
+ {
+  "w": "appraisal",
+  "exs": [
+   [
+    "The teacher gave an honest appraisal of the student's essay.",
+    "教師はその生徒の小論文に率直な評価を下した。"
+   ],
+   [
+    "An expert's appraisal put the value of the painting at a million dollars.",
+    "専門家の査定によると、その絵の価値は100万ドルだった。"
+   ]
+  ]
+ },
+ {
+  "w": "appreciate",
+  "exs": [
+   [
+    "Few people appreciated the importance of his discovery at the time.",
+    "当時、彼の発見の重要性を理解する人はほとんどいなかった。"
+   ],
+   [
+    "I really appreciate your help with my homework.",
+    "宿題を手伝ってくれたことに本当に感謝します。"
+   ],
+   [
+    "Land in this area is expected to appreciate over the next decade.",
+    "この地域の土地は今後10年間で価値が上がると予想されている。"
+   ]
+  ]
+ },
+ {
+  "w": "apprehend",
+  "exs": [
+   [
+    "The police apprehended the suspect within hours.",
+    "警察は数時間以内に容疑者を逮捕した。"
+   ],
+   [
+    "Few people apprehend the full danger of the situation.",
+    "状況の危険性を十分に理解している人はほとんどいない。"
+   ]
+  ]
+ },
+ {
+  "w": "apprehension",
+  "exs": [
+   [
+    "Some parents view new technology with apprehension.",
+    "新しい技術を不安な目で見る親もいる。"
+   ],
+   [
+    "There is growing apprehension about the safety of the new drug.",
+    "新薬の安全性についての懸念が高まっている。"
+   ],
+   [
+    "The apprehension of the thief took place late at night.",
+    "その泥棒の逮捕は深夜に行われた。"
+   ]
+  ]
+ },
+ {
+  "w": "approach",
+  "exs": [
+   [
+    "The storm is approaching the coast at high speed.",
+    "嵐は猛スピードで海岸に近づいている。"
+   ],
+   [
+    "Scientists approach the problem from several different angles.",
+    "科学者たちはその問題にいくつかの異なる角度から取り組む。"
+   ],
+   [
+    "We need a new approach to solving the problem of traffic jams.",
+    "私たちは交通渋滞の問題を解決する新しい取り組み方を必要としている。"
+   ]
+  ]
+ },
+ {
+  "w": "approve",
+  "exs": [
+   [
+    "The city council approved the plan to build a new park.",
+    "市議会は新しい公園を建設する計画を承認した。"
+   ],
+   [
+    "Most parents approve of the school's new lunch policy.",
+    "ほとんどの親は学校の新しい昼食方針に賛成している。"
+   ]
+  ]
+ },
+ {
+  "w": "approximately",
+  "exs": [
+   [
+    "Approximately half of the students walk to school every day.",
+    "生徒のおよそ半数が毎日歩いて通学している。"
+   ],
+   [
+    "The village is located approximately ten kilometers from the sea.",
+    "その村は海から約10キロの所にある。"
+   ]
+  ]
+ },
+ {
+  "w": "apt",
+  "exs": [
+   [
+    "Young children are apt to catch colds in winter.",
+    "幼い子どもは冬に風邪をひきやすい。"
+   ],
+   [
+    "That was an apt description of the situation.",
+    "それは状況を表した適切な描写だった。"
+   ]
+  ]
+ },
+ {
+  "w": "aptitude",
+  "exs": [
+   [
+    "The boy showed a natural aptitude for music from an early age.",
+    "その少年は幼いころから音楽の素質を示していた。"
+   ],
+   [
+    "The test measures a student's aptitude for learning languages.",
+    "そのテストは言語を学ぶ生徒の適性を測定する。"
+   ]
+  ]
+ },
+ {
+  "w": "arcane",
+  "exs": [
+   [
+    "The guild passed down arcane knowledge from master to apprentice.",
+    "ギルドは秘伝の知識を師匠から弟子へと伝えた。"
+   ],
+   [
+    "The rules of the ancient game seemed arcane to outsiders.",
+    "その古い遊戯の規則は部外者には難解に思えた。"
+   ]
+  ]
+ },
+ {
+  "w": "ardent",
+  "exs": [
+   [
+    "He wrote an ardent letter to the woman he loved.",
+    "彼は愛する女性に熱烈な手紙を書いた。"
+   ],
+   [
+    "She is an ardent supporter of animal rights.",
+    "彼女は動物の権利の熱心な支持者である。"
+   ]
+  ]
+ },
+ {
+  "w": "arduous",
+  "exs": [
+   [
+    "The climbers made an arduous journey to the top of the mountain.",
+    "登山家たちは山頂まで骨の折れる道のりを進んだ。"
+   ],
+   [
+    "Rebuilding the town after the flood was an arduous task.",
+    "洪水の後に町を再建するのは困難な作業だった。"
+   ]
+  ]
+ },
+ {
+  "w": "argue",
+  "exs": [
+   [
+    "Some scientists argue that the climate is changing faster than expected.",
+    "気候は予想より速く変化していると主張する科学者もいる。"
+   ],
+   [
+    "The two scholars argued about the origin of the language for hours.",
+    "2人の学者はその言語の起源について何時間も議論した。"
+   ],
+   [
+    "My parents rarely argue in front of the children.",
+    "私の両親は子どもの前で口論することはめったにない。"
+   ]
+  ]
+ },
+ {
+  "w": "arise",
+  "exs": [
+   [
+    "Problems often arise when people fail to communicate clearly.",
+    "人々がはっきり意思疎通できないとき、問題はしばしば生じる。"
+   ],
+   [
+    "A serious dispute may arise when two countries disagree about the border.",
+    "2国が国境をめぐって対立すると、深刻な紛争が起こることがある。"
+   ]
+  ]
+ },
+ {
+  "w": "arouse",
+  "exs": [
+   [
+    "The speech aroused memories of his childhood in the village.",
+    "その演説は、彼の村での子ども時代の記憶を呼び起こした。"
+   ],
+   [
+    "The strange noise aroused the curiosity of the children.",
+    "その奇妙な物音は子どもたちの好奇心をかき立てた。"
+   ]
+  ]
+ },
+ {
+  "w": "arrange",
+  "exs": [
+   [
+    "I will arrange a meeting with the manager for next Monday.",
+    "来週月曜日に部長との面会を手配しておきます。"
+   ],
+   [
+    "She arranged the flowers carefully in a glass vase.",
+    "彼女は花をガラスの花瓶に丁寧に整えて生けた。"
+   ],
+   [
+    "The books are arranged in alphabetical order by author.",
+    "本は著者名のアルファベット順に配列されている。"
+   ]
+  ]
+ },
+ {
+  "w": "array",
+  "exs": [
+   [
+    "The store offers a wide array of products at low prices.",
+    "その店は低価格で多種多様な商品を取りそろえている。"
+   ],
+   [
+    "The program stores the data in an array of numbers.",
+    "そのプログラムはデータを数値の配列に保存する。"
+   ]
+  ]
+ },
+ {
+  "w": "articulate",
+  "exs": [
+   [
+    "She articulated her concerns clearly at the meeting.",
+    "彼女は会議で自分の懸念をはっきりと述べた。"
+   ],
+   [
+    "She is an articulate speaker who explains complex ideas clearly.",
+    "彼女は複雑な考えを明瞭に説明する表現力のある話し手だ。"
+   ]
+  ]
+ },
+ {
+  "w": "ascertain",
+  "exs": [
+   [
+    "Please ascertain the exact time of the meeting before you leave.",
+    "出かける前に会議の正確な時刻を確かめてください。"
+   ],
+   [
+    "The police tried to ascertain the cause of the fire.",
+    "警察は火災の原因を突き止めようとした。"
+   ]
+  ]
+ },
+ {
+  "w": "ascetic",
+  "exs": [
+   [
+    "The monk lived an ascetic life in a small mountain hut.",
+    "その僧は山中の小屋で禁欲的な生活を送った。"
+   ],
+   [
+    "The ascetic lived alone in the mountains for decades.",
+    "その苦行者は何十年も山中で一人暮らしをした。"
+   ]
+  ]
+ },
+ {
+  "w": "aspect",
+  "exs": [
+   [
+    "Education is an important aspect of a child's development.",
+    "教育は子どもの成長の重要な側面である。"
+   ],
+   [
+    "We must consider the problem from every aspect before deciding.",
+    "決定する前に、あらゆる観点からその問題を検討しなければならない。"
+   ]
+  ]
+ },
+ {
+  "w": "aspire",
+  "exs": [
+   [
+    "Many young athletes aspire to compete in the Olympics.",
+    "多くの若い選手がオリンピックへの出場を熱望している。"
+   ],
+   [
+    "He aspires to a career in international law.",
+    "彼は国際法の分野でのキャリアを目指している。"
+   ]
+  ]
+ },
+ {
+  "w": "assemble",
+  "exs": [
+   [
+    "The teacher assembled the students in the hall for the announcement.",
+    "先生は発表のために生徒たちを講堂に集めた。"
+   ],
+   [
+    "Workers assemble the cars on a long production line.",
+    "作業員は長い生産ラインで自動車を組み立てる。"
+   ],
+   [
+    "Thousands of people assembled in the square to hear the speech.",
+    "数千人が演説を聞くために広場に集まった。"
+   ]
+  ]
+ },
+ {
+  "w": "asset",
+  "exs": [
+   [
+    "The company sold several of its assets to pay its debts.",
+    "その会社は借金を返すために資産のいくつかを売却した。"
+   ],
+   [
+    "Her fluency in three languages is a great asset to the company.",
+    "三か国語に堪能であることは会社にとって彼女の大きな強みだ。"
+   ]
+  ]
+ },
+ {
+  "w": "assiduous",
+  "exs": [
+   [
+    "Years of assiduous study finally brought him success.",
+    "長年の勤勉な学習がついに彼に成功をもたらした。"
+   ],
+   [
+    "Her assiduous efforts to find the missing child never stopped.",
+    "行方不明の子どもを探す彼女の根気強い努力は決して止まらなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "assign",
+  "exs": [
+   [
+    "The teacher assigned each student a different topic to research.",
+    "先生は各生徒に調べるべき異なる題材を割り当てた。"
+   ],
+   [
+    "The company assigned her to lead the overseas sales team.",
+    "会社は彼女を海外営業チームの責任者に任命した。"
+   ]
+  ]
+ },
+ {
+  "w": "assimilate",
+  "exs": [
+   [
+    "The body assimilates nutrients from the food we eat.",
+    "体は私たちが食べる食物から栄養素を吸収する。"
+   ],
+   [
+    "Immigrants often take years to assimilate into a new culture.",
+    "移民が新しい文化に同化するには何年もかかることが多い。"
+   ]
+  ]
+ },
+ {
+  "w": "assist",
+  "exs": [
+   [
+    "Volunteers assisted the elderly residents during the evacuation.",
+    "ボランティアが避難の間、高齢の住民を手助けした。"
+   ],
+   [
+    "The government assists families who lost their homes in the flood.",
+    "政府は洪水で家を失った家族を援助している。"
+   ]
+  ]
+ },
+ {
+  "w": "associate",
+  "exs": [
+   [
+    "Many people associate the color green with nature and peace.",
+    "多くの人は緑色を自然や平和と結びつけて考える。"
+   ],
+   [
+    "Doctors associate high blood pressure with an unhealthy diet.",
+    "医師たちは高血圧を不健康な食事と関連づけている。"
+   ],
+   [
+    "He was warned not to associate with dishonest people.",
+    "彼は不誠実な人々と交際しないよう警告された。"
+   ],
+   [
+    "She introduced him as a business associate of her father.",
+    "彼女は彼を父の仕事仲間として紹介した。"
+   ]
+  ]
+ },
+ {
+  "w": "assuage",
+  "exs": [
+   [
+    "Her kind words did little to assuage his guilt.",
+    "彼女の優しい言葉も彼の罪悪感をほとんど和らげなかった。"
+   ],
+   [
+    "The mayor spoke to the crowd to assuage their anger.",
+    "市長は群衆の怒りを静めるために彼らに語りかけた。"
+   ]
+  ]
+ },
+ {
+  "w": "assume",
+  "exs": [
+   [
+    "We cannot simply assume that technology will solve every problem.",
+    "技術があらゆる問題を解決すると単純に仮定することはできない。"
+   ],
+   [
+    "She will assume responsibility for the project next month.",
+    "彼女は来月、そのプロジェクトの責任を引き受ける。"
+   ],
+   [
+    "He assumed an air of indifference, though he was deeply worried.",
+    "彼は深く心配していたが、無関心なふりをした。"
+   ]
+  ]
+ },
+ {
+  "w": "assurance",
+  "exs": [
+   [
+    "The manager gave us his assurance that the problem would be solved.",
+    "部長は問題は解決されると私たちに保証した。"
+   ],
+   [
+    "She spoke with calm assurance in front of the large audience.",
+    "彼女は大勢の聴衆の前で落ち着いた確信をもって話した。"
+   ]
+  ]
+ },
+ {
+  "w": "astute",
+  "exs": [
+   [
+    "The astute investor sold his shares before the market fell.",
+    "その抜け目のない投資家は市場が下落する前に株を売った。"
+   ],
+   [
+    "The detective made an astute observation about the suspect's behavior.",
+    "探偵は容疑者の行動について鋭い指摘をした。"
+   ]
+  ]
+ },
+ {
+  "w": "atmosphere",
+  "exs": [
+   [
+    "The Earth's atmosphere protects living things from harmful rays.",
+    "地球の大気は有害な光線から生き物を守っている。"
+   ],
+   [
+    "The restaurant has a warm and friendly atmosphere.",
+    "そのレストランは温かく親しみやすい雰囲気がある。"
+   ]
+  ]
+ },
+ {
+  "w": "atrophy",
+  "exs": [
+   [
+    "Long periods in bed can cause muscle atrophy.",
+    "長期間の寝たきりは筋肉の萎縮を引き起こすことがある。"
+   ],
+   [
+    "Skills atrophy if they are not practiced regularly.",
+    "技能は定期的に練習しないと衰える。"
+   ]
+  ]
+ },
+ {
+  "w": "attach",
+  "exs": [
+   [
+    "He attached a small camera to the front of the bicycle.",
+    "彼は自転車の前部に小さなカメラを取り付けた。"
+   ],
+   [
+    "Please attach a recent photo to your application form.",
+    "申込用紙には最近の写真を貼り付けてください。"
+   ],
+   [
+    "The old man is deeply attached to his village.",
+    "その老人は自分の村に深い愛着がある。"
+   ]
+  ]
+ },
+ {
+  "w": "attempt",
+  "exs": [
+   [
+    "Several attempts to reach the top of the mountain have failed.",
+    "その山頂に達しようとする試みは何度か失敗している。"
+   ],
+   [
+    "She attempted to climb the mountain alone in winter.",
+    "彼女は冬にその山を一人で登ろうと試みた。"
+   ]
+  ]
+ },
+ {
+  "w": "attitude",
+  "exs": [
+   [
+    "His rude attitude toward customers upset the manager.",
+    "客に対する彼の無礼な態度は部長を怒らせた。"
+   ],
+   [
+    "A positive attitude can help you overcome many difficulties.",
+    "前向きな姿勢は多くの困難を乗り越える助けになる。"
+   ]
+  ]
+ },
+ {
+  "w": "attract",
+  "exs": [
+   [
+    "The new museum is expected to attract many tourists.",
+    "その新しい博物館は多くの観光客を引きつけると期待されている。"
+   ],
+   [
+    "Her charm and humor attracted everyone she met.",
+    "彼女の魅力とユーモアは出会う人すべてを魅了した。"
+   ]
+  ]
+ },
+ {
+  "w": "attribute",
+  "exs": [
+   [
+    "Scientists attribute the rise in sea levels to melting glaciers.",
+    "科学者は海面上昇を氷河の融解のせいだと考えている。"
+   ],
+   [
+    "Honesty is an important attribute of a good leader.",
+    "誠実さは優れた指導者の重要な特性だ。"
+   ]
+  ]
+ },
+ {
+  "w": "audacious",
+  "exs": [
+   [
+    "The architect presented an audacious design for the new bridge.",
+    "その建築家は新しい橋の大胆なデザインを提示した。"
+   ],
+   [
+    "It was audacious of him to ask for a raise after one week.",
+    "入社1週間で昇給を求めるとは、彼も厚かましい。"
+   ]
+  ]
+ },
+ {
+  "w": "audience",
+  "exs": [
+   [
+    "The speaker held the attention of the audience for an hour.",
+    "講演者は1時間にわたって聴衆の関心を引きつけ続けた。"
+   ],
+   [
+    "The audience applauded loudly at the end of the play.",
+    "劇の終わりに観客は大きな拍手を送った。"
+   ]
+  ]
+ },
+ {
+  "w": "augment",
+  "exs": [
+   [
+    "The government plans to augment spending on education next year.",
+    "政府は来年、教育への支出を増大させる計画だ。"
+   ],
+   [
+    "He augmented his salary by teaching evening classes.",
+    "彼は夜間の講座を教えて給料を補った。"
+   ]
+  ]
+ },
+ {
+  "w": "auspicious",
+  "exs": [
+   [
+    "The team made an auspicious start to the new season.",
+    "チームは新シーズンに幸先のよいスタートを切った。"
+   ],
+   [
+    "Red is considered an auspicious color in many Asian cultures.",
+    "赤はアジアの多くの文化で縁起のよい色とされている。"
+   ]
+  ]
+ },
+ {
+  "w": "austere",
+  "exs": [
+   [
+    "The monks lived an austere life, free from luxury.",
+    "修道士たちはぜいたくから離れた質素な生活を送っていた。"
+   ],
+   [
+    "The headmaster was an austere man who never smiled.",
+    "校長は決して笑わない厳格な人物だった。"
+   ]
+  ]
+ },
+ {
+  "w": "authority",
+  "exs": [
+   [
+    "She is a leading authority on ancient Greek history.",
+    "彼女は古代ギリシャ史の第一人者の権威だ。"
+   ],
+   [
+    "Local authorities warned residents to stay away from the river.",
+    "地元当局は住民に川に近づかないよう警告した。"
+   ],
+   [
+    "Only the manager has the authority to approve such expenses.",
+    "そのような経費を承認する権限を持つのは部長だけだ。"
+   ]
+  ]
+ },
+ {
+  "w": "automatic",
+  "exs": [
+   [
+    "Breathing is an automatic action that we rarely think about.",
+    "呼吸は私たちがほとんど意識しない自動的な動作である。"
+   ],
+   [
+    "Blinking is an automatic response to bright light.",
+    "まばたきは強い光に対する無意識の反応だ。"
+   ]
+  ]
+ },
+ {
+  "w": "aversion",
+  "exs": [
+   [
+    "Many children have a strong aversion to vegetables.",
+    "多くの子どもは野菜をひどく嫌う。"
+   ],
+   [
+    "Spiders are my greatest aversion; I cannot even look at them.",
+    "クモは私の一番の大嫌いなものだ。見ることさえできない。"
+   ]
+  ]
+ },
+ {
+  "w": "avert",
+  "exs": [
+   [
+    "Quick action by the pilot averted a serious accident.",
+    "パイロットの素早い対応が重大な事故を回避した。"
+   ],
+   [
+    "She averted her eyes when the awkward question was asked.",
+    "気まずい質問をされたとき、彼女は目をそらした。"
+   ]
+  ]
+ },
+ {
+  "w": "avid",
+  "exs": [
+   [
+    "He is an avid reader who finishes several books each week.",
+    "彼は熱心な読書家で、毎週数冊を読み終える。"
+   ],
+   [
+    "The young man was avid for knowledge and read constantly.",
+    "その青年は知識に貪欲で、絶えず読書していた。"
+   ]
+  ]
+ },
+ {
+  "w": "await",
+  "exs": [
+   [
+    "Passengers must await further instructions in the waiting room.",
+    "乗客は待合室で次の指示を待たなければならない。"
+   ],
+   [
+    "A surprising discovery awaited the scientists inside the cave.",
+    "驚くべき発見が洞窟の中で科学者たちを待ち受けていた。"
+   ]
+  ]
+ },
+ {
+  "w": "award",
+  "exs": [
+   [
+    "The film won an award for best original music.",
+    "その映画は最優秀オリジナル音楽賞を受賞した。"
+   ],
+   [
+    "The scientist was awarded a prize for her research on cancer.",
+    "その科学者はがんの研究に対して賞を与えられた。"
+   ]
+  ]
+ },
+ {
+  "w": "aware",
+  "exs": [
+   [
+    "Most people are not aware of how much sugar they consume.",
+    "ほとんどの人は自分がどれだけ砂糖を摂取しているか気づいていない。"
+   ],
+   [
+    "I am well aware that this decision is not popular.",
+    "この決定が不評であることは十分承知している。"
+   ]
+  ]
+ },
+ {
+  "w": "awe",
+  "exs": [
+   [
+    "The tourists stood in awe before the huge waterfall.",
+    "観光客は巨大な滝の前で畏敬の念を抱いて立ちつくした。"
+   ],
+   [
+    "The villagers regarded the volcano with awe and fear.",
+    "村人たちはその火山を畏怖の念をもって見ていた。"
+   ]
+  ]
+ },
+ {
+  "w": "awkward",
+  "exs": [
+   [
+    "There was an awkward silence after he asked the question.",
+    "彼がその質問をした後、気まずい沈黙が流れた。"
+   ],
+   [
+    "The young actor looked awkward on stage during his first performance.",
+    "初舞台で、その若い俳優はぎこちなく見えた。"
+   ],
+   [
+    "The box was too awkward to carry up the narrow stairs.",
+    "その箱は扱いにくく、狭い階段を運び上げられなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "axiom",
+  "exs": [
+   [
+    "It is an axiom of science that every effect has a cause.",
+    "あらゆる結果には原因があるというのは科学の自明の理である。"
+   ],
+   [
+    "Euclid's geometry is built on a small number of axioms.",
+    "ユークリッド幾何学は少数の公理の上に築かれている。"
+   ]
+  ]
+ },
+ {
+  "w": "bachelor",
+  "exs": [
+   [
+    "She received a bachelor's degree in economics last spring.",
+    "彼女は昨年の春、経済学の学士号を取得した。"
+   ],
+   [
+    "He was a lifelong bachelor who lived alone in a small house.",
+    "彼は小さな家に一人で住む、生涯独身の男性だった。"
+   ]
+  ]
+ },
+ {
+  "w": "backlash",
+  "exs": [
+   [
+    "The tax increase caused a public backlash against the government.",
+    "増税は政府に対する国民の強い反発を招いた。"
+   ],
+   [
+    "The new law was a backlash against decades of social reform.",
+    "その新法は何十年もの社会改革に対する反動だった。"
+   ]
+  ]
+ },
+ {
+  "w": "bacteria",
+  "exs": [
+   [
+    "Heat can kill harmful bacteria in food.",
+    "熱は食品中の有害な細菌を殺すことができる。"
+   ],
+   [
+    "Some bacteria in the gut are essential for good health.",
+    "腸内のバクテリアの中には健康に不可欠なものもある。"
+   ]
+  ]
+ },
+ {
+  "w": "baffle",
+  "exs": [
+   [
+    "The strange results baffled even the most experienced researchers.",
+    "奇妙な結果は経験豊富な研究者たちさえ当惑させた。"
+   ],
+   [
+    "Her sudden decision to leave baffled her closest friends.",
+    "彼女が突然去ると決めたことは親友たちを困惑させた。"
+   ]
+  ]
+ },
+ {
+  "w": "balance",
+  "exs": [
+   [
+    "It is hard to balance work and family life.",
+    "仕事と家庭生活の釣り合いを取るのは難しい。"
+   ],
+   [
+    "The balance of power in the region has changed dramatically.",
+    "その地域の力の均衡は劇的に変化した。"
+   ],
+   [
+    "Check your account balance before you make a payment.",
+    "支払いをする前に口座の残高を確認しなさい。"
+   ]
+  ]
+ },
+ {
+  "w": "ballot",
+  "exs": [
+   [
+    "The union will hold a ballot on the strike next week.",
+    "組合は来週、ストライキについての投票を行う。"
+   ],
+   [
+    "Each voter received a ballot with the names of three candidates.",
+    "各有権者は3人の候補者の名前が載った投票用紙を受け取った。"
+   ]
+  ]
+ },
+ {
+  "w": "ban",
+  "exs": [
+   [
+    "The city banned smoking in all public parks.",
+    "市は公園での喫煙をすべて禁止した。"
+   ],
+   [
+    "The government announced a ban on the sale of ivory.",
+    "政府は象牙の販売禁止令を発表した。"
+   ]
+  ]
+ },
+ {
+  "w": "bankrupt",
+  "exs": [
+   [
+    "The airline went bankrupt after years of heavy losses.",
+    "その航空会社は長年の巨額の損失の末に破産した。"
+   ],
+   [
+    "The speech was bankrupt of any real new ideas.",
+    "その演説には本当に新しい考えが何一つ欠けていた。"
+   ]
+  ]
+ },
+ {
+  "w": "bare",
+  "exs": [
+   [
+    "A bare light bulb hung from the ceiling of the small cell.",
+    "むき出しの電球が小さな独房の天井からぶら下がっていた。"
+   ],
+   [
+    "The bare minimum of food was provided to the refugees.",
+    "難民には最低限ぎりぎりの食料しか提供されなかった。"
+   ],
+   [
+    "The trees stood bare in winter, without a single leaf.",
+    "冬の木々は一枚の葉もつけず、裸のまま立っていた。"
+   ]
+  ]
+ },
+ {
+  "w": "barely",
+  "exs": [
+   [
+    "He barely escaped from the burning building.",
+    "彼は燃える建物からかろうじて脱出した。"
+   ],
+   [
+    "She was so tired that she could barely keep her eyes open.",
+    "彼女はひどく疲れていて、目を開けているのがやっとだった。"
+   ]
+  ]
+ },
+ {
+  "w": "bargain",
+  "exs": [
+   [
+    "At only ten dollars, the jacket was a real bargain.",
+    "わずか10ドルで、そのジャケットは本当に掘り出し物だった。"
+   ],
+   [
+    "Tourists often bargain with street vendors over the price.",
+    "観光客はしばしば露天商と値段を交渉する。"
+   ],
+   [
+    "The two parties struck a bargain after hours of talks.",
+    "双方は何時間もの話し合いの末に取引を成立させた。"
+   ]
+  ]
+ },
+ {
+  "w": "barren",
+  "exs": [
+   [
+    "Years of drought turned the fertile land into a barren desert.",
+    "何年もの干ばつが肥沃な土地を不毛の砂漠に変えた。"
+   ],
+   [
+    "Years of barren negotiations produced no agreement at all.",
+    "何年もの実りのない交渉は、合意を何ももたらさなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "barrier",
+  "exs": [
+   [
+    "Language is often the biggest barrier to international cooperation.",
+    "言語はしばしば国際協力の最大の障壁となる。"
+   ],
+   [
+    "A high barrier was built to keep people away from the cliff.",
+    "人々を崖に近づけないよう、高い柵が設けられた。"
+   ]
+  ]
+ },
+ {
+  "w": "basis",
+  "exs": [
+   [
+    "Trust is the basis of every good relationship.",
+    "信頼はあらゆる良好な関係の基礎である。"
+   ],
+   [
+    "There is no scientific basis for this claim.",
+    "この主張には科学的根拠がない。"
+   ],
+   [
+    "Employees are paid on the basis of the hours they work.",
+    "従業員は労働時間を基準に給料が支払われる。"
+   ]
+  ]
+ },
+ {
+  "w": "bear",
+  "exs": [
+   [
+    "Nobody can bear the pain of losing a close friend.",
+    "親友を失う痛みに耐えられる人などいない。"
+   ],
+   [
+    "A female cat can bear up to six kittens at a time.",
+    "雌猫は一度に最大6匹の子猫を産むことがある。"
+   ],
+   [
+    "The company must bear responsibility for the damage it caused.",
+    "会社は自ら引き起こした損害の責任を負わなければならない。"
+   ]
+  ]
+ },
+ {
+  "w": "beforehand",
+  "exs": [
+   [
+    "Please let us know beforehand if you cannot attend.",
+    "出席できない場合は前もってお知らせください。"
+   ],
+   [
+    "You should check the train schedule beforehand.",
+    "あらかじめ電車の時刻表を確認しておくべきだ。"
+   ]
+  ]
+ },
+ {
+  "w": "behalf",
+  "exs": [
+   [
+    "The lawyer spoke on behalf of the injured workers.",
+    "弁護士は負傷した労働者たちに代わって発言した。"
+   ],
+   [
+    "She worked tirelessly on behalf of the poor in her community.",
+    "彼女は地域の貧しい人々の利益のために休みなく働いた。"
+   ]
+  ]
+ },
+ {
+  "w": "behave",
+  "exs": [
+   [
+    "Children behave differently when their parents are watching.",
+    "子どもは親が見ているときは違った振る舞いをする。"
+   ],
+   [
+    "If you behave yourself, we will go to the park.",
+    "行儀よくしていれば、公園に行きましょう。"
+   ]
+  ]
+ },
+ {
+  "w": "behavior",
+  "exs": [
+   [
+    "Scientists study animal behavior to understand how species survive.",
+    "科学者は種がどう生き延びるかを理解するため動物の行動を研究する。"
+   ],
+   [
+    "The teacher praised the students for their polite behavior.",
+    "先生は生徒たちの礼儀正しい振る舞いを褒めた。"
+   ],
+   [
+    "I cannot accept your rude behavior toward the guests.",
+    "あなたの客に対する無礼な態度は受け入れられない。"
+   ]
+  ]
+ },
+ {
+  "w": "belief",
+  "exs": [
+   [
+    "Her belief in fairness guided every decision she made.",
+    "公平さへの信念が彼女のあらゆる決断を導いた。"
+   ],
+   [
+    "Many people share the belief that honesty is the best policy.",
+    "正直が最善の策だと信じている人は多い。"
+   ]
+  ]
+ },
+ {
+  "w": "belongings",
+  "exs": [
+   [
+    "Passengers must keep their belongings with them at all times.",
+    "乗客は常に所持品を身につけていなければならない。"
+   ],
+   [
+    "He packed all his belongings into two small suitcases.",
+    "彼は持ち物をすべて二つの小さなスーツケースに詰めた。"
+   ]
+  ]
+ },
+ {
+  "w": "benchmark",
+  "exs": [
+   [
+    "Test scores are used as a benchmark for school performance.",
+    "テストの点数は学校の成績を測る基準として用いられる。"
+   ],
+   [
+    "Inflation is an important benchmark for judging the economy.",
+    "インフレは経済を判断する重要な指標だ。"
+   ]
+  ]
+ },
+ {
+  "w": "beneath",
+  "exs": [
+   [
+    "The ancient ruins lay hidden beneath several meters of sand.",
+    "古代遺跡は数メートルの砂の下に隠れていた。"
+   ],
+   [
+    "He thought the job was beneath him, so he refused it.",
+    "彼はその仕事は自分が引き受けるに値しないと考え、断った。"
+   ]
+  ]
+ },
+ {
+  "w": "beneficial",
+  "exs": [
+   [
+    "Regular exercise is beneficial to both body and mind.",
+    "定期的な運動は心身の両方に有益だ。"
+   ],
+   [
+    "The lecture was beneficial to students preparing for the exam.",
+    "その講義は試験に備える学生にとってためになった。"
+   ]
+  ]
+ },
+ {
+  "w": "benefit",
+  "exs": [
+   [
+    "The main benefit of the new system is its lower cost.",
+    "新システムの主な利益は費用が安いことだ。"
+   ],
+   [
+    "Rural areas have not yet enjoyed the benefits of economic growth.",
+    "地方はまだ経済成長の恩恵を受けていない。"
+   ],
+   [
+    "Children benefit greatly from reading aloud with their parents.",
+    "子どもは親と一緒に音読することで大いに恩恵を受ける。"
+   ]
+  ]
+ },
+ {
+  "w": "beset",
+  "exs": [
+   [
+    "The project was beset by technical problems from the start.",
+    "そのプロジェクトは当初から技術的問題に悩まされた。"
+   ],
+   [
+    "The explorers were beset by wolves on all sides.",
+    "探検家たちは四方をオオカミに取り囲まれた。"
+   ]
+  ]
+ },
+ {
+  "w": "besides",
+  "exs": [
+   [
+    "Besides English, she speaks French and Spanish fluently.",
+    "英語のほかに、彼女はフランス語とスペイン語も流暢に話す。"
+   ],
+   [
+    "The room is too small; besides, it is far too expensive.",
+    "その部屋は狭すぎる。その上、値段も高すぎる。"
+   ]
+  ]
+ },
+ {
+  "w": "bestow",
+  "exs": [
+   [
+    "The queen bestowed the title of knight on the explorer.",
+    "女王はその探検家にナイトの称号を授けた。"
+   ],
+   [
+    "The university bestowed an honorary degree on the scientist.",
+    "大学はその科学者に名誉学位を与えた。"
+   ]
+  ]
+ },
+ {
+  "w": "betray",
+  "exs": [
+   [
+    "He betrayed his friends by revealing their secret.",
+    "彼は友人たちの秘密を明かして彼らを裏切った。"
+   ],
+   [
+    "His trembling voice betrayed how nervous he really was.",
+    "声の震えが、彼が実際どれほど緊張しているかをうっかり表していた。"
+   ]
+  ]
+ },
+ {
+  "w": "bewilder",
+  "exs": [
+   [
+    "The complicated instructions bewildered many first-time users.",
+    "複雑な説明に初めての利用者の多くが当惑した。"
+   ],
+   [
+    "The busy station bewildered the tourists who had just arrived.",
+    "混雑した駅は到着したばかりの観光客をまごつかせた。"
+   ]
+  ]
+ },
+ {
+  "w": "bias",
+  "exs": [
+   [
+    "The survey results may reflect a bias in the sample.",
+    "調査結果は標本の偏りを反映しているかもしれない。"
+   ],
+   [
+    "Advertising can bias children against healthy foods.",
+    "広告は子どもに健康的な食べ物への偏見を抱かせることがある。"
+   ]
+  ]
+ },
+ {
+  "w": "bid",
+  "exs": [
+   [
+    "The company submitted the lowest bid for the construction work.",
+    "その会社は建設工事で最も低い入札額を提出した。"
+   ],
+   [
+    "The city made a bid to host the next Olympic Games.",
+    "その都市は次のオリンピック開催に名乗りを上げた。"
+   ],
+   [
+    "A collector bid two million dollars for the painting.",
+    "ある収集家はその絵に200万ドルの値をつけた。"
+   ]
+  ]
+ },
+ {
+  "w": "bill",
+  "exs": [
+   [
+    "The waiter brought the bill after we finished dinner.",
+    "夕食を終えると、ウェイターが請求書を持ってきた。"
+   ],
+   [
+    "The parliament passed a bill to reduce plastic waste.",
+    "議会はプラスチックごみを減らす法案を可決した。"
+   ],
+   [
+    "He paid for the ticket with a ten-dollar bill.",
+    "彼は10ドル紙幣で切符の代金を払った。"
+   ]
+  ]
+ },
+ {
+  "w": "blame",
+  "exs": [
+   [
+    "Don't blame yourself for something you could not control.",
+    "自分にはどうにもできなかったことで自分を責めてはいけない。"
+   ],
+   [
+    "The captain took the blame for the team's defeat.",
+    "主将はチームの敗北の責任を負った。"
+   ],
+   [
+    "The government faced public blame for its slow response.",
+    "政府は対応の遅さについて世論から非難を浴びた。"
+   ]
+  ]
+ },
+ {
+  "w": "blatant",
+  "exs": [
+   [
+    "He told a blatant lie, and everyone knew it.",
+    "彼は露骨な嘘をつき、誰もがそれを知っていた。"
+   ],
+   [
+    "The report exposed a blatant violation of safety rules.",
+    "その報告書は安全規則のあからさまな違反を暴いた。"
+   ]
+  ]
+ },
+ {
+  "w": "bleak",
+  "exs": [
+   [
+    "The future looked bleak for workers in the declining industry.",
+    "衰退産業の労働者にとって、将来は暗く見えた。"
+   ],
+   [
+    "The bleak landscape stretched for miles without a single tree.",
+    "荒涼とした景色は、木一本ないまま何マイルも続いていた。"
+   ],
+   [
+    "The chances of finding survivors were bleak after two days.",
+    "2日たつと、生存者を見つけられる見込みはほとんどなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "blend",
+  "exs": [
+   [
+    "Blend the eggs and sugar until the mixture is smooth.",
+    "卵と砂糖を、滑らかになるまで混ぜなさい。"
+   ],
+   [
+    "The colors of the sea and sky seemed to blend at the horizon.",
+    "海と空の色は水平線で溶け合うように見えた。"
+   ],
+   [
+    "This coffee is a blend of beans from three countries.",
+    "このコーヒーは3か国の豆を混合したものだ。"
+   ]
+  ]
+ },
+ {
+  "w": "blessing",
+  "exs": [
+   [
+    "Good health is a blessing that we often take for granted.",
+    "健康は、私たちがしばしば当然視している恵みである。"
+   ],
+   [
+    "The priest gave the newly married couple his blessing.",
+    "司祭は新婚の夫婦に祝福を与えた。"
+   ]
+  ]
+ },
+ {
+  "w": "blossom",
+  "exs": [
+   [
+    "Cherry trees blossom across Japan in early spring.",
+    "桜は初春に日本中で開花する。"
+   ],
+   [
+    "Her talent began to blossom under the guidance of her teacher.",
+    "彼女の才能は先生の指導のもとで開花し始めた。"
+   ],
+   [
+    "The blossom of the apple tree filled the garden with fragrance.",
+    "リンゴの木の花が庭を香りで満たした。"
+   ]
+  ]
+ },
+ {
+  "w": "blueprint",
+  "exs": [
+   [
+    "The report offers a blueprint for reducing carbon emissions.",
+    "その報告書は炭素排出削減のための青写真を示している。"
+   ],
+   [
+    "The engineers studied the blueprint of the building carefully.",
+    "技術者たちはその建物の設計図を注意深く調べた。"
+   ],
+   [
+    "The group drew up a blueprint for the future of the city.",
+    "そのグループは市の将来に向けた計画を作成した。"
+   ]
+  ]
+ },
+ {
+  "w": "blunt",
+  "exs": [
+   [
+    "His blunt criticism hurt her feelings more than he intended.",
+    "彼の率直な批判は、意図した以上に彼女を傷つけた。"
+   ],
+   [
+    "A blunt knife is more dangerous than a sharp one.",
+    "鈍いナイフは鋭いナイフよりも危険だ。"
+   ],
+   [
+    "His blunt reply to the question surprised the audience.",
+    "質問に対する彼のぶっきらぼうな返事は聴衆を驚かせた。"
+   ]
+  ]
+ },
+ {
+  "w": "blur",
+  "exs": [
+   [
+    "Tears blurred her vision as she read the letter.",
+    "手紙を読むうちに、涙で彼女の視界がぼやけた。"
+   ],
+   [
+    "Social media has blurred the line between public and private life.",
+    "ソーシャルメディアは公的生活と私的生活の境界を曖昧にした。"
+   ]
+  ]
+ },
+ {
+  "w": "boast",
+  "exs": [
+   [
+    "He likes to boast about his expensive new car.",
+    "彼は高価な新車を自慢するのが好きだ。"
+   ],
+   [
+    "The town boasts a beautiful beach and a famous castle.",
+    "その町は美しい浜辺と有名な城を誇りにしている。"
+   ]
+  ]
+ },
+ {
+  "w": "bold",
+  "exs": [
+   [
+    "The company made a bold decision to enter the Asian market.",
+    "その会社はアジア市場に参入するという大胆な決断を下した。"
+   ],
+   [
+    "Important terms are printed in bold type in this textbook.",
+    "この教科書では重要な用語が太字で印刷されている。"
+   ]
+  ]
+ },
+ {
+  "w": "bond",
+  "exs": [
+   [
+    "Shared experiences strengthen the bond between teammates.",
+    "共有した経験はチームメイトの絆を強める。"
+   ],
+   [
+    "Investors bought government bonds as a safe investment.",
+    "投資家は安全な投資として政府の債券を購入した。"
+   ],
+   [
+    "Mothers and babies bond within the first few hours after birth.",
+    "母親と赤ちゃんは出産後の数時間のうちに結びつく。"
+   ]
+  ]
+ },
+ {
+  "w": "boom",
+  "exs": [
+   [
+    "The country enjoyed an economic boom in the 1980s.",
+    "その国は1980年代に経済の急成長を経験した。"
+   ],
+   [
+    "The housing boom ended when interest rates suddenly rose.",
+    "金利が急に上がると、住宅ブームは終わった。"
+   ],
+   [
+    "The boom of thunder echoed across the valley.",
+    "雷のとどろきが谷間に響き渡った。"
+   ]
+  ]
+ },
+ {
+  "w": "boost",
+  "exs": [
+   [
+    "The new policy is expected to boost the local economy.",
+    "新政策は地域経済を押し上げると期待されている。"
+   ],
+   [
+    "The company announced a boost in production capacity this year.",
+    "会社は今年、生産能力の増強を発表した。"
+   ],
+   [
+    "The victory gave the team a big boost before the finals.",
+    "その勝利は決勝戦を前にチームに大きな後押しとなった。"
+   ]
+  ]
+ },
+ {
+  "w": "border",
+  "exs": [
+   [
+    "Thousands of people cross the border every day for work.",
+    "毎日何千人もが仕事のために国境を越える。"
+   ],
+   [
+    "A narrow river forms the border between the two provinces.",
+    "狭い川が二つの州の境界をなしている。"
+   ]
+  ]
+ },
+ {
+  "w": "bother",
+  "exs": [
+   [
+    "The noise from the street bothers me when I study.",
+    "勉強しているとき、通りからの騒音が私を悩ませる。"
+   ],
+   [
+    "Don't bother to call me; I'll check the schedule myself.",
+    "わざわざ電話しなくていいよ。予定は自分で確認するから。"
+   ]
+  ]
+ },
+ {
+  "w": "bound",
+  "exs": [
+   [
+    "If you work hard, you are bound to succeed.",
+    "懸命に努力すれば、きっと成功する運命にある。"
+   ],
+   [
+    "This train is bound for Osaka and stops at Kyoto.",
+    "この列車は大阪行きで、京都に停車する。"
+   ],
+   [
+    "The prisoner was bound hand and foot.",
+    "囚人は手足を縛られていた。"
+   ]
+  ]
+ },
+ {
+  "w": "boundary",
+  "exs": [
+   [
+    "A stone wall marks the boundary of the old farm.",
+    "石垣が古い農場の境界を示している。"
+   ],
+   [
+    "Scientists keep pushing the boundaries of human knowledge.",
+    "科学者たちは人類の知識の限界を押し広げ続けている。"
+   ]
+  ]
+ },
+ {
+  "w": "bow",
+  "exs": [
+   [
+    "The actors bowed deeply to the applauding audience.",
+    "俳優たちは拍手する観客に深くお辞儀をした。"
+   ],
+   [
+    "The government refused to bow to public pressure.",
+    "政府は世論の圧力に屈することを拒んだ。"
+   ],
+   [
+    "He made a deep bow to the audience at the end.",
+    "最後に彼は聴衆に深くお辞儀をした。"
+   ]
+  ]
+ }
+]

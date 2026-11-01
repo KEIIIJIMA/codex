@@ -1,0 +1,802 @@
+[
+ {
+  "w": "credit",
+  "exs": [
+   [
+    "She deserves credit for her hard work on the project.",
+    "彼女はその企画での懸命な働きに対して称賛に値する。"
+   ],
+   [
+    "Many customers buy furniture on credit and pay in monthly installments.",
+    "多くの客は信用貸しで家具を購入し、毎月分割で支払う。"
+   ],
+   [
+    "Students need 124 credits to graduate from this university.",
+    "この大学を卒業するには124単位が必要だ。"
+   ]
+  ]
+ },
+ {
+  "w": "creed",
+  "exs": [
+   [
+    "The school welcomes students of every race, creed, and nationality.",
+    "その学校はあらゆる人種、信条、国籍の学生を歓迎する。"
+   ],
+   [
+    "Each religion has its own creed and its own rituals.",
+    "どの宗教にも独自の教義と儀式がある。"
+   ]
+  ]
+ },
+ {
+  "w": "cripple",
+  "exs": [
+   [
+    "A long strike crippled the nation's transportation system.",
+    "長期のストライキは国の交通網に大打撃を与えた。"
+   ],
+   [
+    "A car accident crippled him for life and forced him to use a wheelchair.",
+    "交通事故で彼は一生身体が不自由になり、車いすを使わざるを得なくなった。"
+   ]
+  ]
+ },
+ {
+  "w": "crisis",
+  "exs": [
+   [
+    "The country faced a serious economic crisis in the 1990s.",
+    "その国は1990年代に深刻な経済危機に直面した。"
+   ],
+   [
+    "The talks reached a crisis when both sides refused to compromise.",
+    "双方が妥協を拒んだため、交渉は重大局面を迎えた。"
+   ]
+  ]
+ },
+ {
+  "w": "critical",
+  "exs": [
+   [
+    "It is important to be critical of what you read online.",
+    "オンラインで読むものに批判的であることは重要だ。"
+   ],
+   [
+    "Early detection is critical to the successful treatment of cancer.",
+    "がんの治療を成功させるには早期発見が決定的に重要だ。"
+   ]
+  ]
+ },
+ {
+  "w": "criticize",
+  "exs": [
+   [
+    "The press criticized the government for its slow response.",
+    "報道機関は政府の対応の遅さを批判した。"
+   ],
+   [
+    "Several newspapers criticized the new film in long reviews.",
+    "複数の新聞が長い評論でその新作映画を批評した。"
+   ]
+  ]
+ },
+ {
+  "w": "crop",
+  "exs": [
+   [
+    "Heavy rain destroyed most of the crops in the region.",
+    "大雨でその地域の作物の大半がだめになった。"
+   ],
+   [
+    "This year's rice crop was the largest in a decade.",
+    "今年の米の収穫高は10年で最大だった。"
+   ]
+  ]
+ },
+ {
+  "w": "crude",
+  "exs": [
+   [
+    "The scientists used crude tools, but their results were accurate.",
+    "科学者たちは粗末な道具を使ったが、結果は正確だった。"
+   ],
+   [
+    "Crude oil must be refined before it can be used as fuel.",
+    "未加工の原油は、燃料として使えるようになる前に精製しなければならない。"
+   ]
+  ]
+ },
+ {
+  "w": "crumble",
+  "exs": [
+   [
+    "The old stone walls slowly crumbled over hundreds of years.",
+    "古い石壁は何百年もかけてゆっくり崩れていった。"
+   ],
+   [
+    "The empire began to crumble after years of war and debt.",
+    "戦争と負債の年月を経て、その帝国は崩壊し始めた。"
+   ]
+  ]
+ },
+ {
+  "w": "cull",
+  "exs": [
+   [
+    "The report culled data from dozens of studies on child development.",
+    "その報告書は子どもの発達に関する数十の研究からデータを選び出した。"
+   ],
+   [
+    "Officials culled thousands of deer to protect the forest.",
+    "当局は森を守るために数千頭のシカを間引いた。"
+   ]
+  ]
+ },
+ {
+  "w": "culprit",
+  "exs": [
+   [
+    "Investigators are still trying to identify the real culprit.",
+    "捜査官たちはまだ本当の犯人を特定しようとしている。"
+   ],
+   [
+    "Stress is often the main culprit behind poor sleep.",
+    "ストレスはしばしば睡眠不足の主な原因だ。"
+   ]
+  ]
+ },
+ {
+  "w": "cultivate",
+  "exs": [
+   [
+    "Farmers in this region cultivate rice and wheat.",
+    "この地域の農家は米と小麦を栽培している。"
+   ],
+   [
+    "Reading widely helps cultivate critical thinking.",
+    "幅広く読書することは批判的思考を養うのに役立つ。"
+   ]
+  ]
+ },
+ {
+  "w": "cumbersome",
+  "exs": [
+   [
+    "The old computer was cumbersome and difficult to carry around.",
+    "その古いコンピューターはかさばって持ち運びにくかった。"
+   ],
+   [
+    "The application process was long and cumbersome for most applicants.",
+    "その申請手続きはほとんどの申請者にとって長くて煩雑だった。"
+   ]
+  ]
+ },
+ {
+  "w": "cunning",
+  "exs": [
+   [
+    "The cunning fox managed to escape from the hunters.",
+    "そのずる賢いキツネは猟師から逃げおおせた。"
+   ],
+   [
+    "Success in politics sometimes depends on cunning rather than honesty.",
+    "政界での成功は、時に誠実さよりも狡猾さにかかっている。"
+   ]
+  ]
+ },
+ {
+  "w": "curb",
+  "exs": [
+   [
+    "The government introduced new measures to curb rising prices.",
+    "政府は物価上昇を抑えるため新たな対策を導入した。"
+   ],
+   [
+    "The government placed a strict curb on imports of luxury goods.",
+    "政府はぜいたく品の輸入に厳しい抑制を課した。"
+   ]
+  ]
+ },
+ {
+  "w": "cure",
+  "exs": [
+   [
+    "Antibiotics can cure most bacterial infections.",
+    "抗生物質はほとんどの細菌感染症を治すことができる。"
+   ],
+   [
+    "Researchers are working hard to find a cure for the disease.",
+    "研究者たちはその病気の治療法を見つけようと懸命に努力している。"
+   ]
+  ]
+ },
+ {
+  "w": "curious",
+  "exs": [
+   [
+    "Children are naturally curious about the world around them.",
+    "子どもは生まれつき周囲の世界に好奇心を持っている。"
+   ],
+   [
+    "A curious noise came from the empty room upstairs.",
+    "だれもいない二階の部屋から奇妙な物音が聞こえた。"
+   ]
+  ]
+ },
+ {
+  "w": "current",
+  "exs": [
+   [
+    "The current situation requires an immediate and careful response.",
+    "現在の状況は迅速かつ慎重な対応を必要としている。"
+   ],
+   [
+    "A strong current carried the small boat out to sea.",
+    "強い流れが小舟を沖へと運んでいった。"
+   ]
+  ]
+ },
+ {
+  "w": "custody",
+  "exs": [
+   [
+    "The court gave the mother custody of both children.",
+    "裁判所は母親に二人の子どもの親権を与えた。"
+   ],
+   [
+    "The suspect was taken into police custody last night.",
+    "容疑者は昨夜、警察に拘留された。"
+   ]
+  ]
+ },
+ {
+  "w": "custom",
+  "exs": [
+   [
+    "It is a local custom to remove your shoes before entering.",
+    "入る前に靴を脱ぐのはその土地の習慣だ。"
+   ],
+   [
+    "Travelers must go through customs when they enter the country.",
+    "旅行者は入国する際、税関を通らなければならない。"
+   ]
+  ]
+ },
+ {
+  "w": "cycle",
+  "exs": [
+   [
+    "The water cycle is essential to all life on Earth.",
+    "水の循環は地球上のあらゆる生命に不可欠だ。"
+   ],
+   [
+    "She goes to the office on her cycle every morning.",
+    "彼女は毎朝自転車で出勤する。"
+   ]
+  ]
+ },
+ {
+  "w": "damage",
+  "exs": [
+   [
+    "The flood caused serious damage to farmland.",
+    "洪水は農地に深刻な被害をもたらした。"
+   ],
+   [
+    "Strong winds damaged several buildings in the town.",
+    "強風が町のいくつかの建物に損害を与えた。"
+   ]
+  ]
+ },
+ {
+  "w": "deal",
+  "exs": [
+   [
+    "Governments must deal with the problem of aging populations.",
+    "政府は人口の高齢化という問題に対処しなければならない。"
+   ],
+   [
+    "The two companies finally reached a deal after months of talks.",
+    "二社は数か月の協議の末、ついに取引に合意した。"
+   ],
+   [
+    "She dealt the cards to each player around the table.",
+    "彼女はテーブルを囲む各プレーヤーにカードを配った。"
+   ]
+  ]
+ },
+ {
+  "w": "debate",
+  "exs": [
+   [
+    "A heated debate on tax reform lasted for several hours.",
+    "税制改革をめぐる白熱した討論は数時間続いた。"
+   ],
+   [
+    "Scientists continue to debate the causes of the extinction.",
+    "科学者たちはその絶滅の原因について議論を続けている。"
+   ]
+  ]
+ },
+ {
+  "w": "decay",
+  "exs": [
+   [
+    "Urban decay has left many neighborhoods poor and neglected.",
+    "都市の衰退により、多くの地区が貧しく荒れ果ててしまった。"
+   ],
+   [
+    "Fallen leaves decay quickly in warm and wet soil.",
+    "落ち葉は暖かく湿った土の中ですぐに腐る。"
+   ]
+  ]
+ },
+ {
+  "w": "decent",
+  "exs": [
+   [
+    "Everyone should have access to decent housing.",
+    "誰もがまともな住居を得られるべきだ。"
+   ],
+   [
+    "She earned a decent salary at the small firm.",
+    "彼女はその小さな会社でかなり良い給料を得ていた。"
+   ]
+  ]
+ },
+ {
+  "w": "decipher",
+  "exs": [
+   [
+    "Scholars finally deciphered the ancient writing on the stone.",
+    "学者たちはついにその石に刻まれた古代の文字を解読した。"
+   ],
+   [
+    "Nobody could decipher the doctor's messy handwriting.",
+    "だれもその医師の乱雑な筆跡を判読できなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "decisive",
+  "exs": [
+   [
+    "Her speech played a decisive role in winning the election.",
+    "彼女の演説は選挙に勝つうえで決定的な役割を果たした。"
+   ],
+   [
+    "The leader took decisive action to end the crisis.",
+    "指導者は危機を終わらせるために断固とした行動をとった。"
+   ]
+  ]
+ },
+ {
+  "w": "declare",
+  "exs": [
+   [
+    "The government declared a state of emergency after the earthquake.",
+    "政府は地震後に非常事態を宣言した。"
+   ],
+   [
+    "You must declare any food you bring into the country.",
+    "入国時に持ち込む食品はすべて申告しなければならない。"
+   ]
+  ]
+ },
+ {
+  "w": "decline",
+  "exs": [
+   [
+    "The number of young farmers has declined sharply over the past decade.",
+    "若い農業従事者の数はこの10年で急激に減少した。"
+   ],
+   [
+    "He declined the invitation because he was too busy.",
+    "彼は忙しすぎたので、その招待を断った。"
+   ]
+  ]
+ },
+ {
+  "w": "decrease",
+  "exs": [
+   [
+    "The population of the village has decreased by half.",
+    "その村の人口は半分に減少した。"
+   ],
+   [
+    "The survey shows a sharp decrease in the number of smokers.",
+    "調査は喫煙者数の急激な減少を示している。"
+   ]
+  ]
+ },
+ {
+  "w": "decree",
+  "exs": [
+   [
+    "The king issued a decree banning all foreign goods.",
+    "王はすべての外国製品を禁じる布告を出した。"
+   ],
+   [
+    "The government decreed that all schools must close for a week.",
+    "政府はすべての学校を1週間閉鎖するよう命じた。"
+   ]
+  ]
+ },
+ {
+  "w": "deem",
+  "exs": [
+   [
+    "The area was deemed unsafe for children to play in.",
+    "その地域は子どもが遊ぶには危険だとみなされた。"
+   ],
+   [
+    "The committee deemed it necessary to hold another meeting.",
+    "委員会はもう一度会議を開く必要があると考えた。"
+   ]
+  ]
+ },
+ {
+  "w": "defeat",
+  "exs": [
+   [
+    "The home team was defeated in the final match.",
+    "地元チームは決勝戦で敗れた。"
+   ],
+   [
+    "The team suffered a heavy defeat in the first round.",
+    "そのチームは1回戦で大きな敗北を喫した。"
+   ]
+  ]
+ },
+ {
+  "w": "defect",
+  "exs": [
+   [
+    "The cars were recalled because of a serious defect in the brakes.",
+    "ブレーキの重大な欠陥のためその車はリコールされた。"
+   ],
+   [
+    "Impatience is his only real defect as a leader.",
+    "短気が、指導者としての彼の唯一の本当の欠点だ。"
+   ]
+  ]
+ },
+ {
+  "w": "defend",
+  "exs": [
+   [
+    "Citizens have the right to defend themselves against attack.",
+    "市民には攻撃から身を守る権利がある。"
+   ],
+   [
+    "The lawyer defended the accused man in court.",
+    "弁護士は法廷で被告人を弁護した。"
+   ]
+  ]
+ },
+ {
+  "w": "deficiency",
+  "exs": [
+   [
+    "Iron deficiency is a common cause of tiredness.",
+    "鉄分不足は疲労のよくある原因だ。"
+   ],
+   [
+    "Experts pointed out a serious deficiency in the safety system.",
+    "専門家は安全システムの重大な欠陥を指摘した。"
+   ]
+  ]
+ },
+ {
+  "w": "define",
+  "exs": [
+   [
+    "It is hard to define happiness in a single sentence.",
+    "幸福を一文で定義するのは難しい。"
+   ],
+   [
+    "The contract clearly defines the duties of each party.",
+    "契約書は各当事者の義務を明確にしている。"
+   ]
+  ]
+ },
+ {
+  "w": "defy",
+  "exs": [
+   [
+    "The protesters defied the order to leave the square.",
+    "抗議者たちは広場から立ち去る命令に従わなかった。"
+   ],
+   [
+    "The climbers defied the freezing wind and kept going up.",
+    "登山者たちは凍える風をものともせず登り続けた。"
+   ]
+  ]
+ },
+ {
+  "w": "degrade",
+  "exs": [
+   [
+    "Such cruel jokes degrade both the speaker and the listener.",
+    "そのような残酷な冗談は、話し手と聞き手の双方の品位を落とす。"
+   ],
+   [
+    "Strong sunlight can degrade plastic over several years.",
+    "強い日光は数年のうちにプラスチックを劣化させうる。"
+   ]
+  ]
+ },
+ {
+  "w": "delay",
+  "exs": [
+   [
+    "Heavy snow delayed the flight by two hours.",
+    "大雪のため飛行機は2時間遅れた。"
+   ],
+   [
+    "The storm caused a delay of nearly three hours.",
+    "嵐のせいで約3時間の遅れが生じた。"
+   ]
+  ]
+ },
+ {
+  "w": "delegate",
+  "exs": [
+   [
+    "Each country sent a delegate to the climate conference.",
+    "各国が気候会議に代表者を一人送った。"
+   ],
+   [
+    "A good manager knows when to delegate tasks to others.",
+    "よい管理職は仕事をいつ他人に任せるべきかを心得ている。"
+   ]
+  ]
+ },
+ {
+  "w": "deliberate",
+  "exs": [
+   [
+    "The leak was a deliberate attempt to damage her reputation.",
+    "その情報漏えいは彼女の評判を傷つけようとする意図的な試みだった。"
+   ],
+   [
+    "The doctor spoke in a slow, deliberate way to avoid any misunderstanding.",
+    "医師は誤解を避けるため、ゆっくりと慎重な話し方をした。"
+   ],
+   [
+    "The jury deliberated for two days before reaching a verdict.",
+    "陪審団は評決に達するまで2日間熟考した。"
+   ]
+  ]
+ },
+ {
+  "w": "delicate",
+  "exs": [
+   [
+    "These delicate glasses break easily, so please handle them with care.",
+    "この繊細なグラスは壊れやすいので、注意して扱ってください。"
+   ],
+   [
+    "The delicate balance of the ecosystem is easily disturbed.",
+    "生態系の微妙なバランスは容易に乱される。"
+   ]
+  ]
+ },
+ {
+  "w": "deliver",
+  "exs": [
+   [
+    "The postman delivers letters to every house before noon.",
+    "郵便配達員は正午までに全戸に手紙を配達する。"
+   ],
+   [
+    "The president delivered a speech on climate policy.",
+    "大統領は気候政策について演説を行った。"
+   ]
+  ]
+ },
+ {
+  "w": "demand",
+  "exs": [
+   [
+    "The workers made a demand for higher wages.",
+    "労働者たちはより高い賃金を求める要求を出した。"
+   ],
+   [
+    "The demand for renewable energy is growing rapidly.",
+    "再生可能エネルギーの需要は急速に伸びている。"
+   ],
+   [
+    "The students demanded that the school change the rule.",
+    "生徒たちは学校にその規則を変えるよう要求した。"
+   ]
+  ]
+ },
+ {
+  "w": "democracy",
+  "exs": [
+   [
+    "A free press is essential to democracy.",
+    "自由な報道は民主主義に不可欠だ。"
+   ],
+   [
+    "Japan became a democracy after the Second World War.",
+    "日本は第二次世界大戦後に民主国家となった。"
+   ]
+  ]
+ },
+ {
+  "w": "demonstrate",
+  "exs": [
+   [
+    "The study demonstrates a clear link between diet and health.",
+    "その研究は食事と健康の明確な関連を実証している。"
+   ],
+   [
+    "Thousands of people gathered to demonstrate against the new law.",
+    "数千人が新しい法律に抗議してデモをするために集まった。"
+   ]
+  ]
+ },
+ {
+  "w": "dense",
+  "exs": [
+   [
+    "A dense forest covers most of the northern island.",
+    "密集した森林が北の島の大半を覆っている。"
+   ],
+   [
+    "Dense fog made it difficult for drivers to see the road.",
+    "濃い霧のせいで、運転手は道路が見えにくかった。"
+   ]
+  ]
+ },
+ {
+  "w": "deny",
+  "exs": [
+   [
+    "The minister denied that he had taken any money.",
+    "大臣は金を受け取ったことを否定した。"
+   ],
+   [
+    "The prison denied him the right to see his family.",
+    "刑務所は彼に家族と会う権利を与えなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "depend",
+  "exs": [
+   [
+    "Many island nations depend on tourism for their income.",
+    "多くの島国は収入を観光に頼っている。"
+   ],
+   [
+    "Whether we go or not depends on the weather.",
+    "行くかどうかは天気次第だ。"
+   ]
+  ]
+ },
+ {
+  "w": "depict",
+  "exs": [
+   [
+    "The novel depicts life in a small fishing village.",
+    "その小説は小さな漁村の暮らしを描いている。"
+   ],
+   [
+    "The painting depicts a group of farmers working in a field.",
+    "その絵は畑で働く農民たちを描いている。"
+   ]
+  ]
+ },
+ {
+  "w": "deplore",
+  "exs": [
+   [
+    "Many critics deplored the decline of public manners.",
+    "多くの批評家が公共のマナーの低下を嘆いた。"
+   ],
+   [
+    "The UN deplored the use of violence against peaceful protesters.",
+    "国連は平和的な抗議者に対する暴力の行使を非難した。"
+   ]
+  ]
+ },
+ {
+  "w": "deploy",
+  "exs": [
+   [
+    "The navy deployed several ships along the northern coast.",
+    "海軍は北の沿岸に数隻の艦船を配備した。"
+   ],
+   [
+    "Schools should deploy digital tools more effectively in the classroom.",
+    "学校は教室でデジタル機器をもっと効果的に活用すべきだ。"
+   ]
+  ]
+ },
+ {
+  "w": "deposit",
+  "exs": [
+   [
+    "She made a deposit of fifty thousand yen at the bank.",
+    "彼女は銀行に5万円の預金をした。"
+   ],
+   [
+    "You must pay a deposit to reserve the room.",
+    "部屋を予約するには手付金を払わねばならない。"
+   ],
+   [
+    "He deposited his savings in a local bank account.",
+    "彼は貯金を地元銀行の口座に預けた。"
+   ]
+  ]
+ },
+ {
+  "w": "depress",
+  "exs": [
+   [
+    "The bad news depressed her for several days.",
+    "その悪い知らせは彼女を数日間落ち込ませた。"
+   ],
+   [
+    "The financial crisis depressed the economy for several years.",
+    "金融危機は数年間にわたって経済を不景気にした。"
+   ]
+  ]
+ },
+ {
+  "w": "derive",
+  "exs": [
+   [
+    "Many people derive great comfort from reading poetry.",
+    "多くの人が詩を読むことから大きな安らぎを得ている。"
+   ],
+   [
+    "The word 'salary' derives from the Latin word for salt.",
+    "salaryという語はラテン語の塩を表す語に由来する。"
+   ]
+  ]
+ },
+ {
+  "w": "derogatory",
+  "exs": [
+   [
+    "He was fired for making derogatory remarks about his colleagues.",
+    "彼は同僚を軽蔑する発言をして解雇された。"
+   ],
+   [
+    "He was offended by the derogatory tone of her reply.",
+    "彼は彼女の返事の見下すような口調に気分を害した。"
+   ]
+  ]
+ },
+ {
+  "w": "describe",
+  "exs": [
+   [
+    "The author describes the village in great detail.",
+    "作者はその村を非常に細かく描写している。"
+   ],
+   [
+    "No words can describe the beauty of the sunset.",
+    "その夕日の美しさは言葉では言い表せない。"
+   ]
+  ]
+ },
+ {
+  "w": "deserve",
+  "exs": [
+   [
+    "Every child deserves a safe place to grow up.",
+    "どの子どもも安全に育つ場所を得るに値する。"
+   ],
+   [
+    "That idea deserves serious consideration by the committee.",
+    "その案は委員会による真剣な検討を受けるに足るものだ。"
+   ]
+  ]
+ }
+]
