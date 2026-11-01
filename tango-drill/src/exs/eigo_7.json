@@ -2368,5 +2368,719 @@
     "その逆も真である。物価が高いと需要が減る。"
    ]
   ]
+ },
+ {
+  "w": "review",
+  "exs": [
+   [
+    "The committee will conduct a full review of the safety rules.",
+    "委員会は安全規則の全面的な再検討を行う予定だ。"
+   ],
+   [
+    "The novel received a glowing review in the Sunday newspaper.",
+    "その小説は日曜版の新聞で絶賛の批評を受けた。"
+   ],
+   [
+    "The teacher asked us to review the lesson before the test.",
+    "先生は試験の前に授業を復習するよう私たちに言った。"
+   ]
+  ]
+ },
+ {
+  "w": "revise",
+  "exs": [
+   [
+    "The author revised the book to include new data.",
+    "著者は新しいデータを含めるためにその本を改訂した。"
+   ],
+   [
+    "The company had to revise its plan after the budget was cut.",
+    "予算が削減された後、その会社は計画を見直さなければならなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "revive",
+  "exs": [
+   [
+    "The festival was revived after being banned for years.",
+    "その祭りは何年も禁止された後に復活した。"
+   ],
+   [
+    "The nurse managed to revive the man who had collapsed.",
+    "看護師は倒れた男性を生き返らせることができた。"
+   ]
+  ]
+ },
+ {
+  "w": "revoke",
+  "exs": [
+   [
+    "The authorities revoked his license after the accident.",
+    "当局は事故の後、彼の免許を取り消した。"
+   ],
+   [
+    "The new law revokes all earlier rules and makes them invalid.",
+    "新法はそれ以前の規則をすべて無効にする。"
+   ]
+  ]
+ },
+ {
+  "w": "reward",
+  "exs": [
+   [
+    "The workers demanded a fair reward for their long hours.",
+    "労働者たちは長時間労働に見合う正当な報酬を要求した。"
+   ],
+   [
+    "The child received a small gift as a reward for good behavior.",
+    "その子どもは良い行いの褒美として小さな贈り物をもらった。"
+   ],
+   [
+    "The company rewards employees who produce excellent results.",
+    "その会社は優れた成果を出した従業員に報いる。"
+   ]
+  ]
+ },
+ {
+  "w": "rhetoric",
+  "exs": [
+   [
+    "The essay analyzes the rhetoric of famous speeches, such as repetition.",
+    "そのエッセイは反復など有名な演説の修辞を分析している。"
+   ],
+   [
+    "The politician's speech was full of rhetoric but short on facts.",
+    "その政治家の演説は美辞麗句にあふれ、事実に乏しかった。"
+   ],
+   [
+    "Ancient Greek students studied rhetoric to prepare for public life.",
+    "古代ギリシャの学生たちは公の場に備えて雄弁術を学んだ。"
+   ]
+  ]
+ },
+ {
+  "w": "ridicule",
+  "exs": [
+   [
+    "The idea was met with ridicule when it was first proposed.",
+    "その考えは最初に提案されたとき嘲笑を浴びた。"
+   ],
+   [
+    "Classmates ridiculed him for wearing old, worn-out shoes.",
+    "同級生たちは古びた靴を履いていると彼をあざ笑った。"
+   ]
+  ]
+ },
+ {
+  "w": "rife",
+  "exs": [
+   [
+    "The city was rife with rumors of a coming strike.",
+    "市内にはストライキが起こるといううわさが蔓延していた。"
+   ],
+   [
+    "The history of the region is rife with conflict and betrayal.",
+    "その地域の歴史は争いと裏切りに満ちている。"
+   ]
+  ]
+ },
+ {
+  "w": "rift",
+  "exs": [
+   [
+    "A deep rift opened in the ground after the earthquake.",
+    "地震の後、地面に深い亀裂が走った。"
+   ],
+   [
+    "The disagreement caused a deep rift between the two brothers.",
+    "その意見の相違は兄弟間に深い不和を生んだ。"
+   ]
+  ]
+ },
+ {
+  "w": "ritual",
+  "exs": [
+   [
+    "The villagers performed an ancient ritual to pray for rain.",
+    "村人たちは雨乞いのために古代の儀式を行った。"
+   ],
+   [
+    "Drinking tea together is a daily ritual in many cultures.",
+    "一緒にお茶を飲むことは多くの文化で日々の習慣となっている。"
+   ]
+  ]
+ },
+ {
+  "w": "rival",
+  "exs": [
+   [
+    "Our main rival in the market has lowered its prices again.",
+    "市場での私たちの主な競争相手がまた値下げした。"
+   ],
+   [
+    "The two companies have been fierce rivals for decades.",
+    "その2社は数十年にわたって激しいライバル関係にある。"
+   ],
+   [
+    "No other city can rival Paris for its beautiful architecture.",
+    "美しい建築においてパリに匹敵する都市はほかにない。"
+   ]
+  ]
+ },
+ {
+  "w": "role",
+  "exs": [
+   [
+    "Teachers play an important role in shaping children's futures.",
+    "教師は子どもの将来を形作る上で重要な役割を果たす。"
+   ],
+   [
+    "The young actress played the role of a queen in the drama.",
+    "その若い女優はドラマで女王の役を演じた。"
+   ]
+  ]
+ },
+ {
+  "w": "rotate",
+  "exs": [
+   [
+    "The Earth rotates once every twenty-four hours.",
+    "地球は24時間に1回自転する。"
+   ],
+   [
+    "The managers rotate the night shift among all the staff.",
+    "管理者たちは夜勤を全従業員で交替させている。"
+   ]
+  ]
+ },
+ {
+  "w": "rudimentary",
+  "exs": [
+   [
+    "The children only have a rudimentary understanding of fractions.",
+    "子どもたちは分数について初歩的な理解しかない。"
+   ],
+   [
+    "Some deep-sea fish have only rudimentary eyes.",
+    "深海魚の中には未発達の目しか持たないものもいる。"
+   ]
+  ]
+ },
+ {
+  "w": "ruin",
+  "exs": [
+   [
+    "Gambling led the businessman to financial ruin.",
+    "ギャンブルがその実業家を経済的破滅へ導いた。"
+   ],
+   [
+    "One mistake can ruin a person's reputation forever.",
+    "たった一つの過ちが人の評判を永遠に台無しにすることがある。"
+   ],
+   [
+    "The tourists walked among the ruins of the ancient city.",
+    "観光客たちは古代都市の廃墟の中を歩いた。"
+   ]
+  ]
+ },
+ {
+  "w": "ruminate",
+  "exs": [
+   [
+    "He sat alone, ruminating on the events of the day.",
+    "彼は一人で座り、その日の出来事についてじっくり考えていた。"
+   ],
+   [
+    "Cows ruminate for hours, chewing their food again and again.",
+    "牛は食べ物を何度も噛み直して何時間も反芻する。"
+   ]
+  ]
+ },
+ {
+  "w": "rupture",
+  "exs": [
+   [
+    "A rupture in the pipeline caused a large oil spill.",
+    "パイプラインの破裂が大規模な原油流出を引き起こした。"
+   ],
+   [
+    "The dispute led to a rupture in relations between the two countries.",
+    "その争いは両国関係の決裂を招いた。"
+   ],
+   [
+    "The scandal ruptured the friendship between the two politicians.",
+    "そのスキャンダルは二人の政治家の友情を断絶させた。"
+   ]
+  ]
+ },
+ {
+  "w": "rural",
+  "exs": [
+   [
+    "She grew up in a quiet rural town surrounded by hills.",
+    "彼女は丘に囲まれた静かな田舎町で育った。"
+   ],
+   [
+    "Young people in rural areas often move to big cities for work.",
+    "農村地域の若者は仕事のために大都市へ移ることが多い。"
+   ]
+  ]
+ },
+ {
+  "w": "ruthless",
+  "exs": [
+   [
+    "The ruthless dictator crushed all opposition.",
+    "冷酷な独裁者はあらゆる反対勢力を押しつぶした。"
+   ],
+   [
+    "The ruthless landlord threw the poor family out of their home.",
+    "無慈悲な家主は貧しい一家を家から追い出した。"
+   ]
+  ]
+ },
+ {
+  "w": "sabotage",
+  "exs": [
+   [
+    "Officials suspected that the delay was caused by deliberate sabotage.",
+    "当局は遅れが意図的な妨害によるものだと疑った。"
+   ],
+   [
+    "The spies were sent to the country to carry out acts of sabotage.",
+    "スパイたちは破壊工作を行うためにその国へ送り込まれた。"
+   ],
+   [
+    "Rivals attempted to sabotage the negotiations at the last minute.",
+    "対立者たちは土壇場で交渉を妨害しようとした。"
+   ]
+  ]
+ },
+ {
+  "w": "sacrifice",
+  "exs": [
+   [
+    "Parents often make great sacrifices for the sake of their children.",
+    "親は子どものために大きな犠牲を払うことが多い。"
+   ],
+   [
+    "In ancient times, people offered animals as a sacrifice to the gods.",
+    "古代、人々は神々へのいけにえとして動物を捧げた。"
+   ],
+   [
+    "He sacrificed his free time to take care of his sick mother.",
+    "彼は病気の母の世話をするために自由な時間を犠牲にした。"
+   ]
+  ]
+ },
+ {
+  "w": "sagacity",
+  "exs": [
+   [
+    "The old judge was admired for his sagacity and fairness.",
+    "その老判事は賢明さと公正さで尊敬されていた。"
+   ],
+   [
+    "Her sagacity allowed her to see the risks that others missed.",
+    "彼女の洞察力のおかげで、他の人が見逃した危険に気づくことができた。"
+   ]
+  ]
+ },
+ {
+  "w": "sake",
+  "exs": [
+   [
+    "For the sake of your health, you should get more sleep.",
+    "健康のために、もっと睡眠をとるべきだ。"
+   ],
+   [
+    "They made the decision for the sake of the public interest.",
+    "彼らは公共の利益のためにその決定を下した。"
+   ],
+   [
+    "Some people read for the sake of reading, not for any practical goal.",
+    "実用的な目的ではなく、読書そのものを目的として読む人もいる。"
+   ]
+  ]
+ },
+ {
+  "w": "salary",
+  "exs": [
+   [
+    "Her salary is much higher than that of her colleagues.",
+    "彼女の給料は同僚たちよりずっと高い。"
+   ],
+   [
+    "He receives a monthly salary of three hundred thousand yen.",
+    "彼は月給30万円を受け取っている。"
+   ]
+  ]
+ },
+ {
+  "w": "salient",
+  "exs": [
+   [
+    "The most salient feature of the plan is its low cost.",
+    "その計画の最も顕著な特徴は低コストだ。"
+   ],
+   [
+    "The most salient detail in the painting is the bright red door.",
+    "その絵で最も際立った細部は鮮やかな赤い扉だ。"
+   ]
+  ]
+ },
+ {
+  "w": "salutary",
+  "exs": [
+   [
+    "The failure proved to be a salutary lesson for the young player.",
+    "その失敗は若い選手にとって有益な教訓となった。"
+   ],
+   [
+    "A salutary respect for the sea kept the sailors cautious.",
+    "海への健全な敬意が船乗りたちを慎重にさせた。"
+   ]
+  ]
+ },
+ {
+  "w": "salvage",
+  "exs": [
+   [
+    "Workers managed to salvage valuable items from the burning building.",
+    "作業員たちは燃える建物から貴重な物を運び出すことができた。"
+   ],
+   [
+    "The salvage of the sunken ship took more than three months.",
+    "沈没船の引き揚げには3か月以上かかった。"
+   ]
+  ]
+ },
+ {
+  "w": "sanction",
+  "exs": [
+   [
+    "Several countries imposed economic sanctions on the regime.",
+    "いくつかの国がその政権に経済制裁を科した。"
+   ],
+   [
+    "The project cannot begin without the sanction of the city council.",
+    "そのプロジェクトは市議会の認可なしには始められない。"
+   ],
+   [
+    "The board refused to sanction the use of public funds for the event.",
+    "理事会はそのイベントへの公費の使用を承認することを拒んだ。"
+   ]
+  ]
+ },
+ {
+  "w": "sanctuary",
+  "exs": [
+   [
+    "The old temple was regarded as a sacred sanctuary by locals.",
+    "その古い寺は地元の人々に神聖な聖域とみなされていた。"
+   ],
+   [
+    "The church offered sanctuary to refugees fleeing the war.",
+    "教会は戦火を逃れる難民に避難所を提供した。"
+   ],
+   [
+    "The island is a sanctuary for rare birds.",
+    "その島は希少な鳥の保護区となっている。"
+   ]
+  ]
+ },
+ {
+  "w": "sarcasm",
+  "exs": [
+   [
+    "His voice was full of sarcasm when he thanked them.",
+    "彼が礼を言ったとき、その声は皮肉に満ちていた。"
+   ],
+   [
+    "She answered the question with sarcasm that hurt his feelings.",
+    "彼女は彼の気持ちを傷つける嫌みを込めてその質問に答えた。"
+   ]
+  ]
+ },
+ {
+  "w": "sardonic",
+  "exs": [
+   [
+    "The writer is known for his sardonic view of modern society.",
+    "その作家は現代社会に対する冷笑的な見方で知られている。"
+   ],
+   [
+    "The sardonic laughter of the crowd made the speaker blush.",
+    "群衆の嘲るような笑い声に、話し手は顔を赤らめた。"
+   ]
+  ]
+ },
+ {
+  "w": "satire",
+  "exs": [
+   [
+    "The novel is a sharp satire of modern politics.",
+    "その小説は現代政治への辛辣な風刺だ。"
+   ],
+   [
+    "The newspaper published a satire about the prime minister.",
+    "新聞は首相についての風刺作品を掲載した。"
+   ]
+  ]
+ },
+ {
+  "w": "satisfy",
+  "exs": [
+   [
+    "The new menu is designed to satisfy a wide range of tastes.",
+    "新しいメニューは幅広い好みを満足させるように作られている。"
+   ],
+   [
+    "The new design satisfies all the safety requirements.",
+    "新しい設計はすべての安全要件を満たしている。"
+   ]
+  ]
+ },
+ {
+  "w": "saturate",
+  "exs": [
+   [
+    "Heavy rain had saturated the soil, so it could absorb no more water.",
+    "大雨が土壌を飽和させ、それ以上水を吸収できなかった。"
+   ],
+   [
+    "She saturated the cloth with water and wiped the table.",
+    "彼女は布を水に浸してテーブルを拭いた。"
+   ]
+  ]
+ },
+ {
+  "w": "scale",
+  "exs": [
+   [
+    "The scale of the damage caused by the storm was enormous.",
+    "嵐がもたらした被害の規模は甚大だった。"
+   ],
+   [
+    "Teachers used a five-point scale to rate each essay.",
+    "教師たちは各エッセイを評価するのに5段階の尺度を用いた。"
+   ],
+   [
+    "Read the temperature on the scale of the thermometer.",
+    "温度計の目盛りで温度を読み取りなさい。"
+   ],
+   [
+    "Fish scales shine like silver in the sunlight.",
+    "魚のうろこは日光を浴びて銀のように輝く。"
+   ]
+  ]
+ },
+ {
+  "w": "scandal",
+  "exs": [
+   [
+    "The scandal destroyed the singer's career overnight.",
+    "そのスキャンダルは歌手の経歴を一夜にして台無しにした。"
+   ],
+   [
+    "The financial scandal shocked the entire nation.",
+    "その金融不祥事は国中に衝撃を与えた。"
+   ]
+  ]
+ },
+ {
+  "w": "scant",
+  "exs": [
+   [
+    "Scant rainfall left the farmland dry throughout the summer.",
+    "乏しい降雨のせいで、農地は夏中乾いたままだった。"
+   ],
+   [
+    "He paid scant attention to the warning.",
+    "彼はその警告にわずかな注意しか払わなかった。"
+   ]
+  ]
+ },
+ {
+  "w": "scapegoat",
+  "exs": [
+   [
+    "The manager became a scapegoat for the company's failure.",
+    "その部長は会社の失敗の身代わりにされた。"
+   ],
+   [
+    "Immigrants are often made the scapegoat when the economy is poor.",
+    "景気が悪いと、移民がスケープゴートにされることが多い。"
+   ]
+  ]
+ },
+ {
+  "w": "scathing",
+  "exs": [
+   [
+    "The newspaper published a scathing review of the new film.",
+    "新聞はその新作映画に対する痛烈な批評を掲載した。"
+   ],
+   [
+    "The senator launched a scathing attack on the opposition leader.",
+    "上院議員は野党党首に対して辛辣な攻撃を行った。"
+   ]
+  ]
+ },
+ {
+  "w": "scatter",
+  "exs": [
+   [
+    "Farmers scatter seeds across the field in early spring.",
+    "農家は早春に畑一面に種をまき散らす。"
+   ],
+   [
+    "Papers were scattered all over the floor of his room.",
+    "彼の部屋の床中に書類が散らばっていた。"
+   ]
+  ]
+ },
+ {
+  "w": "scenery",
+  "exs": [
+   [
+    "Tourists come to the island for its beautiful scenery.",
+    "観光客はその美しい風景を求めて島にやって来る。"
+   ],
+   [
+    "We admired the scenery from the window of the train.",
+    "私たちは列車の窓から景色を眺めて楽しんだ。"
+   ]
+  ]
+ },
+ {
+  "w": "scheme",
+  "exs": [
+   [
+    "The city has introduced a new scheme to reduce traffic.",
+    "市は交通量を減らす新しい計画を導入した。"
+   ],
+   [
+    "Police uncovered a scheme to steal money from elderly people.",
+    "警察は高齢者から金を盗む陰謀を暴いた。"
+   ],
+   [
+    "The rebels schemed to overthrow the king.",
+    "反乱者たちは王を倒すことを企てた。"
+   ]
+  ]
+ },
+ {
+  "w": "scholar",
+  "exs": [
+   [
+    "The scholar spent thirty years studying ancient languages.",
+    "その学者は30年間古代言語の研究に費やした。"
+   ],
+   [
+    "She entered the university as a scholar with full financial support.",
+    "彼女は全額支給の奨学生としてその大学に入学した。"
+   ]
+  ]
+ },
+ {
+  "w": "scope",
+  "exs": [
+   [
+    "The scope of this research is limited to junior high school students.",
+    "この研究の範囲は中学生に限定されている。"
+   ],
+   [
+    "Travel broadens one's scope and changes how we see the world.",
+    "旅行は視野を広げ、世界の見方を変える。"
+   ],
+   [
+    "There is still scope for improvement in the design.",
+    "その設計にはまだ改善の余地がある。"
+   ]
+  ]
+ },
+ {
+  "w": "scorn",
+  "exs": [
+   [
+    "Critics treated the new theory with open scorn.",
+    "批評家たちはその新理論を露骨に軽蔑して扱った。"
+   ],
+   [
+    "Many people scorned the idea as foolish when it was first proposed.",
+    "その考えが最初に提案されたとき、多くの人が愚かだとあざけった。"
+   ]
+  ]
+ },
+ {
+  "w": "scrupulous",
+  "exs": [
+   [
+    "She is a scrupulous doctor who always puts patients first.",
+    "彼女は常に患者を第一に考える良心的な医師だ。"
+   ],
+   [
+    "The accountant was scrupulous in checking every figure.",
+    "会計士はすべての数字を細心の注意を払って確認した。"
+   ]
+  ]
+ },
+ {
+  "w": "sector",
+  "exs": [
+   [
+    "The service sector employs most workers in developed countries.",
+    "先進国ではサービス部門が大半の労働者を雇用している。"
+   ],
+   [
+    "The government is investing heavily in the energy sector.",
+    "政府はエネルギー分野に多額の投資を行っている。"
+   ]
+  ]
+ },
+ {
+  "w": "secular",
+  "exs": [
+   [
+    "The king tried to separate secular power from religious authority.",
+    "王は世俗の権力を宗教的権威から切り離そうとした。"
+   ],
+   [
+    "Modern Japan is largely a secular society.",
+    "現代の日本は大部分が世俗的な社会だ。"
+   ]
+  ]
+ },
+ {
+  "w": "secure",
+  "exs": [
+   [
+    "Keep your passport in a secure place when you travel.",
+    "旅行中はパスポートを安全な場所にしまっておきなさい。"
+   ],
+   [
+    "The company managed to secure enough funds for the project.",
+    "その会社はプロジェクトに十分な資金を確保することができた。"
+   ],
+   [
+    "Children need to feel secure at home to grow up happily.",
+    "子どもが幸せに育つには家庭で安心していられる必要がある。"
+   ]
+  ]
+ },
+ {
+  "w": "sedentary",
+  "exs": [
+   [
+    "A sedentary lifestyle increases the risk of heart disease.",
+    "座りがちな生活習慣は心臓病のリスクを高める。"
+   ],
+   [
+    "Early farmers developed a sedentary way of life in river valleys.",
+    "初期の農耕民は河川流域で定住の生活様式を発展させた。"
+   ]
+  ]
  }
 ]
