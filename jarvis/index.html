@@ -100,6 +100,45 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
 .dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .setup{padding:18px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:14px;text-align:center}
 .setup b{color:var(--text)}
+/* ---- HUD（モニター表示モード） ---- */
+.hud{position:fixed;inset:0;z-index:50;background:radial-gradient(900px 600px at 50% 45%,#07131f 0%,#030609 70%);color:#bfe9ff;display:grid;grid-template-columns:240px 1fr 300px;grid-template-rows:auto 1fr;grid-template-areas:"top top top" "left center right";gap:12px;padding:12px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Noto Sans Mono CJK JP",monospace;overflow:hidden}
+.hud[hidden]{display:none}
+.hud-top{grid-area:top;display:flex;align-items:center;gap:16px;padding:4px 8px;border-bottom:1px solid rgba(60,200,255,.25);font-size:13px;letter-spacing:.2em}
+.hud-top .ttl{font-weight:700;color:#fff;letter-spacing:.4em}
+.hud-top .sp{flex:1}
+.hud-top .st{color:var(--accent-2)}
+.hud-top .st[data-s="error"]{color:var(--bad)}
+.hud-top button{background:transparent;border:1px solid rgba(60,200,255,.3);color:#bfe9ff;border-radius:6px;padding:3px 10px;font-size:12px;letter-spacing:.1em}
+.hud-side.l{grid-area:left}.hud-side.r{grid-area:right}.hud-center{grid-area:center}
+.hud-side{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+.hcard{border:1px solid rgba(60,200,255,.22);background:rgba(8,20,36,.55);border-radius:8px;padding:8px 10px;position:relative}
+.hcard::before{content:"";position:absolute;left:0;top:0;width:14px;height:14px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);border-radius:8px 0 0 0}
+.hcard label{display:block;font-size:10px;letter-spacing:.25em;color:#5f86a8;margin-bottom:2px}
+.hcard b{font-size:28px;font-weight:600;color:#e8fbff;line-height:1.1;font-variant-numeric:tabular-nums}
+.hcard b small{font-size:11px;color:#5f86a8;margin-left:4px;font-weight:400}
+.hcard .sub{font-size:11px;color:#5f86a8}
+.hcard.grow{flex:1;min-height:0;display:flex;flex-direction:column}
+.hlog{list-style:none;margin:0;padding:0;font-size:11.5px;line-height:1.55;overflow:hidden;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
+.hlog li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.55}
+.hlog li:nth-last-child(-n+4){opacity:1}
+.hlog .t{color:#5f86a8}
+.hlog .k{color:var(--accent);min-width:5.5em;display:inline-block}
+.hlog .k.tool,.hlog .k.timer{color:var(--accent-2)}
+.hlog .k.error{color:var(--bad)}
+.hlog .k.memory{color:#ffd37a}
+.hproc{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.9}
+.hproc li{display:flex;justify-content:space-between;gap:8px;white-space:nowrap}.hproc li span:first-child{overflow:hidden;text-overflow:ellipsis}
+.hproc li span:last-child{color:#5f86a8;letter-spacing:.1em}
+.hproc li.on span:last-child{color:var(--accent-2)}
+.hud-center{position:relative;min-height:0;border:1px solid rgba(60,200,255,.15);border-radius:10px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
+.hud-center canvas{position:absolute;inset:0;width:100%;height:100%}
+.hud-cap{position:absolute;left:0;right:0;bottom:0;padding:14px 20px;background:linear-gradient(transparent,rgba(3,6,9,.85));text-align:center;pointer-events:none}
+.hud-cap .u{font-size:14px;color:#8fb6d6;min-height:1.5em}
+.hud-cap .a{font-size:18px;color:#fff;min-height:1.6em;font-family:var(--font)}
+.hud-cap .u:empty+.a:empty{display:none}
+#hudWave{width:100%;height:56px;display:block}
+.hud-hint{position:absolute;top:10px;left:14px;font-size:11px;color:#5f86a8;letter-spacing:.1em}
+@media(max-width:900px){.hud{grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(240px,44vh) 1fr;grid-template-areas:"top top" "center center" "left right";gap:8px;padding:8px}.hud-side{overflow:auto;gap:6px}.hcard{padding:6px 8px}.hcard b{font-size:18px}.hcard label{font-size:9px}.hud-top{font-size:11px;gap:10px}.hproc,.hlog{font-size:10.5px}.hud-cap .a{font-size:15px}}
 @media (max-width:420px){.brand small{display:none}}
 @media (prefers-reduced-motion:reduce){.ring,.core{animation:none!important}}
 </style>
@@ -109,6 +148,7 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
   <header>
     <div class="brand"><h1>JARVIS</h1><small>voice agent · Claude</small></div>
     <div class="hbtns">
+      <button class="ghost" id="btnHud" title="モニター表示モード（Hキー）">HUD</button>
       <button class="ghost" id="btnClear" title="会話をリセット">リセット</button>
       <button class="ghost" id="btnSettings">⚙ 設定</button>
     </div>
@@ -139,6 +179,23 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
       </form>
     </section>
   </main>
+</div>
+<div class="hud" id="hud" hidden>
+  <div class="hud-top"><span class="ttl">J.A.R.V.I.S.</span><span id="hudClock">--:--:--</span><span class="sp"></span><span class="st" id="hudState">STANDBY</span><button id="hudExit" type="button">EXIT</button></div>
+  <aside class="hud-side l">
+    <div class="hcard"><label>SESSION TURNS</label><b id="hsTurns">0</b></div>
+    <div class="hcard"><label>MEMORY</label><b id="hsMem">0<small>件</small></b></div>
+    <div class="hcard"><label>TOKENS TODAY</label><b id="hsTok">0</b><div class="sub" id="hsCost"></div></div>
+    <div class="hcard"><label>FIRST TOKEN</label><b id="hsLat">—<small>ms</small></b></div>
+    <div class="hcard"><label>UPTIME</label><b id="hsUp">00:00:00</b></div>
+    <div class="hcard"><label>AUDIO</label><canvas id="hudWave" width="300" height="56"></canvas></div>
+  </aside>
+  <div class="hud-center" id="hudCenter"><canvas id="hudCanvas"></canvas><div class="hud-hint" id="hudHint"></div><div class="hud-cap"><div class="u" id="hudLive"></div><div class="a" id="hudSay"></div></div></div>
+  <aside class="hud-side r">
+    <div class="hcard"><label>MODEL</label><b id="hsModel" style="font-size:16px"></b><div class="sub" id="hsMode"></div></div>
+    <div class="hcard grow"><label>OPERATION LOG</label><ul class="hlog" id="hudLog"></ul></div>
+    <div class="hcard"><label>ACTIVE PROCESSES</label><ul class="hproc" id="hudProc"></ul></div>
+  </aside>
 </div>
 
 <dialog id="dlg">
@@ -249,7 +306,7 @@ function setState(s, text) {
   state = s; orb.dataset.state = s;
   if (text !== undefined) statusEl.innerHTML = text;
 }
-function setLive(text, interim) { live.textContent = text || ''; live.classList.toggle('interim', !!interim); }
+function setLive(text, interim) { live.textContent = text || ''; live.classList.toggle('interim', !!interim); const hl = $('hudLive'); if (hl) hl.textContent = text || ''; }
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function addMsg(cls, html) {
   const e = $('empty'); if (e) e.remove();
@@ -304,8 +361,8 @@ function pumpTTS() {
   const u = new SpeechSynthesisUtterance(item.t);
   const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = S.lang;
   u.rate = S.rate; u.pitch = 1;
-  speaking = true; onSpeakStart();
-  const finish = () => { speaking = false; item.onDone && item.onDone(); if (!ttsQueue.length) onSpeakEnd(); pumpTTS(); };
+  speaking = true; onSpeakStart(); const hs = $('hudSay'); if (hs) hs.textContent = item.t;
+  const finish = () => { speaking = false; item.onDone && item.onDone(); if (!ttsQueue.length) { onSpeakEnd(); if (hs) hs.textContent = ''; } pumpTTS(); };
   u.onend = finish; u.onerror = finish;
   synth.speak(u);
   // Chrome は長い発話を黙って打ち切ることがあるので、15秒ごとに resume を叩く
@@ -356,7 +413,7 @@ function makeRec() {
       if (e.results[i].isFinal) final += t; else interim += t;
     }
     if (interim) { setLive(interim, true); level = Math.min(1, level + .3); }
-    if (final) { setLive(final, false); handleUtterance(final.trim()); }
+    if (final) { setLive(final, false); hudLog('stt', final.trim()); handleUtterance(final.trim()); }
   };
   return r;
 }
@@ -425,7 +482,7 @@ const TOOLS = [
     run: ({seconds, label}) => {
       seconds = Math.min(86400, Math.max(1, Math.round(Number(seconds) || 0)));
       const id = 't' + Date.now();
-      const h = setTimeout(() => { timers.delete(id); beep(); addSys(`⏰ タイマー: ${label}`); speak(`${label}の時間です。`, {priority:true}); }, seconds*1000);
+      const h = setTimeout(() => { timers.delete(id); beep(); addSys(`⏰ タイマー: ${label}`); hudLog('timer', `fired: ${label}`); speak(`${label}の時間です。`, {priority:true}); }, seconds*1000);
       timers.set(id, {h, label, at: Date.now()+seconds*1000});
       return {ok:true, id, fires_at: new Date(Date.now()+seconds*1000).toLocaleTimeString('ja-JP')};
     } },
@@ -500,6 +557,8 @@ function headers() {
 
 // SSE を読んで content ブロックを組み立てる。文が完成するたびに onSentence を呼ぶ
 async function streamMessage(signal, onSentence, onToolStart) {
+  const tStart = performance.now(); let firstTok = false;
+  hudLog('llm', `${S.model} request · ${history.length} msgs`);
   const res = await fetch(API, { method:'POST', headers: headers(), body: JSON.stringify(buildBody()), signal });
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
@@ -530,7 +589,7 @@ async function streamMessage(signal, onSentence, onToolStart) {
         break; }
       case 'content_block_delta': {
         const b = blocks[ev.index], d = ev.delta; if (!b) break;
-        if (d.type === 'text_delta') { b.text += d.text; pending += d.text; flushSentences(false); }
+        if (d.type === 'text_delta') { if (!firstTok) { firstTok = true; H.lat = Math.round(performance.now() - tStart); } b.text += d.text; pending += d.text; flushSentences(false); }
         else if (d.type === 'input_json_delta') b._json += d.partial_json;
         else if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
         else if (d.type === 'signature_delta') b.signature = d.signature;
@@ -541,7 +600,8 @@ async function streamMessage(signal, onSentence, onToolStart) {
         if (b._json !== undefined) { try { b.input = b._json ? JSON.parse(b._json) : {}; } catch { b.input = {}; b._bad = true; } delete b._json; }
         if (b.type === 'text') flushSentences(true);
         break; }
-      case 'message_delta': stop = ev.delta?.stop_reason || stop; stopDetails = ev.delta?.stop_details || stopDetails; break;
+      case 'message_start': addUsage(ev.message?.usage?.input_tokens || 0, 0); break;
+      case 'message_delta': stop = ev.delta?.stop_reason || stop; stopDetails = ev.delta?.stop_details || stopDetails; addUsage(0, ev.usage?.output_tokens || 0); break;
       case 'error': throw new Error(ev.error?.message || 'stream error');
     }
   };
@@ -556,6 +616,7 @@ async function streamMessage(signal, onSentence, onToolStart) {
     }
   }
   flushSentences(true);
+  hudLog('llm', `${stop || 'done'} · ${Math.round(performance.now() - tStart)}ms`);
   return { content: blocks.filter(Boolean), stop_reason: stop, stop_details: stopDetails };
 }
 
@@ -574,7 +635,7 @@ let askGen = 0, currentRollback = null;
 async function ask(text) {
   if (!S.apiKey) { openSettings(); addSys('先に設定でAPIキーを入れてください。'); return; }
   if (busy) { stopAll(); currentRollback && currentRollback(); }   // 前のターンは中断して履歴を巻き戻す（その catch/finally は世代不一致で何もしない）
-  const myGen = ++askGen;
+  const myGen = ++askGen; H.turns++;
   busy = true; stopSpeaking();
   if (S.mode === 'hands') pauseRecognition();
   addUser(text);
@@ -592,7 +653,7 @@ async function ask(text) {
   try {
     for (let round = 0; round < 8; round++) {
       const r = await streamMessage(signal, say, b => {
-        if (b.type === 'server_tool_use') { botEl.insertAdjacentHTML('beforeend', `<span class="tool">🔎 Web検索中…</span>`); if (!spoken) speak('少々お待ちください。調べます。'); }
+        if (b.type === 'server_tool_use') { hudLog('search', 'web_search running'); botEl.insertAdjacentHTML('beforeend', `<span class="tool">🔎 Web検索中…</span>`); if (!spoken) speak('少々お待ちください。調べます。'); }
       });
       history.push({ role:'assistant', content: r.content });
       // 引用リンク（Web検索の出典）
@@ -612,6 +673,7 @@ async function ask(text) {
           try { out = tool ? (b._bad ? {error:'invalid JSON input'} : tool.run(b.input)) : {error:`unknown tool ${b.name}`}; }
           catch (err) { out = {error: String(err.message || err)}; }
           delete b._bad;
+          hudLog(/remember|forget/.test(b.name) ? 'memory' : 'tool', `${b.name} ${JSON.stringify(b.input)}`);
           botEl.insertAdjacentHTML('beforeend', `<span class="tool">🛠 ${esc(b.name)} ${esc(JSON.stringify(b.input)).slice(0,80)}</span>`);
           results.push({ type:'tool_result', tool_use_id: b.id, content: JSON.stringify(out), is_error: !!(out && out.error) });
         }
@@ -636,7 +698,7 @@ async function ask(text) {
       else if (err.status === 429) m = 'リクエストが多すぎます。少し待ってからもう一度どうぞ。';
       else if (err.status === 400 && /credit|billing/i.test(m)) m = 'APIの残高が不足しているようです。Consoleで確認してください。';
       else if (/Failed to fetch|NetworkError/i.test(m)) m = 'APIに接続できませんでした。ネットワーク、または広告ブロッカーの設定を確認してください。';
-      addErr(m); setState('error', esc(m)); speak('すみません、エラーが起きました。');
+      addErr(m); setState('error', esc(m)); hudLog('error', m); speak('すみません、エラーが起きました。');
     }
   } finally {
     if (myGen === askGen) {
@@ -689,7 +751,7 @@ function setMode(m) {
   $('modePtt').setAttribute('aria-pressed', m === 'ptt'); $('modeHands').setAttribute('aria-pressed', m === 'hands');
   $('hint').innerHTML = m === 'ptt' ? '球体を押している間だけ聞き取ります。PCなら <kbd>Space</kbd> 長押しでもOK。' : `球体をタップで待機開始。「${esc(S.wake)}、〜して」と話しかけると応答します。応答中にタップすると割り込めます。`;
   orb.setAttribute('aria-label', m === 'ptt' ? '話しかける（押している間 録音）' : 'ハンズフリー待機の開始・停止');
-  idle();
+  idle(); if (typeof hudOn === 'function' && hudOn()) hudTick();
 }
 $('modePtt').addEventListener('click', () => setMode('ptt'));
 $('modeHands').addEventListener('click', () => setMode('hands'));
@@ -735,6 +797,131 @@ $('dlgSave').addEventListener('click', () => {
 });
 dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 dlg.addEventListener('close', () => { try { S = {...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_KEY) || '{}')}; } catch {} loadVoices(); });
+
+/* =========================================================
+   HUD（モニター表示モード）— 見た目は映画風、流れているのは実データ
+   ========================================================= */
+const hud = $('hud'), hudOn = () => !hud.hidden;
+const H = { log: [], turns: 0, lat: null, t0: performance.now(), energy: 0, targetEnergy: .15, micLevel: 0, analyser: null, micStream: null, wakeLock: null, particles: [], raf: 0 };
+const USAGE_KEY = 'jarvis.usage.v1';
+function usageToday() { try { const u = JSON.parse(localStorage.getItem(USAGE_KEY) || '{}'); return u.date === today() ? u : {date: today(), input:0, output:0}; } catch { return {date: today(), input:0, output:0}; } }
+function addUsage(input, output) { const u = usageToday(); u.input += input || 0; u.output += output || 0; try { localStorage.setItem(USAGE_KEY, JSON.stringify(u)); } catch {} }
+function hudLog(kind, text) {
+  const t = new Date().toLocaleTimeString('ja-JP', {hour12:false});
+  H.log.push({t, kind, text: String(text).replace(/\s+/g, ' ').slice(0, 90)}); if (H.log.length > 14) H.log.shift();
+  if (hudOn()) renderHudLog();
+}
+function renderHudLog() { $('hudLog').innerHTML = H.log.map(l => `<li><span class="t">[${l.t}]</span> <span class="k ${l.kind}">${esc(l.kind)}</span>:: ${esc(l.text)}</li>`).join(''); }
+const STATE_LABEL = {off:'STANDBY', listening:'LISTENING', thinking:'PROCESSING', speaking:'SPEAKING', error:'FAULT'};
+const STATE_ENERGY = {off:.35, listening:.6, thinking:.8, speaking:.95, error:.6};
+function hudTick() {
+  if (!hudOn()) return;
+  $('hudClock').textContent = new Date().toLocaleTimeString('ja-JP', {hour12:false});
+  const up = Math.floor((performance.now() - H.t0) / 1000);
+  $('hsUp').textContent = [up/3600, up/60%60, up%60].map(n => String(Math.floor(n)).padStart(2,'0')).join(':');
+  $('hsTurns').textContent = H.turns; $('hsMem').innerHTML = `${memory.length}<small>件</small>`;
+  const u = usageToday(); $('hsTok').textContent = (u.input + u.output).toLocaleString();
+  const price = {'claude-opus-5-5':[4,20], 'claude-sonnet-5-5':[2,10], 'claude-haiku-5-5':[.1,.5]}[S.model] || [4,20];
+  $('hsCost').textContent = `in ${u.input.toLocaleString()} / out ${u.output.toLocaleString()} ≈ $${((u.input*price[0] + u.output*price[1])/1e6).toFixed(3)}`;
+  $('hsLat').innerHTML = `${H.lat == null ? '—' : H.lat}<small>ms</small>`;
+  $('hsModel').textContent = S.model; $('hsMode').textContent = (S.mode === 'hands' ? 'HANDS-FREE' : 'PUSH-TO-TALK') + (S.webSearch ? ' · WEB' : '');
+  const st = $('hudState'); st.textContent = STATE_LABEL[state] || state.toUpperCase(); st.dataset.s = state;
+  const nextTimer = [...timers.values()].sort((a,b) => a.at-b.at)[0];
+  const rows = [
+    ['speech-recognition', recActive ? 'LISTENING' : (S.mode === 'hands' && handsOn ? 'ARMED' : 'IDLE'), recActive],
+    ['claude-stream', busy ? 'RUNNING' : 'IDLE', busy],
+    ['speech-synthesis', speaking ? 'SPEAKING' : 'IDLE', speaking],
+    ['timer-scheduler', nextTimer ? `${nextTimer.label} ${Math.max(0, Math.ceil((nextTimer.at - Date.now())/1000))}s` : 'NO JOBS', !!nextTimer],
+    ['web-search', S.webSearch ? 'ENABLED' : 'OFF', S.webSearch],
+    ['memory-store', `${memory.length} FACTS`, memory.length > 0],
+  ];
+  $('hudProc').innerHTML = rows.map(([n,v,on]) => `<li class="${on ? 'on' : ''}"><span>${n}</span><span>${esc(v)}</span></li>`).join('');
+  $('hudHint').textContent = S.mode === 'ptt' ? 'HOLD TO TALK · SPACE' : (handsOn ? `SAY "${S.wake}"` : 'TAP TO ARM');
+}
+// マイクの実レベル（取れなければ合成値で動かす）
+async function hudMic() {
+  if (H.analyser || !navigator.mediaDevices?.getUserMedia) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ac.createMediaStreamSource(stream), an = ac.createAnalyser(); an.fftSize = 512; an.smoothingTimeConstant = .7; src.connect(an);
+    H.analyser = an; H.micStream = stream; H.micBuf = new Uint8Array(an.fftSize);
+  } catch { /* 拒否された／非対応: 合成アニメーションで代替 */ }
+}
+function hudMicStop() { try { H.micStream?.getTracks().forEach(t => t.stop()); } catch {} H.analyser = null; H.micStream = null; }
+function makeParticles(n) {
+  H.particles = Array.from({length:n}, () => { const th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1); return { th, ph, r: .55 + Math.random()*.6, sp: (.2 + Math.random()*.8) * (Math.random() < .5 ? 1 : -1), sz: .6 + Math.random()*1.6, hue: Math.random() }; });
+}
+function hudDraw(now) {
+  if (!hudOn()) { H.raf = 0; return; }
+  H.raf = requestAnimationFrame(hudDraw);
+  const cv = $('hudCanvas'), dpr = Math.min(2, devicePixelRatio || 1), W = cv.clientWidth, Hh = cv.clientHeight;
+  if (cv.width !== W*dpr || cv.height !== Hh*dpr) { cv.width = W*dpr; cv.height = Hh*dpr; }
+  const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,Hh);
+  // 入力レベル
+  let lvl = 0;
+  if (H.analyser) { H.analyser.getByteTimeDomainData(H.micBuf); let s = 0; for (const v of H.micBuf) s += (v-128)*(v-128); lvl = Math.min(1, Math.sqrt(s/H.micBuf.length)/40); }
+  else lvl = level * .8 + (speaking ? .25 + Math.random()*.25 : 0);
+  H.micLevel += (lvl - H.micLevel) * .25;
+  H.targetEnergy = (STATE_ENERGY[state] ?? .2) + (state === 'listening' || state === 'speaking' ? H.micLevel * .6 : 0);
+  H.energy += (H.targetEnergy - H.energy) * .08;
+  const E = H.energy, cx = W/2, cy = Hh/2, R = Math.min(W,Hh) * .36, t = now/1000;
+  const col = state === 'error' ? [255,107,122] : state === 'speaking' ? [122,240,217] : state === 'thinking' ? [255,211,122] : [60,200,255];
+  // コアの光
+  const grd = g.createRadialGradient(cx,cy,0,cx,cy,R*(.9+E*.6));
+  grd.addColorStop(0, `rgba(255,250,230,${.55+E*.45})`); grd.addColorStop(.18, `rgba(${col},${.5+E*.4})`); grd.addColorStop(.5, `rgba(${col},${.08+E*.12})`); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grd; g.fillRect(0,0,W,Hh);
+  // 粒子（球面を回転 → 投影）
+  g.globalCompositeOperation = 'lighter';
+  const rotY = t*.25, rotX = Math.sin(t*.13)*.5, pts = [];
+  for (const p of H.particles) {
+    const th = p.th + t*p.sp*.4, r = p.r * (.75 + E*.6 + Math.sin(t*2 + p.th*3)*.04*E);
+    let x = Math.sin(p.ph)*Math.cos(th)*r, y = Math.cos(p.ph)*r, z = Math.sin(p.ph)*Math.sin(th)*r;
+    let x2 = x*Math.cos(rotY) - z*Math.sin(rotY), z2 = x*Math.sin(rotY) + z*Math.cos(rotY);
+    let y2 = y*Math.cos(rotX) - z2*Math.sin(rotX); z2 = y*Math.sin(rotX) + z2*Math.cos(rotX);
+    const depth = (z2 + 1.4) / 2.6, sx = cx + x2*R, sy = cy + y2*R, a = .25 + depth*.75;
+    pts.push([sx, sy, depth, p]);
+    g.fillStyle = p.hue < .15 ? `rgba(255,225,160,${Math.min(1, a*(.7+E))})` : `rgba(${col},${Math.min(1, a*(.6+E*.6))})`;
+    g.beginPath(); g.arc(sx, sy, p.sz*(.7+depth*.9)*(.9+E*.6), 0, Math.PI*2); g.fill();
+  }
+  // 近い粒子同士を細線で結ぶ（ニューラル風）
+  g.strokeStyle = `rgba(${col},${.14+E*.18})`; g.lineWidth = .7;
+  for (let i = 0; i < pts.length; i += 3) for (let j = i+3; j < pts.length && j < i+40; j += 3) {
+    const dx = pts[i][0]-pts[j][0], dy = pts[i][1]-pts[j][1], d2 = dx*dx+dy*dy; if (d2 < R*R*.06) { g.beginPath(); g.moveTo(pts[i][0],pts[i][1]); g.lineTo(pts[j][0],pts[j][1]); g.stroke(); }
+  }
+  // リング
+  g.globalCompositeOperation = 'source-over';
+  for (let k = 0; k < 3; k++) {
+    const rr = R*(1.15 + k*.14 + Math.sin(t*(.6+k*.2))*.02), a0 = t*(.3 + k*.15)*(k%2 ? -1 : 1);
+    g.strokeStyle = `rgba(${col},${.18 + (k===0 ? E*.3 : 0)})`; g.lineWidth = k===1 ? 2 : 1;
+    g.beginPath(); g.arc(cx,cy,rr,a0,a0 + Math.PI*(.5 + k*.4)); g.stroke();
+    g.beginPath(); g.arc(cx,cy,rr,a0+Math.PI,a0 + Math.PI*(1.5 + k*.4)); g.stroke();
+  }
+  // 左カードの波形
+  const wv = $('hudWave'), wg = wv.getContext('2d'); wg.clearRect(0,0,wv.width,wv.height); wg.strokeStyle = `rgba(${col},.9)`; wg.lineWidth = 1.5; wg.beginPath();
+  if (H.analyser) { const n = H.micBuf.length; for (let i = 0; i < n; i += 2) { const x = i/n*wv.width, y = wv.height/2 + (H.micBuf[i]-128)/128*wv.height*.9; i ? wg.lineTo(x,y) : wg.moveTo(x,y); } }
+  else { for (let x = 0; x < wv.width; x += 3) { const y = wv.height/2 + Math.sin(x*.08 + t*6)*Math.sin(x*.013+t)*wv.height*.42*H.micLevel; x ? wg.lineTo(x,y) : wg.moveTo(x,y); } }
+  wg.stroke();
+}
+function openHud() {
+  hud.hidden = false; if (!H.particles.length) makeParticles(520);
+  renderHudLog(); hudTick(); H.tickTimer = setInterval(hudTick, 500); if (!H.raf) H.raf = requestAnimationFrame(hudDraw);
+  hudMic(); document.documentElement.requestFullscreen?.().catch(() => {});
+  navigator.wakeLock?.request('screen').then(l => H.wakeLock = l).catch(() => {});
+  hudLog('system', 'HUD display online');
+}
+function closeHud() {
+  hud.hidden = true; clearInterval(H.tickTimer); hudMicStop();
+  try { H.wakeLock?.release(); } catch {} H.wakeLock = null;
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+}
+$('btnHud').addEventListener('click', openHud);
+$('hudExit').addEventListener('click', closeHud);
+const hudCenter = $('hudCenter');
+hudCenter.addEventListener('pointerdown', e => { e.preventDefault(); hudCenter.setPointerCapture?.(e.pointerId); pttDown(e); });
+hudCenter.addEventListener('pointerup', pttUp); hudCenter.addEventListener('pointercancel', pttUp); hudCenter.addEventListener('lostpointercapture', pttUp);
+document.addEventListener('keydown', e => { if ((e.key === 'h' || e.key === 'H') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !dlg.open) hudOn() ? closeHud() : openHud(); });
+if (new URLSearchParams(location.search).has('hud')) setTimeout(openHud, 400);
 
 /* =========================================================
    起動
