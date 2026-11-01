@@ -1,6 +1,7 @@
 # GitHub Pages 公開:
 #   /             → weight-loss-plan.html
 #   /tango-drill/ → tango-drill/index.html（単語ドリル）
+#   /jarvis/      → jarvis/index.html（音声AIアシスタント）
 name: Deploy to GitHub Pages
 
 on:
@@ -27,9 +28,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Prepare site
         run: |
-          mkdir -p _site/tango-drill
+          mkdir -p _site/tango-drill _site/jarvis
           cp weight-loss-plan.html _site/index.html
           cp tango-drill/index.html _site/tango-drill/index.html
+          cp jarvis/index.html _site/jarvis/index.html
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
         with:

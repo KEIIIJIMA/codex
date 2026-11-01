@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>JARVIS 音声アシスタント</title>
+<meta name="description" content="ブラウザだけで動く、音声で受け答えするAIエージェント。音声認識 → Claude → 音声合成を1枚のHTMLで。">
+<style>
+:root{
+  --bg:#060a12; --bg-2:#0b1220; --panel:rgba(14,22,38,.82); --line:rgba(120,170,255,.16);
+  --text:#dfe8ff; --muted:#7f8fb3; --accent:#3cc8ff; --accent-2:#7af0d9; --warn:#ffb454; --bad:#ff6b7a;
+  --glow:rgba(60,200,255,.55); --user:#1a2a4a; --font:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(1200px 700px at 50% -10%,#10213f 0%,var(--bg) 60%) fixed,var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+.app{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;max-width:980px;margin:0 auto;padding:0 16px env(safe-area-inset-bottom)}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 6px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{margin:0;font-size:18px;letter-spacing:.28em;font-weight:700;color:#fff}
+.brand small{color:var(--muted);font-size:12px;letter-spacing:.05em}
+.hbtns{display:flex;gap:8px}
+.ghost{white-space:nowrap;background:transparent;border:1px solid var(--line);border-radius:10px;padding:7px 12px;color:var(--text);font-size:13px}
+.ghost:hover{border-color:var(--accent);background:rgba(60,200,255,.06)}
+main{display:grid;grid-template-columns:1fr;gap:16px;align-content:start;padding-bottom:12px}
+@media(min-width:820px){main{grid-template-columns:380px 1fr;align-items:stretch}}
+
+/* ---- orb ---- */
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px 0 8px;min-height:360px}
+.orb{--size:220px;position:relative;width:var(--size);height:var(--size);border-radius:50%;border:0;background:transparent;outline:none;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
+.orb:focus-visible .core{box-shadow:0 0 0 3px #fff inset}
+.ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(120,200,255,.25)}
+.ring.r2{inset:14px;border-style:dashed;animation:spin 24s linear infinite}
+.ring.r3{inset:30px;border-width:2px;border-color:rgba(60,200,255,.35);border-left-color:transparent;border-right-color:transparent;animation:spin 9s linear infinite reverse}
+.core{position:absolute;inset:46px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#bff3ff 0%,#3cc8ff 28%,#0d4e7a 62%,#06192c 100%);box-shadow:0 0 40px var(--glow),0 0 120px rgba(60,200,255,.25),inset 0 0 30px rgba(255,255,255,.25);transition:transform .15s ease,box-shadow .3s ease}
+.bars{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:5px;pointer-events:none}
+.bars i{display:block;width:4px;height:10px;border-radius:3px;background:#eaffff;opacity:0;transition:height .08s linear,opacity .2s}
+.orb[data-state="listening"] .core{box-shadow:0 0 60px var(--glow),0 0 160px rgba(60,200,255,.4),inset 0 0 30px rgba(255,255,255,.35)}
+.orb[data-state="listening"] .bars i{opacity:.95}
+.orb[data-state="thinking"] .ring.r3{animation-duration:1.6s;border-color:var(--accent-2);border-left-color:transparent;border-right-color:transparent}
+.orb[data-state="thinking"] .core{animation:pulse 1.4s ease-in-out infinite}
+.orb[data-state="speaking"] .core{background:radial-gradient(circle at 50% 45%,#d9fff6 0%,#7af0d9 28%,#136b5e 62%,#05201c 100%);box-shadow:0 0 60px rgba(122,240,217,.6),0 0 160px rgba(122,240,217,.3),inset 0 0 30px rgba(255,255,255,.35)}
+.orb[data-state="speaking"] .bars i{opacity:.9;background:#06201c}
+.orb[data-state="off"] .core{filter:grayscale(.7) brightness(.55);box-shadow:none}
+.orb[data-state="error"] .core{background:radial-gradient(circle at 50% 45%,#ffd9de 0%,#ff6b7a 30%,#6b1420 65%,#200508 100%);box-shadow:0 0 50px rgba(255,107,122,.5)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.status{min-height:1.6em;font-size:14px;color:var(--muted);text-align:center;padding:0 8px}
+.status b{color:var(--text);font-weight:600}
+.live{min-height:2.4em;font-size:17px;text-align:center;color:#fff;padding:0 10px;max-width:360px}
+.live.interim{color:var(--muted)}
+.modes{display:flex;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:4px}
+.modes button{border:0;background:transparent;border-radius:9px;padding:7px 14px;font-size:13px;color:var(--muted)}
+.modes button[aria-pressed="true"]{background:rgba(60,200,255,.16);color:#fff}
+.hint{font-size:12px;color:var(--muted);text-align:center;max-width:340px}
+kbd{font:inherit;font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:rgba(255,255,255,.04)}
+
+/* ---- transcript ---- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(10px);display:flex;flex-direction:column;min-height:360px;max-height:calc(100dvh - 190px)}
+.panel h2{margin:0;padding:12px 16px;font-size:13px;letter-spacing:.12em;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.panel h2 button{font-size:12px;padding:3px 9px}
+.log{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.msg{max-width:88%;padding:10px 14px;border-radius:14px;font-size:15px;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--user);border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:rgba(60,200,255,.08);border:1px solid rgba(60,200,255,.14);border-bottom-left-radius:4px}
+.msg.sys{align-self:center;background:transparent;color:var(--muted);font-size:12.5px;text-align:center;padding:2px 8px}
+.msg.err{align-self:center;background:rgba(255,107,122,.1);border:1px solid rgba(255,107,122,.3);color:#ffd2d7;font-size:13px}
+.msg .tool{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent-2);background:rgba(122,240,217,.08);border:1px solid rgba(122,240,217,.2);border-radius:999px;padding:2px 10px;margin:2px 0}
+.msg .cite{display:block;margin-top:6px;font-size:12px}
+.msg .cite a{margin-right:10px}
+.composer{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.composer input{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+.composer input:focus{border-color:var(--accent)}
+.primary{white-space:nowrap;background:linear-gradient(135deg,#3cc8ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;color:#04111f;font-weight:700}
+.primary:disabled{opacity:.5;cursor:default}
+.empty{color:var(--muted);font-size:14px;text-align:center;margin:auto;padding:20px;line-height:1.9}
+
+/* ---- settings dialog ---- */
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--bg-2);color:var(--text);padding:0;width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 40px)}
+dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
+.orb{padding:0}
+.dlg{padding:20px 22px 18px;overflow:auto;max-height:calc(100dvh - 44px)}
+.dlg h2{margin:0 0 10px;font-size:17px}
+.dlg h3{margin:18px 0 6px;font-size:13px;color:var(--muted);letter-spacing:.08em}
+.field{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.field label{font-size:13px;color:var(--muted)}
+.field input[type=text],.field input[type=password],.field select,.field textarea{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none;width:100%}
+.field textarea{min-height:70px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .field{flex:1;min-width:140px}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;margin:8px 0}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+.note.warn{color:var(--warn)}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.setup{padding:18px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:14px;text-align:center}
+.setup b{color:var(--text)}
+@media (max-width:420px){.brand small{display:none}}
+@media (prefers-reduced-motion:reduce){.ring,.core{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><h1>JARVIS</h1><small>voice agent · Claude</small></div>
+    <div class="hbtns">
+      <button class="ghost" id="btnClear" title="会話をリセット">リセット</button>
+      <button class="ghost" id="btnSettings">⚙ 設定</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage">
+      <button class="orb" id="orb" data-state="off" aria-label="話しかける（押している間 録音）">
+        <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
+        <span class="core"></span>
+        <span class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </button>
+      <div class="live" id="live"></div>
+      <div class="status" id="status">設定でAPIキーを入れると起動します</div>
+      <div class="modes" role="group" aria-label="聞き取りモード">
+        <button id="modePtt" aria-pressed="true">押して話す</button>
+        <button id="modeHands" aria-pressed="false">ハンズフリー</button>
+      </div>
+      <div class="hint" id="hint">球体を押している間だけ聞き取ります。PCなら <kbd>Space</kbd> 長押しでもOK。</div>
+    </section>
+
+    <section class="panel">
+      <h2>会話ログ <button class="ghost" id="btnStop">⏹ 停止</button></h2>
+      <div class="log" id="log"><div class="empty" id="empty">「ジャービス、今日の東京の天気は？」<br>「3分のタイマーをかけて」<br>「最近のAIニュースを調べて」<br>のように話しかけてください。</div></div>
+      <form class="composer" id="composer">
+        <input id="textIn" type="text" placeholder="文字で話しかける…" autocomplete="off">
+        <button class="primary" id="btnSend" type="submit">送信</button>
+      </form>
+    </section>
+  </main>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg">
+    <h2>設定</h2>
+    <h3>CLAUDE API</h3>
+    <div class="field">
+      <label for="apiKey">APIキー（このブラウザの localStorage にだけ保存されます）</label>
+      <input id="apiKey" type="password" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false">
+      <div class="note">キーは <a href="https://platform.claude.com/" target="_blank" rel="noopener">Claude Console</a> で発行。ブラウザから直接APIを呼ぶため、<b>自分専用</b>で使い、公開ページに他人を招く場合はキーを入れたまま共有しないでください。</div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="model">モデル</label>
+        <select id="model">
+          <option value="claude-opus-5-5">Claude Opus 5.5（既定・賢い）</option>
+          <option value="claude-sonnet-5-5">Claude Sonnet 5.5（速い）</option>
+          <option value="claude-haiku-5-5">Claude Haiku 5.5（最速・安い）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="effort">考える深さ（effort）</label>
+        <select id="effort">
+          <option value="low">low（会話向け・既定）</option>
+          <option value="medium">medium</option>
+          <option value="high">high</option>
+        </select>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="webSearch" checked> Web検索を許可（天気・ニュースなど最新情報を調べられます。検索1回ごとに追加料金）</label>
+
+    <h3>声と聞き取り</h3>
+    <div class="row">
+      <div class="field">
+        <label for="voice">読み上げの声</label>
+        <select id="voice"></select>
+      </div>
+      <div class="field">
+        <label for="rate">話す速さ <span id="rateVal">1.1</span></label>
+        <input id="rate" type="range" min="0.7" max="1.6" step="0.05" value="1.1">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="wake">ウェイクワード（ハンズフリー時）</label>
+        <input id="wake" type="text" value="ジャービス">
+      </div>
+      <div class="field">
+        <label for="lang">聞き取り言語</label>
+        <select id="lang">
+          <option value="ja-JP">日本語</option>
+          <option value="en-US">English (US)</option>
+        </select>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="wakeAlways"> ハンズフリーでもウェイクワードなしで反応する（独り言にも反応します）</label>
+
+    <h3>人格</h3>
+    <div class="row">
+      <div class="field"><label for="botName">アシスタントの名前</label><input id="botName" type="text" value="ジャービス"></div>
+      <div class="field"><label for="userName">あなたの呼び名（空欄なら呼ばない）</label><input id="userName" type="text" placeholder="例: 圭介様 / ボス"></div>
+    </div>
+    <div class="field">
+      <label for="persona">追加の指示（任意）</label>
+      <textarea id="persona" placeholder="例: 関西弁で話して。仕事の予定を聞かれたらまず確認を取って。"></textarea>
+    </div>
+    <div class="note">音声認識はブラウザ内蔵機能（Chrome / Edge / Safari 推奨）、読み上げはOSの音声を使います。マイクを使うため https か localhost で開いてください。</div>
+    <div class="dlg-actions">
+      <button class="ghost" id="dlgTest" type="button">声をテスト</button>
+      <button class="primary" id="dlgSave" type="button">保存して閉じる</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+/* =========================================================
+   設定
+   ========================================================= */
+const LS_KEY = 'jarvis.settings.v1';
+const DEFAULTS = {
+  apiKey:'', model:'claude-opus-5-5', effort:'low', webSearch:true,
+  voice:'', rate:1.1, wake:'ジャービス', lang:'ja-JP', wakeAlways:false,
+  botName:'ジャービス', userName:'', persona:'', mode:'ptt'
+};
+let S = {...DEFAULTS};
+try { Object.assign(S, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch {}
+const saveSettings = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch {} };
+
+const $ = id => document.getElementById(id);
+const orb = $('orb'), bars = [...$('bars').children], live = $('live'), statusEl = $('status'), logEl = $('log');
+
+/* =========================================================
+   UI ヘルパ
+   ========================================================= */
+let state = 'off';
+function setState(s, text) {
+  state = s; orb.dataset.state = s;
+  if (text !== undefined) statusEl.innerHTML = text;
+}
+function setLive(text, interim) { live.textContent = text || ''; live.classList.toggle('interim', !!interim); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function addMsg(cls, html) {
+  const e = $('empty'); if (e) e.remove();
+  const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html;
+  logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; return d;
+}
+const addUser = t => addMsg('user', esc(t));
+const addSys  = t => addMsg('sys', esc(t));
+const addErr  = t => addMsg('err', esc(t));
+
+/* =========================================================
+   音声合成（TTS）— 文ごとにキューして、ストリーミング中から喋り始める
+   ========================================================= */
+const synth = window.speechSynthesis;
+let voices = [];
+function loadVoices() {
+  voices = synth ? synth.getVoices() : [];
+  const sel = $('voice'); sel.innerHTML = '';
+  const langPrefix = S.lang.slice(0,2);
+  const sorted = [...voices].sort((a,b) => (b.lang.startsWith(langPrefix)) - (a.lang.startsWith(langPrefix)) || a.name.localeCompare(b.name));
+  for (const v of sorted) {
+    const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = `${v.name} (${v.lang})${v.localService ? '' : ' ☁'}`;
+    sel.appendChild(o);
+  }
+  if (!sorted.length) { const o = document.createElement('option'); o.value=''; o.textContent='（音声が見つかりません）'; sel.appendChild(o); }
+  sel.value = S.voice && voices.some(v => v.voiceURI === S.voice) ? S.voice : (sorted[0]?.voiceURI || '');
+}
+if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
+function pickVoice() {
+  let v = voices.find(v => v.voiceURI === S.voice);
+  if (!v) {
+    const pref = ['Google 日本語','Nanami','Kyoko','O-ren','Otoya','Ayumi','Haruka','Ichiro','Microsoft'];
+    const ja = voices.filter(v => v.lang.replace('_','-').startsWith(S.lang.slice(0,2)));
+    v = pref.map(p => ja.find(v => v.name.includes(p))).find(Boolean) || ja[0] || voices[0];
+  }
+  return v || null;
+}
+// 読み上げ用に整形（記号・URL・マークダウンを落とす）
+function speakable(t) {
+  return t.replace(/https?:\/\/\S+/g, 'リンク').replace(/[*_`#>|~]+/g, '').replace(/\[(\d+)\]/g, '').replace(/\s+\n/g, '\n').trim();
+}
+const ttsQueue = []; let speaking = false, ttsGen = 0;
+function speak(text, {priority=false, onDone} = {}) {
+  const t = speakable(text); if (!t) { onDone && onDone(); return; }
+  if (priority) ttsQueue.length = 0;
+  ttsQueue.push({t, onDone, gen: ttsGen}); pumpTTS();
+}
+function pumpTTS() {
+  if (speaking || !ttsQueue.length || !synth) return;
+  const item = ttsQueue.shift();
+  if (item.gen !== ttsGen) { item.onDone && item.onDone(); return pumpTTS(); }
+  const u = new SpeechSynthesisUtterance(item.t);
+  const v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = S.lang;
+  u.rate = S.rate; u.pitch = 1;
+  speaking = true; onSpeakStart();
+  const finish = () => { speaking = false; item.onDone && item.onDone(); if (!ttsQueue.length) onSpeakEnd(); pumpTTS(); };
+  u.onend = finish; u.onerror = finish;
+  synth.speak(u);
+  // Chrome は長い発話を黙って打ち切ることがあるので、15秒ごとに resume を叩く
+  const kick = setInterval(() => { if (!speaking) clearInterval(kick); else if (synth.paused) synth.resume(); }, 5000);
+}
+function stopSpeaking() { ttsGen++; ttsQueue.length = 0; if (synth) synth.cancel(); speaking = false; onSpeakEnd(); }
+
+// 「話している」の見た目（口パク風バー）
+let barTimer = null;
+function onSpeakStart() {
+  if (state !== 'error') setState('speaking', `<b>${esc(S.botName)}</b> が話しています`);
+  if (recActive && S.mode === 'hands') pauseRecognition();     // 自分の声を拾わない
+  clearInterval(barTimer);
+  barTimer = setInterval(() => bars.forEach(b => b.style.height = (8 + Math.random()*40) + 'px'), 90);
+}
+function onSpeakEnd() {
+  clearInterval(barTimer); bars.forEach(b => b.style.height = '10px');
+  if (state === 'speaking') idle();
+  if (S.mode === 'hands' && handsOn && !busy) resumeRecognition();
+}
+
+/* =========================================================
+   音声認識（STT）
+   ========================================================= */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recActive = false, recWanted = false, handsOn = false, armedUntil = 0;
+let level = 0, levelTimer = null, pttHolding = false;
+function makeRec() {
+  const r = new SR();
+  r.lang = S.lang; r.interimResults = true; r.continuous = (S.mode === 'hands'); r.maxAlternatives = 1;
+  r.onstart = () => { recActive = true; if (!busy && !speaking) setState('listening', S.mode === 'hands' ? (S.wakeAlways ? '聞いています' : `「<b>${esc(S.wake)}</b>」と呼びかけてください`) : '聞いています…'); startLevelAnim(); };
+  r.onend = () => {
+    recActive = false; stopLevelAnim();
+    if (S.mode === 'hands' && handsOn && recWanted && !speaking && !busy) setTimeout(() => startRecognition(), 250);  // Chrome は勝手に止まるので再開
+    else if (S.mode === 'ptt' && pttHolding) { /* 録音中に切れた */ pttHolding = false; }
+    if (!busy && !speaking && state === 'listening') idle();
+  };
+  r.onerror = e => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { handsOn = false; recWanted = false; setState('error', 'マイクの使用が許可されていません。ブラウザのアドレスバーから許可してください。'); return; }
+    if (e.error === 'network') { addErr('音声認識サービスに接続できませんでした（ブラウザ内蔵の認識はネット接続が必要です）。'); return; }
+    console.warn('rec error', e.error);
+  };
+  r.onresult = e => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t; else interim += t;
+    }
+    if (interim) { setLive(interim, true); level = Math.min(1, level + .3); }
+    if (final) { setLive(final, false); handleUtterance(final.trim()); }
+  };
+  return r;
+}
+function startRecognition() {
+  if (!SR) return;
+  recWanted = true;
+  if (recActive) return;
+  try { rec = makeRec(); rec.start(); } catch (err) { console.warn(err); }
+}
+function stopRecognition() { recWanted = false; if (rec && recActive) { try { rec.stop(); } catch {} } }
+function pauseRecognition() { if (rec && recActive) { try { rec.abort(); } catch {} } }
+function resumeRecognition() { if (handsOn && S.mode === 'hands') startRecognition(); }
+function startLevelAnim() {
+  clearInterval(levelTimer);
+  levelTimer = setInterval(() => { level *= .85; bars.forEach((b,i) => { const c = Math.abs(i-4)/4; b.style.height = (8 + (1-c)*level*44 + Math.random()*6) + 'px'; }); }, 70);
+}
+function stopLevelAnim() { clearInterval(levelTimer); bars.forEach(b => b.style.height = '10px'); }
+
+// 発話が確定したとき
+function handleUtterance(text) {
+  if (!text) return;
+  if (S.mode === 'hands') {
+    const wake = (S.wake || '').trim();
+    const variants = [wake, wake.replace('ー',''), 'ジャービス','ジャーヴィス','ジャビス','Jarvis','jarvis','ジャーピス'].filter(Boolean);
+    let hit = false, rest = text;
+    for (const w of variants) {
+      const i = rest.indexOf(w);
+      if (i >= 0) { hit = true; rest = (rest.slice(0,i) + rest.slice(i + w.length)).replace(/^[、。,.!！?？\s]+/, '').trim(); break; }
+    }
+    if (!hit && !S.wakeAlways && Date.now() > armedUntil) { setLive(''); return; }  // 呼ばれていない
+    if (hit && !rest) { armedUntil = Date.now() + 12000; speak('はい、どうぞ。'); return; }   // 名前だけ呼ばれた
+    armedUntil = 0; text = rest || text;
+  }
+  ask(text);
+}
+
+/* =========================================================
+   クライアント側ツール（ブラウザで実行）
+   ========================================================= */
+const timers = new Map();
+const TOOLS = [
+  { name:'set_timer', description:'タイマーをセットする。指定秒数後にアラーム音を鳴らし、ラベルを読み上げる。「3分後に教えて」「カップ麺のタイマー」などに使う。',
+    input_schema:{ type:'object', properties:{ seconds:{type:'integer', minimum:1, maximum:86400, description:'秒数'}, label:{type:'string', description:'何のタイマーか（短い日本語）'} }, required:['seconds','label'], additionalProperties:false }, strict:true,
+    run: ({seconds, label}) => {
+      const id = 't' + Date.now();
+      const h = setTimeout(() => { timers.delete(id); beep(); addSys(`⏰ タイマー: ${label}`); speak(`${label}の時間です。`, {priority:true}); }, seconds*1000);
+      timers.set(id, {h, label, at: Date.now()+seconds*1000});
+      return {ok:true, id, fires_at: new Date(Date.now()+seconds*1000).toLocaleTimeString('ja-JP')};
+    } },
+  { name:'cancel_timers', description:'セット済みのタイマーをすべて取り消す。',
+    input_schema:{ type:'object', properties:{}, required:[], additionalProperties:false }, strict:true,
+    run: () => { const n = timers.size; for (const t of timers.values()) clearTimeout(t.h); timers.clear(); return {cancelled:n}; } },
+  { name:'open_url', description:'URLを新しいタブで開く。「YouTubeを開いて」「Googleで○○を検索して」など。検索はGoogle検索URLを組み立てて渡す。',
+    input_schema:{ type:'object', properties:{ url:{type:'string', description:'https:// から始まる完全なURL'}, title:{type:'string', description:'表示用の短いタイトル'} }, required:['url','title'], additionalProperties:false }, strict:true,
+    run: ({url, title}) => {
+      if (!/^https?:\/\//i.test(url)) return {ok:false, error:'http(s) URL only'};
+      const w = window.open(url, '_blank', 'noopener');
+      addMsg('sys', `🔗 <a href="${esc(url)}" target="_blank" rel="noopener">${esc(title || url)}</a>${w ? '' : '（ポップアップがブロックされたのでリンクをタップしてください）'}`);
+      return {ok:true, opened: !!w, note: w ? 'opened in new tab' : 'popup blocked; link shown to user'};
+    } },
+];
+function beep() {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    [0, .25, .5].forEach(t => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(.0001, ac.currentTime+t); g.gain.exponentialRampToValueAtTime(.3, ac.currentTime+t+.02); g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime+t+.2); o.start(ac.currentTime+t); o.stop(ac.currentTime+t+.22); });
+  } catch {}
+}
+
+/* =========================================================
+   Claude API（ブラウザから直接・SSEストリーミング）
+   ========================================================= */
+const API = 'https://api.anthropic.com/v1/messages';
+let history = [];      // {role, content:[blocks]} をそのまま保持（tool_use / thinking ブロック含む）
+let busy = false, abortCtl = null;
+
+function systemPrompt() {
+  const now = new Date();
+  const dt = now.toLocaleString('ja-JP', {year:'numeric', month:'long', day:'numeric', weekday:'short', hour:'2-digit', minute:'2-digit'});
+  const call = S.userName ? `ユーザーのことは「${S.userName}」と呼ぶ。` : '';
+  return [
+    `あなたは「${S.botName}」。映画のアイアンマンに登場するJ.A.R.V.I.S.のような、落ち着いていて有能、少しウィットのある執事型AIアシスタント。${call}`,
+    `ユーザーとは音声で会話している。あなたの返答はそのまま音声合成で読み上げられるので、次を守る:`,
+    `- 話し言葉で簡潔に。基本は1〜3文。詳しく聞かれたときだけ長く話す。`,
+    `- マークダウン・箇条書き・見出し・絵文字・URLの読み上げは使わない（URLを開くときは open_url ツールを使う）。`,
+    `- 数字や単位、英語の略語は耳で聞いて分かる言い方にする。`,
+    `- 音声認識の誤変換があり得るので、文脈から意図を推測し、本当に分からないときだけ短く聞き返す。`,
+    `- タイマーや時間に関する依頼は set_timer / cancel_timers を使う。Webサイトを開く依頼は open_url を使う。`,
+    `- 天気・ニュース・株価・最新の出来事など、今の情報が必要なときは web_search で調べてから答える（使えない場合は正直にそう言う）。`,
+    `現在日時: ${dt}（日本時間とは限らない。端末のローカル時刻）。`,
+    S.persona ? `追加の指示: ${S.persona}` : ''
+  ].filter(Boolean).join('\n');
+}
+
+function buildBody() {
+  const tools = TOOLS.map(({run, ...t}) => t);
+  if (S.webSearch) tools.push({ type: S.model.startsWith('claude-haiku') ? 'web_search_20250305' : 'web_search_20260209', name:'web_search', max_uses:3 });
+  const body = {
+    model: S.model, max_tokens: 8000, stream: true,
+    system: systemPrompt(), messages: history, tools,
+    output_config: { effort: S.effort },
+  };
+  if (!S.model.startsWith('claude-haiku')) body.fallbacks = 'default';   // 安全分類器で拒否されたら別モデルで再実行（Haiku は非対応）
+  return body;
+}
+function headers() {
+  const h = { 'content-type':'application/json', 'x-api-key': S.apiKey, 'anthropic-version':'2026-10-21', 'anthropic-dangerous-direct-browser-access':'true' };
+  if (!S.model.startsWith('claude-haiku')) h['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+  return h;
+}
+
+// SSE を読んで content ブロックを組み立てる。文が完成するたびに onSentence を呼ぶ
+async function streamMessage(signal, onSentence, onToolStart) {
+  const res = await fetch(API, { method:'POST', headers: headers(), body: JSON.stringify(buildBody()), signal });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j = await res.json(); msg = j.error?.message || msg; } catch {}
+    const e = new Error(msg); e.status = res.status; throw e;
+  }
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = '', blocks = [], stop = null, stopDetails = null, pending = '';
+  const flushSentences = (force) => {
+    // 「。！？」や改行で区切って読み上げに回す。長い文は読点でも途中で出す
+    while (true) {
+      const m = pending.match(/[。！？!?\n]+|\.\s/);
+      let cutAt = -1;
+      if (m) cutAt = m.index + m[0].length;
+      else if (pending.length > 60) { const j = Math.max(pending.lastIndexOf('、'), pending.lastIndexOf(',')); if (j >= 40) cutAt = j + 1; }
+      if (cutAt < 0) break;
+      const s = pending.slice(0, cutAt); pending = pending.slice(cutAt);
+      if (s.trim()) onSentence(s.trim());
+    }
+    if (force && pending.trim()) { onSentence(pending.trim()); pending = ''; }
+  };
+  const handle = ev => {
+    switch (ev.type) {
+      case 'content_block_start': {
+        const b = JSON.parse(JSON.stringify(ev.content_block)); blocks[ev.index] = b;
+        if (b.type === 'tool_use' || b.type === 'server_tool_use') { b._json = ''; onToolStart && onToolStart(b); }
+        if (b.type === 'text' && pending.trim()) flushSentences(true);
+        break; }
+      case 'content_block_delta': {
+        const b = blocks[ev.index], d = ev.delta; if (!b) break;
+        if (d.type === 'text_delta') { b.text += d.text; pending += d.text; flushSentences(false); }
+        else if (d.type === 'input_json_delta') b._json += d.partial_json;
+        else if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
+        else if (d.type === 'signature_delta') b.signature = d.signature;
+        else if (d.type === 'citations_delta') (b.citations = b.citations || []).push(d.citation);
+        break; }
+      case 'content_block_stop': {
+        const b = blocks[ev.index]; if (!b) break;
+        if (b._json !== undefined) { try { b.input = b._json ? JSON.parse(b._json) : {}; } catch { b.input = {}; b._bad = true; } delete b._json; }
+        if (b.type === 'text') flushSentences(true);
+        break; }
+      case 'message_delta': stop = ev.delta?.stop_reason || stop; stopDetails = ev.delta?.stop_details || stopDetails; break;
+      case 'error': throw new Error(ev.error?.message || 'stream error');
+    }
+  };
+  while (true) {
+    const {value, done} = await reader.read(); if (done) break;
+    buf += dec.decode(value, {stream:true});
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i+2);
+      const data = chunk.split('\n').filter(l => l.startsWith('data:')).map(l => l.slice(5).trim()).join('\n');
+      if (data) handle(JSON.parse(data));
+    }
+  }
+  flushSentences(true);
+  return { content: blocks.filter(Boolean), stop_reason: stop, stop_details: stopDetails };
+}
+
+// 会話履歴を短く保つ（user 境界で、tool_result を孤立させずに切る）
+function trimHistory() {
+  const MAX = 24;
+  while (history.length > MAX) {
+    let cut = 1;
+    while (cut < history.length && !(history[cut].role === 'user' && !(Array.isArray(history[cut].content) && history[cut].content.some(b => b.type === 'tool_result')))) cut++;
+    if (cut >= history.length) break;
+    history.splice(0, cut);
+  }
+}
+
+let askGen = 0, currentRollback = null;
+async function ask(text) {
+  if (!S.apiKey) { openSettings(); addSys('先に設定でAPIキーを入れてください。'); return; }
+  if (busy) { stopAll(); currentRollback && currentRollback(); }   // 前のターンは中断して履歴を巻き戻す（その catch/finally は世代不一致で何もしない）
+  const myGen = ++askGen;
+  busy = true; stopSpeaking();
+  if (S.mode === 'hands') pauseRecognition();
+  addUser(text);
+  trimHistory();
+  const base = history.length;             // 失敗・中断時はここまで巻き戻す
+  history.push({ role:'user', content: text });
+  abortCtl = new AbortController();
+  const signal = abortCtl.signal;
+  setState('thinking', '考えています…'); setLive('');
+  const botEl = addMsg('bot', '');
+  let spoken = '';
+  const say = s => { if (signal.aborted) return; spoken += s; speak(s); botEl.textContent += s + (/[.!?]$/.test(s) ? ' ' : ''); logEl.scrollTop = logEl.scrollHeight; };
+  const rollback = () => { history.length = base; if (spoken.trim()) history.push({ role:'user', content: text }, { role:'assistant', content: spoken.trim() }); currentRollback = null; };
+  currentRollback = rollback;
+  try {
+    for (let round = 0; round < 8; round++) {
+      const r = await streamMessage(signal, say, b => {
+        if (b.type === 'server_tool_use') { botEl.insertAdjacentHTML('beforeend', `<span class="tool">🔎 Web検索中…</span>`); if (!spoken) speak('少々お待ちください。調べます。'); }
+      });
+      history.push({ role:'assistant', content: r.content });
+      // 引用リンク（Web検索の出典）
+      const cites = []; for (const b of r.content) if (b.type === 'text' && b.citations) for (const c of b.citations) if (c.url && !cites.some(x => x.url === c.url)) cites.push(c);
+      if (cites.length) botEl.insertAdjacentHTML('beforeend', `<span class="cite">出典: ${cites.slice(0,4).map(c => `<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title || new URL(c.url).hostname)}</a>`).join('')}</span>`);
+
+      if (r.stop_reason === 'refusal') {
+        const msg = 'その内容にはお答えできないようです。別の聞き方を試してみてください。';
+        say(msg); addSys(`（安全上の理由で応答が拒否されました${r.stop_details?.category ? ': ' + r.stop_details.category : ''}）`);
+        break;
+      }
+      if (r.stop_reason === 'tool_use') {
+        const results = [];
+        for (const b of r.content) if (b.type === 'tool_use') {
+          const tool = TOOLS.find(t => t.name === b.name);
+          let out;
+          try { out = tool ? (b._bad ? {error:'invalid JSON input'} : tool.run(b.input)) : {error:`unknown tool ${b.name}`}; }
+          catch (err) { out = {error: String(err.message || err)}; }
+          delete b._bad;
+          botEl.insertAdjacentHTML('beforeend', `<span class="tool">🛠 ${esc(b.name)} ${esc(JSON.stringify(b.input)).slice(0,80)}</span>`);
+          results.push({ type:'tool_result', tool_use_id: b.id, content: JSON.stringify(out), is_error: !!(out && out.error) });
+        }
+        // ストリーム中に拾えなかった _bad を消す
+        for (const b of r.content) delete b._bad;
+        history.push({ role:'user', content: results });
+        continue;
+      }
+      if (r.stop_reason === 'pause_turn') continue;           // サーバ側ツールのループが一時停止。そのまま再送すると続きから再開
+      if (r.stop_reason === 'max_tokens') addSys('（長くなりすぎたため途中で切れました）');
+      break;
+    }
+    if (!spoken && !signal.aborted) say('はい。');
+  } catch (err) {
+    if (myGen !== askGen) return;          // 新しいターンに置き換えられた
+    rollback();
+    if (signal.aborted) { addSys('（停止しました）'); }
+    else {
+      console.error(err);
+      let m = err.message || String(err);
+      if (err.status === 401) m = 'APIキーが無効です。設定を確認してください。';
+      else if (err.status === 429) m = 'リクエストが多すぎます。少し待ってからもう一度どうぞ。';
+      else if (err.status === 400 && /credit|billing/i.test(m)) m = 'APIの残高が不足しているようです。Consoleで確認してください。';
+      else if (/Failed to fetch|NetworkError/i.test(m)) m = 'APIに接続できませんでした。ネットワーク、または広告ブロッカーの設定を確認してください。';
+      addErr(m); setState('error', esc(m)); speak('すみません、エラーが起きました。');
+    }
+  } finally {
+    if (myGen === askGen) {
+      busy = false; abortCtl = null; currentRollback = null;
+      if (!botEl.textContent.trim() && !botEl.querySelector('.tool')) botEl.remove();
+      if (!speaking) { idle(); if (S.mode === 'hands') resumeRecognition(); }
+    }
+  }
+}
+function stopAll() { if (abortCtl) abortCtl.abort(); stopSpeaking(); }
+function idle() {
+  if (!S.apiKey) { setState('off', '設定でAPIキーを入れると起動します'); return; }
+  if (!SR) { setState('off', 'このブラウザは音声認識に未対応です。下の入力欄から文字で話しかけられます（Chrome / Edge / Safari 推奨）。'); return; }
+  if (S.mode === 'hands') setState(handsOn ? 'listening' : 'off', handsOn ? (S.wakeAlways ? '聞いています' : `「<b>${esc(S.wake)}</b>」と呼びかけてください`) : '球体をタップするとハンズフリー待機を開始します');
+  else setState('off', '球体を押している間、聞き取ります');
+}
+
+/* =========================================================
+   入力（押して話す / ハンズフリー / テキスト）
+   ========================================================= */
+function pttDown(e) {
+  if (e && e.type === 'pointerdown' && e.button !== 0) return;
+  if (!SR || !S.apiKey) { if (!S.apiKey) openSettings(); return; }
+  if (S.mode === 'hands') {   // タップでハンズフリー ON/OFF、応答中なら割り込み停止
+    if (busy || speaking) { stopAll(); return; }
+    handsOn = !handsOn;
+    if (handsOn) { unlockAudio(); startRecognition(); } else { stopRecognition(); idle(); }
+    return;
+  }
+  if (pttHolding) return;
+  pttHolding = true; stopAll(); unlockAudio(); setLive(''); startRecognition();
+}
+function pttUp() {
+  if (S.mode !== 'ptt' || !pttHolding) return;
+  pttHolding = false; stopRecognition();   // stop() で最終結果が onresult に届く
+}
+orb.addEventListener('pointerdown', e => { e.preventDefault(); orb.setPointerCapture?.(e.pointerId); pttDown(e); });
+orb.addEventListener('pointerup', pttUp); orb.addEventListener('pointercancel', pttUp); orb.addEventListener('lostpointercapture', pttUp);
+orb.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => { if (e.code === 'Space' && !e.repeat && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !$('dlg').open) { e.preventDefault(); pttDown(); } if (e.key === 'Escape' && !$('dlg').open) stopAll(); });
+document.addEventListener('keyup', e => { if (e.code === 'Space' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) pttUp(); });
+
+$('composer').addEventListener('submit', e => { e.preventDefault(); const t = $('textIn').value.trim(); if (!t) return; $('textIn').value = ''; unlockAudio(); ask(t); });
+$('btnStop').addEventListener('click', stopAll);
+$('btnClear').addEventListener('click', () => { stopAll(); history = []; logEl.innerHTML = '<div class="empty" id="empty">会話をリセットしました。</div>'; });
+
+function setMode(m) {
+  stopAll(); stopRecognition(); handsOn = false; pttHolding = false;
+  S.mode = m; saveSettings();
+  $('modePtt').setAttribute('aria-pressed', m === 'ptt'); $('modeHands').setAttribute('aria-pressed', m === 'hands');
+  $('hint').innerHTML = m === 'ptt' ? '球体を押している間だけ聞き取ります。PCなら <kbd>Space</kbd> 長押しでもOK。' : `球体をタップで待機開始。「${esc(S.wake)}、〜して」と話しかけると応答します。応答中にタップすると割り込めます。`;
+  orb.setAttribute('aria-label', m === 'ptt' ? '話しかける（押している間 録音）' : 'ハンズフリー待機の開始・停止');
+  idle();
+}
+$('modePtt').addEventListener('click', () => setMode('ptt'));
+$('modeHands').addEventListener('click', () => setMode('hands'));
+
+// iOS などは最初のユーザー操作内で一度 speak しないと以後の読み上げが鳴らない
+let unlocked = false;
+function unlockAudio() { if (unlocked || !synth) return; unlocked = true; const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); }
+
+/* =========================================================
+   設定ダイアログ
+   ========================================================= */
+const dlg = $('dlg');
+function openSettings() {
+  $('apiKey').value = S.apiKey; $('model').value = S.model; $('effort').value = S.effort; $('webSearch').checked = S.webSearch;
+  loadVoices(); $('rate').value = S.rate; $('rateVal').textContent = S.rate; $('wake').value = S.wake; $('lang').value = S.lang; $('wakeAlways').checked = S.wakeAlways;
+  $('botName').value = S.botName; $('userName').value = S.userName; $('persona').value = S.persona;
+  dlg.showModal();
+}
+$('btnSettings').addEventListener('click', openSettings);
+$('rate').addEventListener('input', e => $('rateVal').textContent = e.target.value);
+$('lang').addEventListener('change', () => { S.lang = $('lang').value; loadVoices(); });
+$('dlgTest').addEventListener('click', () => {
+  const keep = {voice:S.voice, rate:S.rate, botName:S.botName};
+  S.voice = $('voice').value; S.rate = +$('rate').value; S.botName = $('botName').value || 'ジャービス';
+  unlocked = true; stopSpeaking(); speak(`こんにちは。${S.botName}です。ご用件をどうぞ。`);
+  Object.assign(S, keep);
+});
+$('dlgSave').addEventListener('click', () => {
+  S.apiKey = $('apiKey').value.trim(); S.model = $('model').value; S.effort = $('effort').value; S.webSearch = $('webSearch').checked;
+  S.voice = $('voice').value; S.rate = +$('rate').value; S.wake = $('wake').value.trim() || 'ジャービス'; S.lang = $('lang').value; S.wakeAlways = $('wakeAlways').checked;
+  S.botName = $('botName').value.trim() || 'ジャービス'; S.userName = $('userName').value.trim(); S.persona = $('persona').value.trim();
+  saveSettings(); dlg.close(); setMode(S.mode);
+});
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener('close', () => { try { S = {...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_KEY) || '{}')}; } catch {} loadVoices(); });
+
+/* =========================================================
+   起動
+   ========================================================= */
+if (location.protocol === 'http:' && !/^(localhost|127\.)/.test(location.hostname)) addErr('http のページではマイクが使えません。https か localhost で開いてください。');
+setMode(S.mode);
+if (!S.apiKey) setTimeout(openSettings, 300);
+})();
+</script>
+</body>
+</html>
