@@ -390,8 +390,9 @@ function handleUtterance(text) {
 const timers = new Map();
 const TOOLS = [
   { name:'set_timer', description:'タイマーをセットする。指定秒数後にアラーム音を鳴らし、ラベルを読み上げる。「3分後に教えて」「カップ麺のタイマー」などに使う。',
-    input_schema:{ type:'object', properties:{ seconds:{type:'integer', minimum:1, maximum:86400, description:'秒数'}, label:{type:'string', description:'何のタイマーか（短い日本語）'} }, required:['seconds','label'], additionalProperties:false }, strict:true,
+    input_schema:{ type:'object', properties:{ seconds:{type:'integer', description:'秒数（1〜86400）'}, label:{type:'string', description:'何のタイマーか（短い日本語）'} }, required:['seconds','label'], additionalProperties:false }, strict:true,
     run: ({seconds, label}) => {
+      seconds = Math.min(86400, Math.max(1, Math.round(Number(seconds) || 0)));
       const id = 't' + Date.now();
       const h = setTimeout(() => { timers.delete(id); beep(); addSys(`⏰ タイマー: ${label}`); speak(`${label}の時間です。`, {priority:true}); }, seconds*1000);
       timers.set(id, {h, label, at: Date.now()+seconds*1000});
