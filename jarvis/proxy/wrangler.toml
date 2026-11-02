@@ -1,0 +1,16 @@
+# コマンドラインで配置する場合（ダッシュボードから貼り付ける場合は不要）
+#   npm i -g wrangler && wrangler login
+#   wrangler secret put GEMINI_API_KEY   （PROVIDER=claude なら ANTHROPIC_API_KEY）
+#   wrangler secret put PASSPHRASE
+#   wrangler deploy
+name = "jarvis-proxy"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+PROVIDER = "gemini"
+MODEL = "gemini-3.5-flash-lite"
+ALLOWED_ORIGINS = "https://keiiijima.github.io"
+NAME = "JARVIS shared"
+LIMIT_PER_MIN = "12"
+LIMIT_GLOBAL_MIN = "60"
