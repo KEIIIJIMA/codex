@@ -1,0 +1,1807 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>業務ダッシュボード</title>
+<style>
+  :root {
+    --bg: #FCFCFB; --wash: #F9F9F7; --edge: #E1E1DF;
+    --ink: #2E2C27; --ink-soft: #6B6A63; --ink-grey: #B4B3A8; --hair: #E4E3DC;
+    --clay: #C6613F; --clay-hover: #AE5133; --card: #FFFFFF; --ok: #3F7D5A; --warn: #B8862B;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1C1B18; --wash: #211F1B; --edge: #35332E; --ink: #ECEAE3; --ink-soft: #A7A59B;
+      --ink-grey: #6B6A63; --hair: #35332E; --clay: #D9774F; --clay-hover: #E88A62; --card: #24221E;
+      --ok: #7FC39A; --warn: #D9B35A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1C1B18; --wash: #211F1B; --edge: #35332E; --ink: #ECEAE3; --ink-soft: #A7A59B;
+    --ink-grey: #6B6A63; --hair: #35332E; --clay: #D9774F; --clay-hover: #E88A62; --card: #24221E;
+    --ok: #7FC39A; --warn: #D9B35A;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink-soft); font-family: -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif; font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button { font: inherit; cursor: pointer; }
+  input, select, textarea { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--hair); border-radius: 6px; padding: 7px 10px; }
+  textarea { width: 100%; min-height: 160px; line-height: 1.6; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--clay); outline-offset: 1px; }
+  .band { width: 100%; }
+  .band.top { background: var(--wash); border-bottom: 1px solid var(--edge); }
+  .inner { max-width: 960px; margin: 0 auto; padding: 40px 16px 32px; }
+  .band.bottom .inner { padding-top: 8px; padding-bottom: 80px; }
+
+  .quote { margin: 0 0 22px; padding: 0 0 16px; border-bottom: 1px solid var(--hair); }
+  .quote .q { font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", Georgia, serif; font-size: 19px; line-height: 2; color: var(--ink); margin: 0; }
+  .quote rt { font-size: 10px; color: var(--ink-soft); font-family: -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; }
+  .quote .by { font-size: 12px; color: var(--ink-grey); margin: 4px 0 0; }
+  .quote .meaning { font-size: 13.5px; color: var(--ink-soft); margin: 6px 0 0; }
+  .daydate { font-size: 13px; letter-spacing: .04em; margin: 0 0 4px; }
+  .todayis { font-size: 13px; color: var(--clay); margin: 0 0 10px; }
+  h1.headline { font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", Georgia, serif; font-weight: 500; font-size: 34px; line-height: 1.4; color: var(--ink); margin: 0 0 20px; }
+  .terrain { width: 100%; height: auto; display: block; }
+  .acts { display: flex; margin-top: 2px; }
+  .act { flex: 1 1 0; padding: 10px 20px 2px; border-left: 1px solid var(--hair); }
+  .act:first-child { border-left: none; padding-left: 0; }
+  .act .time { display: block; font-weight: 700; color: var(--ink); font-size: 13px; margin-bottom: 2px; }
+  .act p { margin: 0; font-size: 13.5px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .toolbar .status { font-size: 13px; flex: 1 1 200px; }
+  .btn { background: var(--clay); color: #FCFCFB; border: 1px solid var(--clay); border-radius: 8px; padding: 8px 15px; font-size: 13px; font-weight: 500; }
+  .btn:hover { background: var(--clay-hover); border-color: var(--clay-hover); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--hair); }
+  .btn.ghost:hover { background: var(--wash); }
+  .btn.small { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
+
+  .banner { background: var(--card); border: 1px solid var(--hair); border-left: 3px solid var(--clay); border-radius: 8px; padding: 12px 16px; margin: 18px 0 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+  .banner[hidden] { display: none; }
+
+  nav.tabbar { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--hair); margin: 0 -16px 28px; padding: 6px 16px 0; display: flex; gap: 2px; overflow-x: auto; }
+  nav.tabbar button { background: transparent; border: none; border-bottom: 2px solid transparent; padding: 10px 14px; font-size: 14px; color: var(--ink-soft); white-space: nowrap; }
+  nav.tabbar button:hover { color: var(--ink); }
+  nav.tabbar button.on { color: var(--ink); border-bottom-color: var(--clay); font-weight: 600; }
+  nav.tabbar .cnt { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--clay); color: #FCFCFB; font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; }
+  nav.tabbar .cnt:empty { display: none; }
+  .tab { display: none; }
+  .tab.on { display: block; }
+  nav.jump { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--hair); margin: 0 -16px 28px; padding: 8px 16px; display: flex; gap: 4px; overflow-x: auto; font-size: 13px; }
+  nav.jump a { text-decoration: none; padding: 5px 10px; border-radius: 6px; white-space: nowrap; color: var(--ink-soft); }
+  nav.jump a:hover { background: var(--wash); color: var(--ink); }
+  nav.jump .cnt { color: var(--ink-grey); margin-left: 3px; }
+
+  section { margin-bottom: 52px; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: .06em; margin: 0 0 12px; display: flex; align-items: baseline; gap: 10px; }
+  h2 .sub { font-weight: 400; color: var(--ink-grey); letter-spacing: 0; font-size: 12px; }
+  h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin: 18px 0 8px; }
+  .calm { font-size: 14px; margin: 6px 0; color: var(--ink-soft); }
+  .err { font-size: 13px; color: var(--clay); margin: 6px 0; }
+  .muted { color: var(--ink-grey); font-size: 12.5px; }
+
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .col { background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 12px 14px; min-height: 120px; }
+  .col h3 { margin: 0 0 8px; display: flex; justify-content: space-between; }
+  .col h3 .cnt { color: var(--ink-grey); font-weight: 400; }
+  ul.tasks { list-style: none; margin: 0; padding: 0; }
+  ul.tasks li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-top: 1px solid var(--hair); font-size: 14px; }
+  ul.tasks li:first-child { border-top: none; }
+  ul.tasks input[type=checkbox] { margin-top: 5px; accent-color: var(--clay); }
+  ul.tasks .t { flex: 1 1 auto; color: var(--ink); }
+  ul.tasks .t.done { color: var(--ink-grey); text-decoration: line-through; }
+  ul.tasks .due { font-size: 11.5px; color: var(--ink-grey); white-space: nowrap; margin-top: 3px; }
+  ul.tasks .due.over { color: var(--clay); }
+  ul.tasks .x { background: none; border: none; color: var(--ink-grey); padding: 0 4px; font-size: 16px; line-height: 1.4; }
+  ul.tasks .x:hover { color: var(--clay); }
+  ul.tasks .src { font-size: 12px; color: var(--ink-grey); text-decoration: none; margin-top: 3px; }
+  ul.tasks .edit { width: 100%; padding: 3px 6px; }
+  .addrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+  .addrow input[type=text] { flex: 1 1 260px; }
+  .someday { margin-top: 14px; }
+  details summary { cursor: pointer; font-size: 13px; color: var(--ink-soft); }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tabs button { background: transparent; border: 1px solid var(--hair); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--ink-soft); }
+  .tabs button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .tabs button .cnt { opacity: .7; margin-left: 4px; }
+
+  .card { background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  .card .head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card .who { font-weight: 600; color: var(--ink); font-size: 14px; }
+  .card .when { font-size: 12px; color: var(--ink-grey); white-space: nowrap; }
+  .card .subj { color: var(--ink); font-size: 14px; margin: 2px 0; }
+  .card .ask { font-size: 14px; margin: 4px 0 0; }
+  .card .ask b { color: var(--ink); font-weight: 600; }
+  .card .links { font-size: 12.5px; margin-top: 4px; }
+  .card .links a { color: var(--ink-soft); text-decoration: underline; text-decoration-color: var(--ink-grey); text-underline-offset: 3px; margin-right: 12px; }
+  .card .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .panel { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--hair); }
+  .panel .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  .panel .row input[type=text] { flex: 1 1 240px; }
+  .panel .status { font-size: 12.5px; color: var(--ink-grey); margin-top: 6px; min-height: 1.2em; }
+  .panel .out { white-space: pre-wrap; background: var(--wash); border: 1px solid var(--hair); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--ink); margin-top: 8px; }
+  .notes { font-size: 13px; margin: 8px 0 0; padding-left: 18px; }
+
+  .evlist { list-style: none; margin: 0; padding: 0; }
+  .evlist li { display: grid; grid-template-columns: 110px 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--hair); font-size: 14px; }
+  .evlist li:first-child { border-top: none; }
+  .evlist .tm { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+  .evlist .loc { color: var(--ink-grey); font-size: 12.5px; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .filelist { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .filelist li { padding: 5px 0; border-top: 1px solid var(--hair); display: flex; justify-content: space-between; gap: 10px; }
+  .filelist li:first-child { border-top: none; }
+  .filelist a { color: var(--ink); text-decoration: none; }
+  .filelist a:hover { text-decoration: underline; }
+  .filelist .when { color: var(--ink-grey); font-size: 12px; white-space: nowrap; }
+
+  .swatches { display: inline-flex; gap: 6px; vertical-align: middle; }
+  .swatches button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+  .swatches button.on { border-color: var(--ink); box-shadow: 0 0 0 2px var(--bg) inset; }
+  .jwrap { display: grid; grid-template-columns: 220px 1fr; gap: 18px; align-items: start; }
+  .jleft { text-align: center; }
+  .jorb { width: 150px; height: 150px; margin: 6px auto 8px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--card), var(--wash) 60%, var(--hair)); border: 2px solid var(--hair); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: box-shadow .2s, border-color .2s; user-select: none; }
+  .jorb .jcore { width: 54px; height: 54px; border-radius: 50%; background: var(--clay); opacity: .85; transition: transform .15s; }
+  .jorb.listening { border-color: var(--clay); box-shadow: 0 0 0 8px color-mix(in srgb, var(--clay) 18%, transparent); }
+  .jorb.listening .jcore { animation: jpulse 1s infinite alternate; }
+  .jorb.thinking .jcore { animation: jspin 1.2s linear infinite; border-radius: 30%; }
+  .jorb.speaking .jcore { animation: jpulse .5s infinite alternate; }
+  @keyframes jpulse { from { transform: scale(.9); } to { transform: scale(1.15); } }
+  @keyframes jspin { to { transform: rotate(360deg); } }
+  .jstate { font-size: 12.5px; color: var(--ink-soft); min-height: 1.4em; }
+  .jlog { background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 10px 12px; height: 320px; overflow-y: auto; font-size: 14px; }
+  .jmsg { margin: 0 0 8px; white-space: pre-wrap; line-height: 1.6; }
+  .jmsg.user { color: var(--ink-soft); }
+  .jmsg.user::before { content: "あなた: "; color: var(--ink-grey); font-size: 12px; }
+  .jmsg.ai { color: var(--ink); }
+  .jmsg.ai::before { content: "ジャービス: "; color: var(--clay); font-size: 12px; }
+  .jmsg.sys { color: var(--ink-grey); font-size: 12.5px; }
+  .jctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+  .jctl input[type=text] { flex: 1 1 260px; }
+  .jopts { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); }
+  .jopts select { max-width: 220px; }
+  .jhint { font-size: 12.5px; color: var(--ink-grey); margin-top: 8px; }
+  @media (max-width: 760px) { .jwrap { grid-template-columns: 1fr; } .jlog { height: 240px; } }
+  .settings label { display: block; font-size: 13px; color: var(--ink); margin: 10px 0 4px; }
+  .settings input[type=text] { width: 100%; }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
+  #toast.on { opacity: 1; }
+
+  .wxrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; align-items: stretch; }
+  .wxcard { background: var(--card); border: 1px solid var(--hair); border-radius: 10px; padding: 8px 12px; min-width: 200px; flex: 1 1 200px; font-size: 13px; }
+  .wxcard.near { border-color: var(--clay); }
+  .wxcard .nm { font-weight: 600; color: var(--ink); display: flex; justify-content: space-between; gap: 8px; }
+  .wxcard .nm .dist { font-weight: 400; color: var(--ink-grey); font-size: 11.5px; }
+  .wxdays { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+  .wxday { text-align: center; }
+  .wxday .d { font-size: 11px; color: var(--ink-grey); }
+  .wxday .ic { font-size: 22px; line-height: 1.2; }
+  .wxday .t { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .wxday .pp { font-size: 11px; color: var(--ink-soft); }
+  .wxmeta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 12px; color: var(--ink-grey); }
+  .approvals { margin: 10px 0 0; font-size: 14px; color: var(--ink); }
+  .approvals .pill { display: inline-block; background: var(--clay); color: #FCFCFB; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; margin-right: 6px; }
+  .approvals a { color: var(--ink-soft); text-decoration: underline; text-decoration-color: var(--ink-grey); text-underline-offset: 3px; margin-left: 8px; }
+  .wx { font-size: 11.5px; color: var(--ink-grey); text-decoration: none; margin-left: 6px; border: 1px solid var(--hair); border-radius: 999px; padding: 0 6px; }
+  .wx:hover { color: var(--ink); }
+  .nippo-list td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .nippo-list tr.total td { font-weight: 600; color: var(--ink); border-top: 2px solid var(--hair); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .chips a { font-size: 12.5px; color: var(--ink); text-decoration: none; border: 1px solid var(--hair); background: var(--card); border-radius: 999px; padding: 4px 11px; }
+  .chips a:hover { border-color: var(--ink-grey); }
+  .searchrow { display: flex; gap: 8px; margin-bottom: 12px; }
+  .searchrow input { flex: 1 1 auto; }
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .reslist { list-style: none; margin: 0; padding: 0; font-size: 13.5px; }
+  .reslist li { padding: 6px 0; border-top: 1px solid var(--hair); }
+  .reslist li:first-child { border-top: none; }
+  .reslist a { color: var(--ink); text-decoration: none; }
+  .reslist a:hover { text-decoration: underline; }
+  .reslist .m { color: var(--ink-grey); font-size: 12px; }
+  .months { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px; }
+  .month h3 { margin: 0 0 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .grid .dow { font-size: 11px; color: var(--ink-grey); text-align: center; padding: 2px 0; }
+  .grid .day { min-height: 58px; border: 1px solid var(--hair); border-radius: 5px; padding: 3px 4px; font-size: 11px; background: var(--card); cursor: pointer; overflow: hidden; }
+  .grid .day.pad { background: transparent; border-color: transparent; cursor: default; }
+  .grid .day .n { font-weight: 600; color: var(--ink); font-size: 12px; }
+  .grid .day.wk .n { color: var(--ink-grey); }
+  .grid .day.sun .n { color: var(--clay); }
+  .grid .day.today { outline: 2px solid var(--clay); outline-offset: -2px; }
+  .grid .day.sel { background: var(--wash); }
+  .grid .day .ev { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-soft); line-height: 1.35; }
+  .grid .day .more { color: var(--ink-grey); }
+  .daydetail { margin-top: 10px; }
+  .rooms { margin-top: 10px; }
+  .roomrow { display: grid; grid-template-columns: 130px 1fr; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--hair); font-size: 13px; }
+  .roomrow:first-child { border-top: none; }
+  .roomrow .name { color: var(--ink); font-weight: 600; }
+  .cells { display: grid; grid-template-columns: repeat(22, 1fr); gap: 2px; }
+  .cells .c { height: 18px; border-radius: 3px; background: var(--hair); }
+  .cells .c.free { background: var(--ok); opacity: .75; }
+  .cells .c.unknown { background: repeating-linear-gradient(45deg, var(--hair), var(--hair) 3px, var(--card) 3px, var(--card) 6px); }
+  .hours { display: grid; grid-template-columns: repeat(11, 1fr); font-size: 10.5px; color: var(--ink-grey); margin-left: 138px; }
+  .nippo-form { display: grid; grid-template-columns: 150px 110px 110px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .nippo-list { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  .nippo-list td, .nippo-list th { text-align: left; padding: 5px 6px; border-top: 1px solid var(--hair); vertical-align: top; }
+  .nippo-list th { color: var(--ink-grey); font-weight: 500; font-size: 12px; }
+  .nippo-list td.d { white-space: nowrap; color: var(--ink); }
+  .nippo-list tr.wk td.d { color: var(--ink-grey); }
+  .nippo-list tr.cur td { background: var(--wash); }
+  .nippo-list .pick { background: none; border: none; color: var(--ink); padding: 0; text-decoration: underline; text-decoration-color: var(--ink-grey); text-underline-offset: 3px; }
+  @media (max-width: 760px) {
+    .three, .months { grid-template-columns: 1fr; }
+    .nippo-form { grid-template-columns: 1fr 1fr; }
+    .grid .day { min-height: 40px; }
+    .grid .day .ev { display: none; }
+    .grid .day .dots { display: block; color: var(--clay); font-size: 9px; letter-spacing: 1px; }
+    .roomrow { grid-template-columns: 90px 1fr; }
+    .hours { margin-left: 98px; }
+    .cols, .two { grid-template-columns: 1fr; }
+  }
+  .grid .day .dots { display: none; }
+  @media (max-width: 640px) {
+    .inner { padding: 28px 16px 24px; }
+    h1.headline { font-size: 26px; }
+    .acts { flex-direction: column; }
+    .act { border-left: none; border-top: 1px solid var(--hair); padding: 10px 0 6px; }
+    .act:first-child { border-top: none; }
+    .evlist li { grid-template-columns: 90px 1fr; }
+  }
+  /* ---------- one-screen layout ---------- */
+  html, body { height: 100%; }
+  .page { height: 100vh; display: grid; grid-template-rows: auto 1fr; gap: 10px; padding: 10px 14px 12px; }
+  .topbar { background: var(--wash); border: 1px solid var(--hair); border-radius: 12px; padding: 8px 14px 6px; }
+  .tb1 { display: grid; grid-template-columns: 1.5fr 1.2fr 1.3fr auto; gap: 14px; align-items: center; }
+  .tbq .q { font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", Georgia, serif; font-size: 17px; line-height: 1.9; color: var(--ink); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tbq .q rt { font-size: 8.5px; color: var(--ink-grey); }
+  .tbq .by { margin: 0; font-size: 11.5px; color: var(--ink-grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tbd .daydate { margin: 0; font-size: 13px; color: var(--ink); font-weight: 600; letter-spacing: .02em; }
+  .tbd .todayis { color: var(--clay); font-weight: 400; margin-left: 10px; }
+  .tbd .hl { margin: 2px 0 0; font-size: 13px; color: var(--ink-soft); line-height: 1.5; max-height: 3em; overflow: hidden; }
+  .tbw .wxrow { margin: 0; gap: 6px; }
+  .tbw .wxcard { min-width: 0; flex: 0 1 auto; padding: 4px 9px; font-size: 12px; }
+  .tbw .wxcard .nm { font-size: 12px; }
+  .tbw .wxdays { grid-template-columns: repeat(3, auto); gap: 8px; margin-top: 2px; }
+  .tbw .wxday .ic { font-size: 16px; }
+  .tbw .wxday .d, .tbw .wxday .pp { font-size: 10px; }
+  .tbw .wxday .t { font-size: 11.5px; }
+  .tbw .wxmeta { margin-top: 2px; font-size: 11px; }
+  .tbt { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .tbt .approvals { margin: 0; font-size: 12.5px; }
+  .tbt .btn { padding: 6px 11px; }
+  .tb2 { display: flex; gap: 10px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+  .tb2 .chips { margin: 0; gap: 5px; }
+  .tb2 .chips a { font-size: 11.5px; padding: 2px 9px; }
+  .tb2 .status { font-size: 11.5px; color: var(--ink-grey); margin-left: auto; }
+  .topbar .banner { margin: 6px 0 0; padding: 6px 12px; font-size: 12.5px; }
+  .cardgrid { display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(6, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+  .gc { background: var(--card); border: 1px solid var(--hair); border-radius: 12px; padding: 9px 12px 10px; min-height: 0; display: flex; flex-direction: column; margin: 0; overflow: hidden; }
+  .gc.a { grid-column: 1 / 4; grid-row: 1 / 4; }
+  .gc.b { grid-column: 4 / 7; grid-row: 1 / 4; }
+  .gc.c { grid-column: 7 / 10; grid-row: 1 / 5; }
+  .gc.d { grid-column: 10 / 13; grid-row: 1 / 4; }
+  .gc.e { grid-column: 1 / 4; grid-row: 4 / 7; }
+  .gc.f { grid-column: 4 / 7; grid-row: 4 / 7; }
+  .gc.g { grid-column: 7 / 10; grid-row: 5 / 7; }
+  .gc.hh { grid-column: 10 / 13; grid-row: 4 / 7; }
+  .gc h2 { font-size: 12.5px; margin: 0 0 6px; flex: none; }
+  .gc h2 .cnt { display: inline-block; min-width: 18px; padding: 0 6px; border-radius: 999px; background: var(--clay); color: #FCFCFB; font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; }
+  .gc h2 .cnt:empty, .gc h3 .cnt:empty { display: none; }
+  .gc h3 { font-size: 12px; margin: 10px 0 4px; }
+  .gc h3 .sub { font-weight: 400; color: var(--ink-grey); font-size: 11px; margin-left: 6px; }
+  .gc h3 .cnt { display: inline-block; min-width: 16px; padding: 0 5px; border-radius: 999px; background: var(--clay); color: #FCFCFB; font-size: 10.5px; line-height: 16px; text-align: center; margin-left: 4px; }
+  .gc .scroll { flex: 1 1 auto; min-height: 0; overflow: auto; }
+  .gc .addrow { margin-top: 8px; gap: 6px; flex: none; }
+  .gc .addrow input[type=text] { flex: 1 1 120px; min-width: 0; }
+  .gc .cols { display: block; }
+  .gc .col { border: none; padding: 0; min-height: 0; background: transparent; }
+  .gc .col h3 { margin: 6px 0 2px; }
+  .gc ul.tasks li { padding: 4px 0; font-size: 13px; }
+  .gc details { margin-top: 6px; }
+  .gc details summary { font-size: 12px; }
+  .gc .evlist li { grid-template-columns: 54px 1fr; padding: 4px 0; font-size: 13px; }
+  .gc .evlist .tm { font-size: 12px; }
+  .gc .card { padding: 8px 10px; margin-bottom: 6px; font-size: 13px; }
+  .gc .card .who, .gc .card .subj, .gc .card .ask { font-size: 13px; }
+  .gc .card .muted { display: none; }
+  .gc .tabs { margin-bottom: 6px; flex: none; }
+  .gc .tabs button { padding: 2px 9px; font-size: 12px; }
+  .gc textarea { min-height: 0; }
+  .gc .jwrap { grid-template-columns: 96px 1fr; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  .gc .jorb { width: 84px; height: 84px; margin: 2px auto 4px; }
+  .gc .jorb .jcore { width: 30px; height: 30px; }
+  .gc .jstate { font-size: 11px; }
+  .gc .jopts { margin-top: 4px; justify-content: center; font-size: 11px; }
+  .gc .jopts select { max-width: 96px; font-size: 11px; padding: 2px 4px; }
+  .gc .jopts input[type=range] { width: 84px; }
+  .gc .jright { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .gc .jctl .btn { padding: 4px 9px; }
+  .gc .month h3 { flex-wrap: wrap; gap: 4px; }
+  .gc .month h3 a { font-size: 11px; }
+  .gc .month { min-width: 0; }
+  .gc .jlog { height: auto; flex: 1 1 auto; min-height: 0; font-size: 13px; }
+  .gc .jctl { margin-top: 6px; flex: none; }
+  .gc .jctl input[type=text] { flex: 1 1 100px; min-width: 0; }
+  .gc .roomrow { grid-template-columns: 84px 1fr; padding: 3px 0; font-size: 12px; }
+  .gc .hours { margin-left: 92px; font-size: 10px; }
+  .gc .cells .c { height: 11px; }
+  .gc .months { grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 0; }
+  .gc .month h3 { margin: 0 0 4px; font-size: 12px; }
+  .gc .grid .day { min-height: 30px; padding: 2px 3px; }
+  .gc .grid .day .n { font-size: 11px; }
+  .gc .grid .day .ev, .gc .grid .day .more { display: none; }
+  .gc .grid .day .dots { display: block; color: var(--clay); font-size: 8px; letter-spacing: 1px; line-height: 1; }
+  .gc .daydetail h3 { margin: 8px 0 4px; }
+  .gc .nippo-form { grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; flex: none; }
+  .gc #npBody { flex: 0 0 auto; min-height: 90px; }
+  .gc .nippo-list { font-size: 12px; }
+  .hiddenbits { display: none; }
+  .ov { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); z-index: 30; display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
+  .ov.on { display: flex; }
+  .ovbox { background: var(--bg); border: 1px solid var(--hair); border-radius: 14px; width: min(1000px, 100%); padding: 18px 22px 22px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .ovhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .ovhead h2 { margin: 0; font-size: 14px; }
+  .ovbox section { margin-bottom: 20px; }
+  @media (max-width: 1280px) {
+    .page { height: auto; }
+    .tb1 { grid-template-columns: 1fr 1fr; }
+    .cardgrid { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
+    .gc.a, .gc.b, .gc.c, .gc.d, .gc.e, .gc.f, .gc.g, .gc.hh { grid-column: auto; grid-row: auto; }
+    .gc { max-height: 70vh; }
+  }
+  @media (max-width: 760px) {
+    .tb1, .cardgrid { grid-template-columns: 1fr; }
+    .gc .months { grid-template-columns: 1fr; }
+    .gc .jwrap { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="tb1">
+      <div class="tbq"><p class="q" id="quoteText"></p><p class="by"><span id="quoteBy"></span>　<span id="quoteMeaning"></span></p></div>
+      <div class="tbd"><p class="daydate"><span id="daydate"></span><span class="todayis" id="todayis" hidden></span></p><p class="hl" id="headline">ダッシュボードを更新すると、今日の一言がここに出ます。</p></div>
+      <div class="tbw"><div class="wxrow" id="wxrow"></div><div class="wxmeta" id="wxmeta"></div></div>
+      <div class="tbt">
+        <p class="approvals" id="approvals" hidden></p>
+        <button class="btn" id="btnRefresh">更新する</button>
+        <button class="btn ghost" id="btnJarvis" title="ジャービスに話しかける">🎙</button>
+        <button class="btn ghost" id="btnOpenSearch" title="検索・ファイル">🔍</button>
+        <button class="btn ghost" id="btnOpenMemo" title="メモ">📝</button>
+        <button class="btn ghost" id="btnEvening" title="夕方のまとめ">🌇</button>
+        <button class="btn ghost" id="btnSettings" title="設定">⚙️</button>
+      </div>
+    </div>
+    <div class="tb2"><div class="chips" id="links"></div><span class="status" id="status"></span></div>
+    <div class="banner" id="banner" hidden></div>
+  </header>
+
+  <main class="cardgrid">
+    <section class="gc a" id="sec-tasks">
+      <h2>やること <span class="cnt" id="tc-home"></span><span class="sub" id="tasks-sub"></span></h2>
+      <div class="scroll">
+        <div class="cols">
+          <div class="col"><h3>今日 <span class="cnt" id="c-today"></span></h3><ul class="tasks" id="t-today"></ul></div>
+          <div class="col"><h3>今週 <span class="cnt" id="c-week"></span></h3><ul class="tasks" id="t-week"></ul></div>
+          <div class="col"><h3>今月 <span class="cnt" id="c-month"></span></h3><ul class="tasks" id="t-month"></ul></div>
+        </div>
+        <details><summary>いつか <span class="cnt" id="c-someday"></span></summary><ul class="tasks" id="t-someday"></ul></details>
+        <details><summary>完了したもの <span class="cnt" id="c-done"></span></summary><ul class="tasks" id="t-done"></ul></details>
+      </div>
+      <div class="addrow">
+        <input type="text" id="newTitle" placeholder="やることを追加（Enter）">
+        <input type="date" id="newDue" title="期限">
+        <select id="newScope"><option value="today">今日</option><option value="week" selected>今週</option><option value="month">今月</option><option value="someday">いつか</option></select>
+        <button class="btn small" id="btnAdd">追加</button>
+      </div>
+    </section>
+
+    <section class="gc b" id="sec-cal">
+      <h2>今日の予定 <span class="sub" id="cal-sub"></span></h2>
+      <div class="scroll">
+        <ul class="evlist" id="ev-today"></ul><p class="calm" id="ev-today-empty" hidden>予定はありません。</p>
+        <h3 id="meet-next-h">次の営業日の準備</h3><div id="meetNext"></div>
+        <h3>今週の残り</h3><ul class="evlist" id="ev-week"></ul><p class="calm" id="ev-week-empty" hidden>この先の予定はありません。</p>
+      </div>
+    </section>
+
+    <section class="gc c" id="sec-mail">
+      <h2>メール <span class="cnt" id="tc-mail"></span><span class="sub" id="mail-sub"></span></h2>
+      <div class="tabs" id="mailTabs">
+        <button data-tab="reply" class="on">要返信<span class="cnt" id="mc-reply"></span></button>
+        <button data-tab="approval">承認<span class="cnt" id="mc-approval"></span></button>
+        <button data-tab="fyi">読むだけ<span class="cnt" id="mc-fyi"></span></button>
+        <button data-tab="bulk">案内・通知<span class="cnt" id="mc-bulk"></span></button>
+      </div>
+      <div class="scroll"><div id="mailList"></div>
+        <details id="sec-proof"><summary>文章の校正・新規メール作成</summary>
+          <textarea id="proofIn" rows="4" placeholder="校正したい文章、またはメールにしたい要点を貼り付けてください。"></textarea>
+          <div class="addrow"><button class="btn small" id="btnProof">校正する</button><button class="btn small ghost" id="btnCompose">メール文に整える</button><button class="btn small ghost" id="btnProofCopy">結果をコピー</button><span class="muted" id="proofStatus"></span></div>
+          <div class="panel" id="proofPanel" hidden>
+            <textarea id="proofOut" rows="8"></textarea><ul class="notes" id="proofNotes"></ul>
+            <div class="addrow"><input type="text" id="mailTo" placeholder="宛先（カンマ区切り）" style="flex:1 1 160px"><input type="text" id="mailSubj" placeholder="件名" style="flex:1 1 160px"><button class="btn small ghost" id="btnMailDraft">Outlook に下書き保存</button><span class="muted" id="mailDraftStatus"></span></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="gc d" id="sec-jarvis">
+      <h2>🎙 ジャービス <span class="sub">声でも文字でも</span></h2>
+      <div class="jwrap">
+        <div class="jleft">
+          <div class="jorb" id="jOrb" title="押して話す／もう一度押して停止"><div class="jcore"></div></div>
+          <div class="jstate" id="jState">押して話す</div>
+          <div class="jopts"><label><input type="checkbox" id="jSpeak" checked> 読み上げ</label></div>
+          <div class="jopts"><select id="jVoice" title="声"></select></div>
+          <div class="jopts"><input type="range" id="jRate" min="0.7" max="1.6" step="0.05" value="1.05" title="速さ"></div>
+        </div>
+        <div class="jright">
+          <div class="jlog" id="jLog"></div>
+          <div class="jctl"><input type="text" id="jText" placeholder="例: 今日の予定は？／見積の返信をやることに追加"><button class="btn small" id="jSend">送る</button><button class="btn small ghost" id="jStop">停止</button><button class="btn small ghost" id="jClear">消す</button></div>
+          <details><summary class="muted">覚えていること</summary><ul class="notes" id="jMem"></ul></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="gc e" id="sec-rooms">
+      <h2>会議室 <span class="sub">30 分刻み 8:00〜19:00</span></h2>
+      <div class="addrow"><input type="date" id="roomDate"><button class="btn small ghost" id="btnRooms">空きを調べる</button><span class="muted" id="roomStatus"></span></div>
+      <div class="scroll">
+        <div class="rooms" id="rooms"></div>
+        <h3 id="sec-teams">Teams <span class="cnt" id="tc-teams"></span><span class="sub">自分宛で返事がまだ</span></h3>
+        <div id="teamsList"></div>
+        <details id="sec-board"><summary>チーム共有ボード</summary><textarea id="board" rows="5" placeholder="例: 11/4（水） 佐藤: 終日湘南 ／ 飯嶋: 本社"></textarea><p class="muted" id="boardStatus"></p></details>
+      </div>
+    </section>
+
+    <section class="gc f" id="sec-months">
+      <h2>2 か月カレンダー <span class="sub">日付をクリックで詳細</span></h2>
+      <div class="scroll"><div class="months" id="months"></div><div class="daydetail" id="daydetail"></div><p class="muted" id="cal2-sub"></p></div>
+    </section>
+
+    <section class="gc g" id="sec-waiting">
+      <h2>返事待ち <span class="sub">自分が送って返事が来ていないもの</span></h2>
+      <div class="scroll"><div id="waitingList"></div>
+        <h3 id="meet-prev-h">前の営業日の会議</h3><div id="meetPrev"></div>
+      </div>
+    </section>
+
+    <section class="gc hh" id="sec-nippo">
+      <h2>日報 <span class="sub" id="nippo-sub"></span></h2>
+      <div class="nippo-form">
+        <input type="date" id="npDate" title="日付">
+        <input type="time" id="npIn" title="始業">
+        <input type="time" id="npOut" title="業務終了">
+        <input type="text" id="npNote" placeholder="備考">
+      </div>
+      <textarea id="npBody" placeholder="今日やったこと"></textarea>
+      <div class="addrow"><button class="btn small" id="btnNpSave">保存</button><button class="btn small ghost" id="btnNpAI">予定とやることから下書き</button><button class="btn small ghost" id="btnNpCopyMonth">期間をコピー</button><a class="btn small ghost" id="npFileLink" href="#" target="_blank" rel="noopener" hidden>日報ファイル</a><span class="muted" id="npStatus"></span></div>
+      <div class="scroll">
+        <details><summary>この締め期間の一覧</summary><table class="nippo-list" id="npList"></table></details>
+        <details id="sec-review"><summary>振り返り・業務報告</summary>
+          <div class="addrow"><button class="btn small ghost" id="btnWeekly">今週の振り返り</button><button class="btn small ghost" id="btnMonthly">今期の業務報告の下書き</button><button class="btn small ghost" id="btnReviewCopy">コピー</button><span class="muted" id="reviewStatus"></span></div>
+          <div class="panel" id="reviewPanel" hidden><div class="out" id="reviewOut"></div></div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <div class="hiddenbits"><svg id="terrain" viewBox="0 0 840 170" width="840" height="170"></svg><div id="acts"></div></div>
+
+  <div class="ov" id="ov-search"><div class="ovbox">
+    <div class="ovhead"><h2>検索・ファイル</h2><button class="btn small ghost ovclose">閉じる</button></div>
+    <section id="sec-search">
+      <div class="searchrow"><input type="text" id="searchQ" placeholder="件名、人名、案件番号、ファイル名など"><button class="btn" id="btnSearch">検索</button></div>
+      <div class="three" id="searchOut" hidden>
+        <div><h3>メール</h3><ul class="reslist" id="sr-mail"></ul></div>
+        <div><h3>Teams</h3><ul class="reslist" id="sr-chat"></ul></div>
+        <div><h3>SharePoint</h3><ul class="reslist" id="sr-file"></ul></div>
+      </div>
+      <p class="muted" id="searchStatus"></p>
+    </section>
+    <section id="sec-files"><h3>SharePoint の更新 <span class="sub">前の営業日から変わったファイル</span></h3><ul class="filelist" id="fileList"></ul><p class="calm" id="fileEmpty" hidden>更新されたファイルはありません。</p></section>
+  </div></div>
+
+  <div class="ov" id="ov-memo"><div class="ovbox">
+    <div class="ovhead"><h2>メモ <span class="sub">自動保存、自分だけに見えます</span></h2><button class="btn small ghost ovclose">閉じる</button></div>
+    <section id="sec-memo"><textarea id="memo" rows="14" placeholder="覚え書き、電話メモ、あとで調べること…"></textarea><p class="muted" id="memoStatus"></p></section>
+  </div></div>
+
+  <div class="ov" id="ov-settings"><div class="ovbox">
+    <div class="ovhead"><h2>設定</h2><button class="btn small ghost ovclose">閉じる</button></div>
+    <section id="sec-settings" class="settings">
+      <h3>画面の色</h3>
+      <div class="addrow">
+        <label for="setMode" style="margin:0">明るさ</label>
+        <select id="setMode"><option value="auto">端末の設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select>
+        <label style="margin:0 0 0 10px">アクセント色</label>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <p class="muted">色はこの端末のブラウザに記憶され、保存ボタンを押すと自分の設定にも保存されます。</p>
+      <h3>基本</h3>
+      <div class="addrow">
+        <label for="setAuto" style="margin:0">自動更新</label>
+        <select id="setAuto"><option value="0">しない</option><option value="5">5 分ごと</option><option value="10">10 分ごと</option><option value="15">15 分ごと</option><option value="30">30 分ごと</option></select>
+        <span class="muted">開いたときにも更新します。新しいメールや予定が無ければ Claude の仕分けは走らず、利用枠を消費しません。</span>
+      </div>
+      <div class="addrow">
+        <label for="setDays" style="margin:0">仕分けの対象期間</label>
+        <select id="setDays"><option value="1">1 日</option><option value="2">2 日</option><option value="3">3 日</option><option value="5">5 日</option><option value="7">7 日</option></select>
+        <label for="setCap" style="margin:0 0 0 10px">自動更新での仕分け回数</label>
+        <select id="setCap"><option value="1">1 時間に 1 回まで</option><option value="2">1 時間に 2 回まで</option><option value="3">1 時間に 3 回まで</option><option value="5">1 時間に 5 回まで</option><option value="0">制限なし</option></select>
+        <span class="muted">「更新する」を手で押したときは制限を受けません。</span>
+      </div>
+      <label for="setName">呼び名（見出しで使います）</label>
+      <input type="text" id="setName" placeholder="例: 飯嶋さん">
+      <label for="setSig">メールの署名（返信の下書きの末尾に付けます）</label>
+      <textarea id="setSig" rows="5" placeholder="会社名、部署、氏名、連絡先など"></textarea>
+      <label for="setBulk">案内メールとして除外する差出人の語（カンマ区切り）</label>
+      <input type="text" id="setBulk" placeholder="例: newsletter, no-reply, marketing, seminar">
+      <label for="setLinks">リンク集（1 行に 1 つ。「名前 | URL」）</label>
+      <textarea id="setLinks" rows="6" placeholder="例: 楽楽精算 | https://…"></textarea>
+      <label for="setWx">天気の地点（全員共通。1 行に 1 つ。「名前 | 緯度 | 経度」）</label>
+      <textarea id="setWx" rows="4" placeholder="例: 本社（虎ノ門） | 35.6673 | 139.7497"></textarea>
+      <p class="muted">天気は毎朝の定期タスクが Open-Meteo から取得してページに書き込みます。地点を変えた翌朝から反映されます。</p>
+      <label for="setRooms">会議室（1 行に 1 つ。「名前 | 会議室のメールアドレス」）</label>
+      <textarea id="setRooms" rows="3" placeholder="例: 本社-大会議室 | room@example.co.jp"></textarea>
+      <div class="addrow">
+        <label for="setStdStart" style="margin:0">定時 始業</label><input type="time" id="setStdStart">
+        <label for="setStdEnd" style="margin:0">定時 終業</label><input type="time" id="setStdEnd">
+        <label for="setOtStart" style="margin:0">時間外の起算</label><input type="time" id="setOtStart">
+      </div>
+      <div class="addrow"><label for="setEarly" style="margin:0">早出の時間外（この時刻より前の始業分を残業に含める。空欄なら数えない）</label><input type="time" id="setEarly"></div>
+      <div class="addrow"><label for="setCloseDay" style="margin:0">日報の締め日（毎月）</label><input type="number" id="setCloseDay" min="1" max="28" style="width:80px" placeholder="10"><span class="muted">例: 10 なら「前月 11 日〜当月 10 日」がひと月分</span></div>
+      <p class="muted">初期値は始業 8:45、終業 17:30、時間外は 18:00 から（17:30〜18:00 は休憩）。早出の欄に時刻を入れると、その時刻より早く始業した分も残業に加えます。</p>
+      <div class="addrow"><button class="btn" id="btnSaveSettings">保存</button><button class="btn ghost" id="btnCloseSettings">閉じる</button></div>
+    </section>
+  </div></div>
+</div>
+<div id="toast"></div>
+
+<script>
+(() => {
+"use strict";
+const SERVER = "Microsoft 365";
+const TZ = "Asia/Tokyo";
+const $ = (id) => document.getElementById(id);
+
+// ---------- small helpers ----------
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2), v);
+    else if (k === "hidden") e.hidden = !!v;
+    else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) e.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return e;
+}
+function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
+function safeHref(u) { return (typeof u === "string" && /^https:\/\//i.test(u)) ? u : null; }
+function link(href, text) { const u = safeHref(href); return u ? h("a", { href: u, target: "_blank", rel: "noopener", text }) : h("span", { text }); }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("on"), 2200); }
+function trunc(s, n) { s = (s || "").replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n) + "…" : s; }
+function htmlToText(html) { try { const d = new DOMParser().parseFromString(html || "", "text/html"); return (d.body.textContent || "").replace(/ /g, " ").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim(); } catch { return ""; } }
+function textToHtml(t) { return (t || "").split(/\n/).map(l => "<p>" + (l.trim() ? esc(l) : "&nbsp;") + "</p>").join(""); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+// JST date helpers
+function jstParts(d) {
+  const f = new Intl.DateTimeFormat("en-US", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, weekday: "short" });
+  const p = {}; for (const x of f.formatToParts(d)) p[x.type] = x.value;
+  if (p.hour === "24") p.hour = "00";
+  return p;
+}
+function ymd(d) { const p = jstParts(d); return `${p.year}-${p.month}-${p.day}`; }
+function hm(d) { const p = jstParts(d); return `${p.hour}:${p.minute}`; }
+function dowJST(d) { return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(jstParts(d).weekday); }
+function addDays(ymdStr, n) { const d = new Date(ymdStr + "T12:00:00+09:00"); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
+function jstISO(ymdStr, time) { return `${ymdStr}T${time || "00:00:00"}+09:00`; }
+function fmtDateJa(ymdStr) { const d = new Date(ymdStr + "T12:00:00+09:00"); const p = jstParts(d); const w = { Sun:"日", Mon:"月", Tue:"火", Wed:"水", Thu:"木", Fri:"金", Sat:"土" }[p.weekday]; return `${Number(p.month)}/${Number(p.day)}（${w}）`; }
+function fmtWhen(iso) { if (!iso) return ""; const d = new Date(iso); if (isNaN(d)) return ""; const y = ymd(d); const today = ymd(new Date()); if (y === today) return "今日 " + hm(d); if (y === addDays(today, -1)) return "昨日 " + hm(d); return fmtDateJa(y) + " " + hm(d); }
+function minutesOf(d) { const p = jstParts(d); return Number(p.hour) * 60 + Number(p.minute); }
+function prevBizDay(y) { let d = addDays(y, -1); while ([0,6].includes(dowJST(new Date(d + "T12:00:00+09:00")))) d = addDays(d, -1); return d; }
+function nextBizDay(y) { let d = addDays(y, 1); while ([0,6].includes(dowJST(new Date(d + "T12:00:00+09:00")))) d = addDays(d, 1); return d; }
+
+// MCP result → array of parsed text blocks (one per item)
+function blocks(result) {
+  const out = [];
+  for (const b of (result && result.content) || []) {
+    if (b.type !== "text") continue;
+    try { out.push(JSON.parse(b.text)); } catch { out.push({ text: b.text }); }
+  }
+  return out;
+}
+function items(result) { return blocks(result).filter(x => x && typeof x === "object" && (x.id || x.uri)); }
+
+// ---------- daily quote (changes once a day, same for everyone) ----------
+const QUOTES = [["一年(いちねん)の計(けい)は元旦(がんたん)にあり", "ことわざ", "一年の計画は年の初めに立てる。"], ["千里(せんり)の道(みち)も一歩(いっぽ)から", "老子", "大きな目標も、目の前の一歩を踏み出すことから始まる。"], ["継続(けいぞく)は力(ちから)なり", "格言", "小さな努力でも続ければ、やがて大きな力になる。"], ["塵(ちり)も積(つ)もれば山(やま)となる", "ことわざ", "わずかなことでも積み重ねれば大きな成果になる。"], ["雨垂(あまだ)れ石(いし)を穿(うが)つ", "ことわざ", "小さな力でも根気よく続ければ、固いものも貫ける。"], ["石(いし)の上(うえ)にも三年(さんねん)", "ことわざ", "辛抱して続ければ、やがて道は開ける。"], ["七転(ななころ)び八起(やお)き", "ことわざ", "何度失敗しても、そのたびに立ち上がればよい。"], ["失敗(しっぱい)は成功(せいこう)のもと", "ことわざ", "失敗から学ぶことが、次の成功につながる。"], ["急(いそ)がば回(まわ)れ", "ことわざ", "急ぐときほど、確実な道を選ぶほうが結局は早い。"], ["案(あん)ずるより産(う)むが易(やす)し", "ことわざ", "心配するより、やってみれば案外うまくいく。"], ["思(おも)い立(た)ったが吉日(きちじつ)", "ことわざ", "やろうと思った日が、始めるのに最も良い日。"], ["早起(はやお)きは三文(さんもん)の徳(とく)", "ことわざ", "朝早く起きると、何かしら良いことがある。"], ["好(す)きこそ物(もの)の上手(じょうず)なれ", "ことわざ", "好きなことは熱心になるので上達が早い。"], ["笑(わら)う門(かど)には福来(ふくきた)る", "ことわざ", "笑いの絶えない場所には、自然と幸せが集まる。"], ["情(なさ)けは人(ひと)の為(ため)ならず", "ことわざ", "人に親切にすれば、巡り巡って自分に返ってくる。"], ["ローマは一日(いちにち)にして成(な)らず", "ことわざ", "大きな事業は、長い努力の積み重ねで成る。"], ["今日(きょう)できることを明日(あす)に延(の)ばすな", "ことわざ", "先延ばしにせず、今やれることは今やる。"], ["百聞(ひゃくぶん)は一見(いっけん)に如(し)かず", "『漢書』", "人から何度聞くより、一度自分の目で見るほうが確か。"], ["虎穴(こけつ)に入(い)らずんば虎子(こじ)を得(え)ず", "『後漢書』", "危険を冒さなければ、大きな成果は得られない。"], ["人事(じんじ)を尽(つ)くして天命(てんめい)を待(ま)つ", "胡寅『読史管見』", "やれることをすべてやったら、あとは結果を静かに待つ。"], ["一期一会(いちごいちえ)", "井伊直弼『茶湯一会集』", "この出会いは一生に一度と思い、誠意を尽くす。"], ["初心(しょしん)忘(わす)るべからず", "世阿弥", "始めたころの謙虚さと志を忘れてはならない。"], ["一日一善(いちにちいちぜん)", "格言", "一日に一つは、良い行いをする。"], ["備(そな)えあれば憂(うれ)いなし", "『書経』", "日ごろから準備しておけば、いざという時に慌てない。"], ["転(ころ)ばぬ先(さき)の杖(つえ)", "ことわざ", "失敗しないように、前もって用心しておく。"], ["二兎(にと)を追(お)う者(もの)は一兎(いっと)をも得(え)ず", "ことわざ", "欲張って二つを狙うと、どちらも手に入らない。"], ["井(い)の中(なか)の蛙(かわず)大海(たいかい)を知(し)らず", "『荘子』", "狭い世界しか知らないと、広い世界に気づけない。"], ["灯台下暗(とうだいもとくら)し", "ことわざ", "身近なことほど、かえって気づきにくい。"], ["聞(き)くは一時(いっとき)の恥(はじ)、聞(き)かぬは一生(いっしょう)の恥(はじ)", "ことわざ", "知らないことは、恥ずかしがらずに尋ねるのがよい。"], ["三人(さんにん)寄(よ)れば文殊(もんじゅ)の知恵(ちえ)", "ことわざ", "凡人でも三人集まれば、良い知恵が出る。"], ["善(ぜん)は急(いそ)げ", "ことわざ", "良いと思ったことは、ためらわずすぐ行う。"], ["論(ろん)より証拠(しょうこ)", "ことわざ", "議論するより、事実を示すほうが早い。"], ["習(なら)うより慣(な)れろ", "ことわざ", "教わるより、実際にやって体で覚えるほうが身につく。"], ["能(のう)ある鷹(たか)は爪(つめ)を隠(かく)す", "ことわざ", "本当に力のある人は、それをむやみに見せない。"], ["実(みの)るほど頭(こうべ)を垂(た)れる稲穂(いなほ)かな", "ことわざ", "立派な人ほど謙虚である。"], ["負(ま)けるが勝(か)ち", "ことわざ", "争わず譲ることが、結局は得になることもある。"], ["木(き)を見(み)て森(もり)を見(み)ず", "ことわざ", "細部にとらわれて、全体を見失ってはいけない。"], ["急(せ)いては事(こと)を仕損(しそん)じる", "ことわざ", "焦ると失敗しやすい。落ち着いて取り組む。"], ["短気(たんき)は損気(そんき)", "ことわざ", "短気を起こすと、結局は自分が損をする。"], ["時(とき)は金(かね)なり", "ベンジャミン・フランクリン", "時間はお金と同じように貴重で、無駄にできない。"], ["光陰(こういん)矢(や)の如(ごと)し", "ことわざ", "月日は矢のように速く過ぎる。今を大切に。"], ["鉄(てつ)は熱(あつ)いうちに打(う)て", "ことわざ", "物事は機会を逃さず、タイミングよく行う。"], ["蒔(ま)かぬ種(たね)は生(は)えぬ", "ことわざ", "何もしなければ、何も得られない。"], ["苦(く)あれば楽(らく)あり", "ことわざ", "苦しい時期を乗り越えれば、楽しい時が来る。"], ["待(ま)てば海路(かいろ)の日和(ひより)あり", "ことわざ", "焦らず待てば、必ず良い機会が訪れる。"], ["果報(かほう)は寝(ね)て待(ま)て", "ことわざ", "やることをやったら、焦らず結果を待つ。"], ["捨(す)てる神(かみ)あれば拾(ひろ)う神(かみ)あり", "ことわざ", "見放す人がいても、助けてくれる人も必ずいる。"], ["明日(あした)は明日(あした)の風(かぜ)が吹(ふ)く", "ことわざ", "先のことを思い悩むより、なるようになる。"], ["千丈(せんじょう)の堤(つつみ)も蟻(あり)の穴(あな)から", "『韓非子』", "小さな油断が、大きな失敗を招く。"], ["君子(くんし)危(あや)うきに近寄(ちかよ)らず", "ことわざ", "賢い人は、危ないことには自分から近づかない。"], ["石橋(いしばし)を叩(たた)いて渡(わた)る", "ことわざ", "用心の上にも用心を重ねて行動する。"], ["猿(さる)も木(き)から落(お)ちる", "ことわざ", "どんな名人でも失敗することがある。"], ["河童(かっぱ)の川流(かわなが)れ", "ことわざ", "得意なことでも、油断すると失敗する。"], ["弘法(こうぼう)にも筆(ふで)の誤(あやま)り", "ことわざ", "名人でも時には間違える。油断は禁物。"], ["覆水(ふくすい)盆(ぼん)に返(かえ)らず", "ことわざ", "一度してしまったことは、取り返しがつかない。"], ["後悔(こうかい)先(さき)に立(た)たず", "ことわざ", "済んだ後で悔やんでも遅い。先に考えて動く。"], ["一(いち)を聞(き)いて十(じゅう)を知(し)る", "『論語』", "一部を聞いただけで全体を理解する賢さ。"], ["温故知新(おんこちしん)", "『論語』", "古いことを学び直して、新しい知恵を得る。"], ["切磋琢磨(せっさたくま)", "『詩経』", "仲間と励まし合い、磨き合って向上する。"], ["一石二鳥(いっせきにちょう)", "ことわざ", "一つの行いで、二つの利益を得る。"], ["一念(いちねん)岩(いわ)をも通(とお)す", "ことわざ", "強く念じて取り組めば、どんな困難も乗り越えられる。"], ["精神一到(せいしんいっとう)何事(なにごと)か成(な)らざらん", "『朱子語類』", "精神を集中すれば、できないことはない。"], ["一寸先(いっすんさき)は闇(やみ)", "ことわざ", "先のことは分からない。だからこそ備えが要る。"], ["出(で)る杭(くい)は打(う)たれる", "ことわざ", "目立つと妬まれる。それでも出続ける杭になれ。"], ["朱(しゅ)に交(まじ)われば赤(あか)くなる", "ことわざ", "人は、付き合う相手に影響される。"], ["郷(ごう)に入(い)っては郷(ごう)に従(したが)え", "ことわざ", "その土地や組織の習慣を尊重する。"], ["可愛(かわい)い子(こ)には旅(たび)をさせよ", "ことわざ", "大切な人ほど、苦労を経験させて成長を促す。"], ["親(した)しき仲(なか)にも礼儀(れいぎ)あり", "ことわざ", "親しい相手でも、礼儀を忘れない。"], ["目(め)は口(くち)ほどに物(もの)を言(い)う", "ことわざ", "言葉にしなくても、目つきで気持ちは伝わる。"], ["口(くち)は災(わざわ)いの元(もと)", "ことわざ", "不用意な発言が災いを招く。言葉は慎重に。"], ["沈黙(ちんもく)は金(きん)、雄弁(ゆうべん)は銀(ぎん)", "ことわざ", "黙るべき時に黙れることは、語ること以上に価値がある。"], ["言(い)うは易(やす)く行(おこな)うは難(かた)し", "『塩鉄論』", "言うのは簡単だが、実行するのは難しい。"], ["有言実行(ゆうげんじっこう)", "四字熟語", "口にしたことは、必ずやり遂げる。"], ["不言実行(ふげんじっこう)", "四字熟語", "あれこれ言わず、黙って実行する。"], ["臨機応変(りんきおうへん)", "四字熟語", "その場の状況に応じて、適切に対応する。"], ["初志貫徹(しょしかんてつ)", "四字熟語", "最初に決めた志を、最後まで貫く。"], ["一意専心(いちいせんしん)", "四字熟語", "他に心を向けず、一つのことに集中する。"], ["日進月歩(にっしんげっぽ)", "四字熟語", "日ごと月ごとに、絶え間なく進歩する。"], ["不撓不屈(ふとうふくつ)", "四字熟語", "どんな困難にもくじけず、意志を曲げない。"], ["大器晩成(たいきばんせい)", "『老子』", "大きな器は、時間をかけてゆっくり完成する。"], ["画竜点睛(がりょうてんせい)", "故事成語", "最後の仕上げが、全体を生かす。"], ["温厚篤実(おんこうとくじつ)", "四字熟語", "穏やかで誠実な人柄は、周囲の信頼を集める。"], ["誠心誠意(せいしんせいい)", "四字熟語", "偽りのない真心で、物事にあたる。"], ["一致団結(いっちだんけつ)", "四字熟語", "皆が心を一つにしてまとまる。"], ["和衷協同(わちゅうきょうどう)", "四字熟語", "心を合わせ、力を合わせて取り組む。"], ["創意工夫(そういくふう)", "四字熟語", "新しい考えを生み、より良い方法を探る。"], ["自助努力(じじょどりょく)", "四字熟語", "人に頼らず、自分の力で努力する。"], ["質実剛健(しつじつごうけん)", "四字熟語", "飾り気がなく、まじめで心身ともに強い。"], ["率先垂範(そっせんすいはん)", "四字熟語", "人の先に立って、自ら手本を示す。"], ["明鏡止水(めいきょうしすい)", "四字熟語", "曇りのない鏡と静かな水のように、澄んだ心でいる。"], ["泰然自若(たいぜんじじゃく)", "四字熟語", "何が起きても落ち着いて動じない。"], ["一所懸命(いっしょけんめい)", "四字熟語", "一つのことに命がけで取り組む。"], ["粉骨砕身(ふんこつさいしん)", "四字熟語", "力の限り尽くして努力する。"], ["勇往邁進(ゆうおうまいしん)", "四字熟語", "恐れず、目標に向かってひたすら進む。"], ["捲土重来(けんどちょうらい)", "故事成語", "一度敗れても、勢いを盛り返して再挑戦する。"], ["臥薪嘗胆(がしんしょうたん)", "故事成語", "目的のために苦労に耐え、努力を重ねる。"], ["百折不撓(ひゃくせつふとう)", "四字熟語", "何度くじけそうになっても、志を曲げない。"], ["千載一遇(せんざいいちぐう)", "四字熟語", "千年に一度のような、めったにない好機。"], ["好機(こうき)逸(いっ)すべからず", "格言", "良い機会は、逃してはならない。"], ["虚心坦懐(きょしんたんかい)", "四字熟語", "先入観を持たず、素直な心で物事に向かう。"], ["他山(たざん)の石(いし)", "『詩経』", "他人の失敗も、自分を磨く材料にできる。"], ["反面教師(はんめんきょうし)", "格言", "悪い例からも、学ぶことができる。"], ["因果応報(いんがおうほう)", "仏教語", "行いの善悪は、必ず自分に返ってくる。"], ["知行合一(ちこうごういつ)", "王陽明", "知っていることと行うことは一つ。知ったら行う。"], ["敬天愛人(けいてんあいじん)", "西郷隆盛", "天を敬い、人を愛する。"], ["人(ひと)を相手(あいて)にせず、天(てん)を相手(あいて)にせよ", "西郷隆盛", "人の評価ではなく、正しいことを基準に生きる。"], ["為(な)せば成(な)る、為(な)さねば成(な)らぬ何事(なにごと)も", "上杉鷹山", "やればできる。やらなければ何も成らない。"], ["おもしろきこともなき世(よ)をおもしろく", "高杉晋作", "つまらない世の中も、自分の心持ち次第で面白くなる。"], ["やってみせ、言(い)って聞(き)かせて、させてみせ、ほめてやらねば、人(ひと)は動(うご)かじ", "山本五十六", "人を育てるには、手本を示し、任せ、認めることが要る。"], ["小(ちい)さいことを積(つ)み重(かさ)ねることが、とんでもないところへ行(い)くただひとつの道(みち)", "イチロー", "日々の積み重ねだけが、遠い目標へ届く道。"], ["人生(じんせい)に失敗(しっぱい)がないと、人生(じんせい)を失敗(しっぱい)する", "斎藤茂太", "失敗を恐れて挑戦しないことこそ、本当の失敗。"], ["天(てん)は人(ひと)の上(うえ)に人(ひと)を造(つく)らず人(ひと)の下(した)に人(ひと)を造(つく)らず", "福澤諭吉『学問のすゝめ』", "人はみな平等。違いを生むのは、学ぶかどうか。"], ["一身(いっしん)独立(どくりつ)して一国(いっこく)独立(どくりつ)す", "福澤諭吉", "一人ひとりが自立してこそ、組織や国も自立する。"], ["志(こころざし)を立(た)ててもって万事(ばんじ)の源(みなもと)となす", "吉田松陰", "まず志を立てることが、すべての始まり。"], ["学(がく)は人(ひと)たる所以(ゆえん)を学(まな)ぶなり", "吉田松陰", "学問とは、人としてどう生きるかを学ぶこと。"], ["夢(ゆめ)なき者(もの)に成功(せいこう)なし", "吉田松陰（伝）", "夢を持つことが、成功への出発点。"], ["少年(しょうねん)よ、大志(たいし)を抱(いだ)け", "ウィリアム・クラーク", "大きな志を持って生きよ。"], ["道(みち)は近(ちか)くとも行(ゆ)かざれば至(いた)らず", "荀子", "どんなに近い道も、歩かなければ着かない。"], ["学(まな)びて思(おも)わざれば則(すなわ)ち罔(くら)し", "孔子『論語』", "学ぶだけで考えなければ、身につかない。"], ["過(あやま)ちて改(あらた)めざる、是(これ)を過(あやま)ちと謂(い)う", "孔子『論語』", "間違いを改めないことこそ、本当の過ち。"], ["速(すみ)やかならんと欲(ほっ)すれば則(すなわ)ち達(たっ)せず", "孔子『論語』", "早く成し遂げようと焦ると、かえって達成できない。"], ["己(おのれ)の欲(ほっ)せざる所(ところ)は人(ひと)に施(ほどこ)すこと勿(なか)れ", "孔子『論語』", "自分がされて嫌なことは、人にもしない。"], ["君子(くんし)は和(わ)して同(どう)ぜず", "孔子『論語』", "人と調和はするが、安易に同調はしない。"], ["義(ぎ)を見(み)て為(せ)ざるは勇(ゆう)なきなり", "孔子『論語』", "正しいと分かっていてやらないのは、勇気がない。"], ["知(し)らざるを知(し)らずと為(な)す、是(こ)れ知(し)るなり", "孔子『論語』", "知らないことを知らないと認めるのが、本当の知。"], ["三人(さんにん)行(おこな)えば必(かなら)ず我(わ)が師(し)あり", "孔子『論語』", "誰からでも、学ぶところがある。"], ["巧言令色(こうげんれいしょく)、鮮(すく)なし仁(じん)", "孔子『論語』", "口先のうまさや愛想だけの人に、真心は少ない。"], ["徳(とく)は孤(こ)ならず、必(かなら)ず隣(となり)あり", "孔子『論語』", "誠実に生きる人には、必ず理解者が現れる。"], ["遠慮(えんりょ)なければ近憂(きんゆう)あり", "孔子『論語』", "遠くを見て備えなければ、近いうちに困る。"], ["知者(ちしゃ)は惑(まど)わず、仁者(じんしゃ)は憂(うれ)えず、勇者(ゆうしゃ)は懼(おそ)れず", "孔子『論語』", "知恵・思いやり・勇気があれば、迷いも憂いも恐れもない。"], ["上善(じょうぜん)は水(みず)の如(ごと)し", "老子", "最も良い生き方は、水のように柔らかく、低い所にも流れること。"], ["足(た)るを知(し)る者(もの)は富(と)む", "老子", "満足を知る人こそ、本当に豊か。"], ["彼(かれ)を知(し)り己(おのれ)を知(し)れば百戦(ひゃくせん)殆(あや)うからず", "孫子", "相手と自分を正しく知れば、負けることはない。"], ["兵(へい)は拙速(せっそく)を聞(き)く", "孫子", "多少粗くても速いほうが、巧みでも遅いより良い。"], ["百戦百勝(ひゃくせんひゃくしょう)は善(ぜん)の善(ぜん)なる者(もの)に非(あら)ず", "孫子", "戦わずして目的を果たすのが最上。"], ["天(てん)の時(とき)は地(ち)の利(り)に如(し)かず、地(ち)の利(り)は人(ひと)の和(わ)に如(し)かず", "孟子", "好機や条件より、人の和が最も大切。"], ["人(ひと)の患(うれ)いは好(この)んで人(ひと)の師(し)となるに在(あ)り", "孟子", "人は教えたがるが、まず自分が学べ。"], ["一日(いちにち)の計(けい)は朝(あさ)にあり", "『月令広義』", "一日の計画は、朝のうちに立てる。"], ["少年(しょうねん)老(お)い易(やす)く学(がく)成(な)り難(がた)し", "朱熹（伝）", "若い時はすぐ過ぎる。学べる時に学べ。"], ["一寸(いっすん)の光陰(こういん)軽(かろ)んずべからず", "朱熹（伝）", "わずかな時間も、無駄にしてはならない。"], ["読書百遍(どくしょひゃっぺん)義(ぎ)自(おの)ずから見(あらわ)る", "『三国志』", "繰り返し読めば、意味は自然と分かってくる。"], ["桃李(とうり)もの言(い)わざれども下(した)自(おの)ずから蹊(みち)を成(な)す", "『史記』", "誠実な人のもとには、自然と人が集まる。"], ["禍福(かふく)は糾(あざな)える縄(なわ)の如(ごと)し", "『史記』", "幸せと不幸は、縄のように交互にやってくる。"], ["先(さき)んずれば人(ひと)を制(せい)す", "『史記』", "人より先に動けば、主導権を握れる。"], ["衣食(いしょく)足(た)りて礼節(れいせつ)を知(し)る", "『管子』", "生活が安定してこそ、礼儀を重んじられる。"], ["志(こころざし)ある者(もの)は事(こと)竟(つい)に成(な)る", "『後漢書』", "強い志を持つ者は、最後には成し遂げる。"], ["窮(きゅう)すれば通(つう)ず", "『易経』", "行き詰まった時こそ、新しい道が開ける。"], ["君子(くんし)は豹変(ひょうへん)す", "『易経』", "賢い人は、過ちに気づけば鮮やかに改める。"], ["天行(てんこう)健(けん)なり、君子(くんし)以(もっ)て自強(じきょう)して息(や)まず", "『易経』", "天の運行のように、絶えず自らを励まして努める。"], ["積善(せきぜん)の家(いえ)には必(かなら)ず余慶(よけい)あり", "『易経』", "善を積み重ねる家には、必ず幸せが訪れる。"], ["天才(てんさい)とは1%のひらめきと99%の努力(どりょく)である", "トーマス・エジソン", "成功の大部分は、地道な努力が占める。"], ["私(わたし)は失敗(しっぱい)したことがない。うまくいかない方法(ほうほう)を一万通(いちまんとお)り見(み)つけただけだ", "トーマス・エジソン", "失敗は、成功に近づくための発見。"], ["大切(たいせつ)なのは、問(と)い続(つづ)けることをやめないことだ", "アルベルト・アインシュタイン", "好奇心と問いが、学びと発見を生む。"], ["知恵(ちえ)は経験(けいけん)の娘(むすめ)である", "レオナルド・ダ・ヴィンチ", "本当の知恵は、実際の経験から生まれる。"], ["行動(こうどう)が必(かなら)ずしも幸福(こうふく)をもたらすとは限(かぎ)らないが、行動(こうどう)なくして幸福(こうふく)はない", "ベンジャミン・ディズレーリ", "動かなければ、何も始まらない。"], ["始(はじ)めた者(もの)は、仕事(しごと)の半分(はんぶん)を終(お)えている", "ホラティウス", "取りかかることが最大の難関。始めれば半分は済んだも同じ。"], ["最大(さいだい)の栄光(えいこう)は一度(いちど)も失敗(しっぱい)しないことではなく、失敗(しっぱい)するたびに立(た)ち上(あ)がることにある", "オリバー・ゴールドスミス", "転んでも立ち上がり続ける姿こそ誇り。"], ["私(わたし)たちは繰(く)り返(かえ)し行(おこな)うことでできている。優秀(ゆうしゅう)さとは行為(こうい)ではなく習慣(しゅうかん)である", "ウィル・デュラント", "優れた結果は、日々の習慣が作る。"], ["今日(きょう)という日(ひ)は、残(のこ)りの人生(じんせい)の最初(さいしょ)の日(ひ)である", "チャールズ・ディードリッヒ", "過去にとらわれず、今日から始めればよい。"], ["終(お)わりよければすべてよし", "シェイクスピア", "途中に苦労があっても、良い結果で締めくくれば報われる。"], ["できると思(おも)えばできる、できないと思(おも)えばできない", "ヘンリー・フォード（伝）", "結果は、自分がどう信じるかに左右される。"], ["一(ひと)つの扉(とびら)が閉(し)まると、別(べつ)の扉(とびら)が開(ひら)く", "グラハム・ベル（伝）", "失ったものを嘆くより、開いた扉に目を向ける。"], ["天(てん)は自(みずか)ら助(たす)くる者(もの)を助(たす)く", "サミュエル・スマイルズ『自助論』", "自分で努力する人にこそ、幸運は味方する。"], ["人間(にんげん)は考(かんが)える葦(あし)である", "パスカル", "人は弱い存在だが、考える力がある点で偉大。"], ["時間(じかん)を浪費(ろうひ)するな。人生(じんせい)は時間(じかん)でできている", "ベンジャミン・フランクリン", "時間を大切にすることは、人生を大切にすること。"], ["準備(じゅんび)を怠(おこた)ることは、失敗(しっぱい)の準備(じゅんび)をすることだ", "ベンジャミン・フランクリン（伝）", "段取りが、結果を決める。"], ["成功(せいこう)の秘訣(ひけつ)は、目的(もくてき)の不変(ふへん)にある", "ベンジャミン・ディズレーリ", "目標をぶらさないことが、成功につながる。"], ["汝(なんじ)自身(じしん)を知(し)れ", "デルポイの神殿の銘", "自分を正しく知ることが、知恵の始まり。"], ["無知(むち)の知(ち)", "ソクラテス", "自分が知らないことを知っている者こそ賢い。"], ["吟味(ぎんみ)されない人生(じんせい)は生(い)きるに値(あたい)しない", "ソクラテス", "自分の生き方を問い直すことに、価値がある。"], ["始(はじ)まりは全体(ぜんたい)の半分(はんぶん)", "アリストテレス", "何事も、始めることが最も大きな一歩。"], ["希望(きぼう)は目覚(めざ)めている人(ひと)の見(み)る夢(ゆめ)である", "アリストテレス", "希望を持つ人は、夢を現実にしようと動く。"], ["人(ひと)は城(しろ)、人(ひと)は石垣(いしがき)、人(ひと)は堀(ほり)", "武田信玄", "組織の力は、人そのもの。人を大切にせよ。"], ["鳴(な)かぬなら鳴(な)くまで待(ま)とうホトトギス", "徳川家康（伝）", "焦らず、時が来るのを辛抱強く待つ。"], ["人(ひと)の一生(いっしょう)は重荷(おもに)を負(お)うて遠(とお)き道(みち)を行(ゆ)くが如(ごと)し。急(いそ)ぐべからず", "徳川家康（伝）", "人生は長い道のり。焦らず着実に進む。"], ["鳴(な)かぬなら鳴(な)かせてみせようホトトギス", "豊臣秀吉（伝）", "工夫と働きかけで、状況を変えていく。"], ["是非(ぜひ)に及(およ)ばず", "織田信長", "あれこれ論じても仕方ない。受け止めて進む。"], ["一日(いちにち)生(い)きることは、一歩(いっぽ)進(すす)むことでありたい", "湯川秀樹", "毎日を、少しでも前進する日にしたい。"], ["我以外皆我師(われいがいみなわがし)", "吉川英治", "自分以外の人はみな、学ぶべき師である。"], ["努力(どりょく)した者(もの)が全(すべ)て報(むく)われるとは限(かぎ)らん。しかし成功(せいこう)した者(もの)は皆(みな)すべからく努力(どりょく)しておる", "森川ジョージ『はじめの一歩』", "努力なしに、成功はない。"], ["迷(まよ)わず行(い)けよ、行(い)けばわかるさ", "アントニオ猪木（一休宗純の詩より）", "迷って立ち止まるより、踏み出せば道は見えてくる。"], ["元気(げんき)があれば何(なん)でもできる", "アントニオ猪木", "元気こそ、あらゆる行動の源。"], ["努力(どりょく)は必(かなら)ず報(むく)われる。もし報(むく)われない努力(どりょく)があるのならば、それはまだ努力(どりょく)と呼(よ)べない", "王貞治", "報われるまで続けるのが、本当の努力。"], ["負(ま)けたことがあるというのが、いつか大(おお)きな財産(ざいさん)になる", "井上雄彦『SLAM DUNK』", "敗北の経験は、後の成長の糧になる。"], ["諦(あきら)めたらそこで試合終了(しあいしゅうりょう)ですよ", "井上雄彦『SLAM DUNK』", "最後まで諦めなければ、可能性は残る。"], ["心(こころ)を燃(も)やせ", "吾峠呼世晴『鬼滅の刃』", "どんな時も、自分の心の炎を絶やさない。"], ["泣(な)いて暮(く)らすも一生(いっしょう)、笑(わら)って暮(く)らすも一生(いっしょう)", "ことわざ", "同じ人生なら、笑って過ごすほうがよい。"], ["艱難(かんなん)汝(なんじ)を玉(たま)にす", "ことわざ", "苦労や困難が、人を立派に磨き上げる。"], ["若(わか)い時(とき)の苦労(くろう)は買(か)ってでもせよ", "ことわざ", "若いうちの苦労は、将来の自分を作る。"], ["愚者(ぐしゃ)は経験(けいけん)に学(まな)び、賢者(けんじゃ)は歴史(れきし)に学(まな)ぶ", "ビスマルク（伝）", "自分の失敗だけでなく、先人の経験からも学ぶ。"], ["考(かんが)えることは易(やさ)しい。行動(こうどう)することは難(むずか)しい。考(かんが)えた通(とお)りに行動(こうどう)することは最(もっと)も難(むずか)しい", "ゲーテ（伝）", "考えたことを、そのとおり実行する人は強い。"], ["急(いそ)がずに、しかし休(やす)まずに", "ゲーテ", "焦らず、しかし止まらずに進み続ける。"], ["涙(なみだ)とともにパンを食(た)べた者(もの)でなければ人生(じんせい)の味(あじ)は分(わ)からない", "ゲーテ", "苦労を知ってこそ、人生の深みが分かる。"], ["人生(じんせい)は自転車(じてんしゃ)のようなものだ。倒(たお)れないためには走(はし)り続(つづ)けなければならない", "アルベルト・アインシュタイン", "動き続けることが、バランスを保つ秘訣。"], ["想像力(そうぞうりょく)は知識(ちしき)より重要(じゅうよう)である", "アルベルト・アインシュタイン", "知識には限りがあるが、想像力は世界を広げる。"], ["困難(こんなん)の真(ま)ん中(なか)に、機会(きかい)がある", "アルベルト・アインシュタイン（伝）", "困難の中にこそ、次の機会が隠れている。"], ["成功(せいこう)とは、意欲(いよく)を失(うしな)わずに失敗(しっぱい)を重(かさ)ねることである", "ウィンストン・チャーチル（伝）", "失敗を恐れず続けることが、成功。"], ["悲観主義者(ひかんしゅぎしゃ)は機会(きかい)の中(なか)に困難(こんなん)を見(み)つけ、楽観主義者(らっかんしゅぎしゃ)は困難(こんなん)の中(なか)に機会(きかい)を見(み)つける", "ウィンストン・チャーチル（伝）", "物の見方次第で、困難は機会になる。"], ["完璧(かんぺき)を目指(めざ)すより、まず終(お)わらせろ", "シリコンバレーの標語", "完璧を待つより、形にして改善するほうが早い。"], ["ステイ・ハングリー、ステイ・フーリッシュ", "スティーブ・ジョブズ", "貪欲に、愚直に学び続けよ。"], ["点(てん)と点(てん)は、あとから振(ふ)り返(かえ)ったときに初(はじ)めてつながる", "スティーブ・ジョブズ", "今の経験は無駄にならない。いつか線になる。"], ["自分(じぶん)の仕事(しごと)を愛(あい)することが、偉大(いだい)な仕事(しごと)をする唯一(ゆいいつ)の道(みち)だ", "スティーブ・ジョブズ", "仕事を愛せば、質はおのずと高まる。"], ["一(ひと)つのキックを千回(せんかい)練習(れんしゅう)した者(もの)を恐(おそ)れる", "ブルース・リー", "一つのことを徹底的に磨いた人は強い。"], ["水(みず)になれ", "ブルース・リー", "形にこだわらず、状況に合わせてしなやかに動く。"], ["人生(じんせい)とは自分(じぶん)を見(み)つけることではない。自分(じぶん)を創(つく)ることだ", "ジョージ・バーナード・ショー（伝）", "自分は探すものではなく、作るもの。"], ["進歩(しんぽ)は変化(へんか)なしにはありえない。考(かんが)えを変(か)えられない者(もの)は何(なに)も変(か)えられない", "ジョージ・バーナード・ショー", "変わることを恐れると、何も前に進まない。"], ["ゆっくり急(いそ)げ", "ラテン語の格言（フェスティナ・レンテ）", "急ぎつつも慎重に。確実さが速さになる。"], ["運命(うんめい)は勇者(ゆうしゃ)に味方(みかた)する", "ラテン語の格言", "勇気を持って踏み出す者に、幸運は訪れる。"], ["知(ち)は力(ちから)なり", "フランシス・ベーコン", "知識を持つことは、力を持つこと。"], ["人(ひと)の価値(かち)は、何(なに)を得(え)たかではなく、何(なに)を与(あた)えたかで決(き)まる", "アルベルト・アインシュタイン（伝）", "人の価値は、他者への貢献で測られる。"], ["何事(なにごと)も、やってみるまでは不可能(ふかのう)に思(おも)える", "ネルソン・マンデラ", "挑戦する前の不安は、やれば消えていく。"], ["教育(きょういく)は世界(せかい)を変(か)えるために使(つか)える最(もっと)も強力(きょうりょく)な武器(ぶき)だ", "ネルソン・マンデラ", "学ぶことが、世界を変える力になる。"], ["あなたがこの世(よ)で見(み)たいと願(ねが)う変化(へんか)に、あなた自身(じしん)がなりなさい", "ガンジー（伝）", "世界を変えたいなら、まず自分が変わる。"], ["明日(あす)死(し)ぬかのように生(い)きよ。永遠(えいえん)に生(い)きるかのように学(まな)べ", "ガンジー（伝）", "今日を大切に生き、学びは生涯続ける。"], ["速度(そくど)を上(あ)げるばかりが人生(じんせい)ではない", "ガンジー（伝）", "急ぐことより、どこへ向かうかが大切。"], ["今日(きょう)が人生(じんせい)で一番(いちばん)若(わか)い日(ひ)", "格言", "何かを始めるなら、今日が一番早い。"], ["一歩(いっぽ)ずつ、着実(ちゃくじつ)に", "格言", "大きく飛ぼうとせず、一歩ずつ進む。"], ["小(ちい)さな成功(せいこう)を積(つ)み重(かさ)ねよ", "格言", "大きな成功は、小さな成功の積み重ね。"], ["自分(じぶん)の限界(げんかい)を決(き)めるのは自分(じぶん)", "格言", "限界は、自分の思い込みが作る。"], ["笑顔(えがお)は最高(さいこう)の名刺(めいし)", "格言", "笑顔は、どんな肩書きより相手の心を開く。"], ["挨拶(あいさつ)は人間関係(にんげんかんけい)の始(はじ)まり", "格言", "元気な挨拶が、信頼の第一歩。"], ["段取(だんど)り八分(はちぶ)、仕事(しごと)二分(にぶ)", "格言", "仕事の成否は、準備でほぼ決まる。"], ["報告(ほうこく)・連絡(れんらく)・相談(そうだん)", "仕事の心得（ほうれんそう）", "こまめな共有が、仕事を円滑にする。"], ["安全第一(あんぜんだいいち)", "標語", "どんな仕事も、安全を最優先に。"], ["整理整頓(せいりせいとん)", "標語", "片づいた環境が、良い仕事を生む。"], ["現場(げんば)・現物(げんぶつ)・現実(げんじつ)", "仕事の心得（三現主義）", "机上で考えず、現場で実物を自分の目で確かめる。"], ["一分(いっぷん)の油断(ゆだん)、一生(いっしょう)の悔(く)い", "標語", "わずかな油断が、取り返しのつかない事故になる。"], ["迷(まよ)ったら基本(きほん)に帰(かえ)れ", "格言", "行き詰まった時は、基本に立ち返る。"], ["準備(じゅんび)が九割(きゅうわり)", "格言", "本番の出来は、準備で決まる。"], ["考(かんが)えるより、まず動(うご)け", "格言", "考えすぎて止まるより、動いて学ぶ。"], ["動(うご)く前(まえ)に、一呼吸(ひとこきゅう)", "格言", "焦る時ほど、一息ついて確かめる。"], ["今日(きょう)の一歩(いっぽ)が、明日(あす)の景色(けしき)を変(か)える", "格言", "日々の前進が、未来を変える。"], ["できない理由(りゆう)より、できる方法(ほうほう)を", "格言", "不可能を数えるより、可能性を探る。"], ["感謝(かんしゃ)は言葉(ことば)にしてこそ伝(つた)わる", "格言", "ありがとうは、口に出して初めて届く。"], ["聞(き)く力(ちから)は話(はな)す力(ちから)に勝(まさ)る", "格言", "よく聞く人が、よく信頼される。"], ["相手(あいて)の立場(たちば)に立(た)つ", "格言", "相手の視点で考えると、答えが見える。"], ["百(ひゃく)の言葉(ことば)より一(ひと)つの行動(こうどう)", "格言", "行動が、何よりも雄弁に語る。"], ["失敗(しっぱい)を隠(かく)すな、共有(きょうゆう)せよ", "格言", "失敗を共有すれば、チームの学びになる。"], ["昨日(きのう)の自分(じぶん)に勝(か)つ", "格言", "比べる相手は他人ではなく、昨日の自分。"], ["終(お)わりを思(おも)い描(えが)くことから始(はじ)める", "スティーブン・コヴィー", "ゴールを明確にしてから取りかかる。"], ["緊急(きんきゅう)ではないが重要(じゅうよう)なことに時間(じかん)を使(つか)え", "スティーブン・コヴィー", "長期的に大切なことを、後回しにしない。"], ["最(もっと)も重要(じゅうよう)なことを、最(もっと)も重要(じゅうよう)にする", "スティーブン・コヴィー", "優先順位を守ることが、成果を生む。"], ["測定(そくてい)できないものは管理(かんり)できない", "ピーター・ドラッカー（伝）", "数字で捉えて初めて、改善できる。"], ["未来(みらい)を予測(よそく)する最良(さいりょう)の方法(ほうほう)は、それを創(つく)ることだ", "ピーター・ドラッカー（伝）", "未来は待つものではなく、作るもの。"], ["強(つよ)みの上(うえ)に築(きず)け", "ピーター・ドラッカー", "弱点より、強みを生かすことに力を注ぐ。"], ["時間(じかん)は最(もっと)も希少(きしょう)な資源(しげん)である", "ピーター・ドラッカー", "時間を管理できなければ、何も管理できない。"], ["正(ただ)しい問(と)いを立(た)てよ", "ピーター・ドラッカー（伝）", "正しい問いが、正しい答えを導く。"], ["改善(かいぜん)に終(お)わりはない", "仕事の心得（カイゼン）", "今日より明日、少しずつ良くしていく。"], ["良(よ)い品(しな)、良(よ)い考(かんがえ)", "トヨタの標語", "良い考えが、良い仕事と良い品を生む。"], ["現地現物(げんちげんぶつ)", "トヨタの標語", "机上ではなく現場で、実物を見て判断する。"], ["失敗(しっぱい)の数(かず)だけ、強(つよ)くなれる", "格言", "失敗を重ねた分だけ、人は強くなる。"], ["困(こま)った時(とき)こそ、笑顔(えがお)", "格言", "苦しい時の笑顔が、周囲と自分を救う。"], ["人(ひと)の話(はなし)は最後(さいご)まで聞(き)け", "格言", "途中で遮らず聞くことが、理解の始まり。"], ["約束(やくそく)は小(ちい)さくても守(まも)る", "格言", "小さな約束の積み重ねが、信頼を作る。"], ["誠実(せいじつ)に勝(まさ)る戦略(せんりゃく)なし", "格言", "誠実さは、どんな駆け引きよりも強い。"], ["健康(けんこう)は最大(さいだい)の財産(ざいさん)", "格言", "体を大切にしてこそ、良い仕事ができる。"], ["よく学(まな)び、よく遊(あそ)べ", "格言", "学ぶ時は学び、休む時はしっかり休む。"], ["休(やす)むことも仕事(しごと)のうち", "格言", "しっかり休んでこそ、良い働きができる。"], ["疲(つか)れたら休(やす)め。やめるな", "格言", "休むのは良いが、諦めてはいけない。"], ["今(いま)、ここ", "禅語", "過去や未来ではなく、今この瞬間に心を置く。"], ["日日是好日(にちにちこれこうにち)", "禅語", "どんな日も、受け止め方次第でよい日になる。"], ["一日(いちにち)作(な)さざれば一日(いちにち)食(く)らわず", "百丈懐海", "一日働かなければ一日食べない。働く意味を忘れない。"], ["平常心是道(びょうじょうしんこれどう)", "禅語", "特別なことをせず、平常の心で歩む道こそ悟り。"], ["随処(ずいしょ)に主(しゅ)となれ", "臨済義玄", "どこにいても主体的に動けば、そこが自分の場になる。"], ["莫妄想(まくもうぞう)", "禅語", "余計な妄想や心配をしない。"], ["喫茶去(きっさこ)", "禅語", "まずお茶を一杯。誰にでも分け隔てなく接する。"], ["和敬清寂(わけいせいじゃく)", "千利休", "和やかに、敬い合い、清らかに、静かに。"], ["守破離(しゅはり)", "武道・芸道の言葉", "型を守り、やがて破り、最後に離れて自分の型を作る。"], ["初(はじ)めは処女(しょじょ)の如(ごと)く、後(のち)は脱兎(だっと)の如(ごと)し", "孫子", "最初は慎重に、機を見たら一気に動く。"], ["明日(あす)のことを思(おも)い煩(わずら)うな", "『新約聖書』", "今日の務めに集中すれば、明日は明日で足りる。"], ["求(もと)めよ、さらば与(あた)えられん", "『新約聖書』", "求め続ける者にこそ、道は開かれる。"], ["狭(せま)き門(もん)より入(はい)れ", "『新約聖書』", "楽な道より、厳しい道が本当の成長につながる。"], ["汝(なんじ)の敵(てき)を愛(あい)せよ", "『新約聖書』", "敵対する相手にも、思いやりを持つ。"], ["言葉(ことば)は心(こころ)の鏡(かがみ)", "格言", "言葉遣いに、その人の心が表れる。"], ["勤勉(きんべん)は幸運(こううん)の母(はは)", "ベンジャミン・フランクリン", "こつこつ働く人のもとに、幸運は生まれる。"], ["最(もっと)も利回(りまわ)りが良(よ)いのは知識(ちしき)への投資(とうし)だ", "ベンジャミン・フランクリン", "学びへの投資は、必ず自分に返る。"], ["幸運(こううん)は準備(じゅんび)された心(こころ)に宿(やど)る", "ルイ・パスツール", "準備している人だけが、機会を幸運に変えられる。"], ["成功(せいこう)は最終的(さいしゅうてき)なものではなく、失敗(しっぱい)は致命的(ちめいてき)なものではない。大事(だいじ)なのは続(つづ)ける勇気(ゆうき)だ", "ウィンストン・チャーチル（伝）", "結果に一喜一憂せず、続けること。"], ["幸運(こううん)とは、準備(じゅんび)が機会(きかい)に出会(であ)うことである", "セネカ（伝）", "備えがあれば、機会は幸運になる。"], ["人生(じんせい)は短(みじか)いのではない。我々(われわれ)が多(おお)くを浪費(ろうひ)しているのだ", "セネカ", "時間は十分にある。無駄にしなければ。"], ["困難(こんなん)だからやらないのではない。やらないから困難(こんなん)なのだ", "セネカ", "取りかからないことが、困難を大きくする。"], ["怒(いか)りは短(みじか)い狂気(きょうき)である", "ホラティウス", "怒りに任せた判断は、後悔のもと。"], ["今日(きょう)を摘(つ)め", "ホラティウス（カルペ・ディエム）", "今日という日を、大切に生きる。"], ["自分(じぶん)を支配(しはい)できる者(もの)が最(もっと)も強(つよ)い", "セネカ", "自分の心を制することが、最大の強さ。"], ["何事(なにごと)も度(ど)を越(こ)すな", "ギリシャの格言", "ほどよさを守ることが、長続きの秘訣。"], ["人(ひと)は、繰(く)り返(かえ)し考(かんが)えることになる", "マルクス・アウレリウス（伝）", "考え方が、その人を形づくる。"], ["朝(あさ)、起(お)きたら考(かんが)えよ。今日(きょう)もまた人(ひと)のために働(はたら)けると", "マルクス・アウレリウス『自省録』", "働けることを喜びとして、一日を始める。"], ["障害(しょうがい)が道(みち)になる", "マルクス・アウレリウス（伝）", "行く手を阻むものが、進むべき道を示す。"], ["読書(どくしょ)は心(こころ)の栄養(えいよう)", "格言", "本を読むことで、心と考えが育つ。"], ["ペンは剣(けん)よりも強(つよ)し", "エドワード・ブルワー＝リットン", "言葉や文章は、武力より大きな力を持つ。"], ["我(わ)が人生(じんせい)に一片(いっぺん)の悔(く)いなし", "武論尊・原哲夫『北斗の拳』", "全力で生きた人生に、悔いはない。"], ["努力(どりょく)に勝(まさ)る天才(てんさい)なし", "格言", "才能より、努力を続ける人が最後に勝つ。"], ["信(しん)は万事(ばんじ)の本(もと)", "格言", "信頼が、すべての基本である。"], ["徳(とく)は本(もと)なり、財(ざい)は末(すえ)なり", "『大学』", "人徳が根本、財産は結果にすぎない。"], ["身(み)を修(おさ)め、家(いえ)を斉(ととの)え、国(くに)を治(おさ)め、天下(てんか)を平(たい)らかにす", "『大学』", "まず自分を整えることが、すべての始まり。"], ["誠(まこと)は天(てん)の道(みち)なり", "『中庸』", "誠実であることは、天の理にかなう生き方。"], ["学(まな)びて時(とき)に之(これ)を習(なら)う、亦(また)説(よろこ)ばしからずや", "孔子『論語』", "学んだことを折にふれて復習する喜び。"], ["朋(とも)あり遠方(えんぽう)より来(き)たる、亦(また)楽(たの)しからずや", "孔子『論語』", "遠くから友が訪ねてくれる楽しさ。"], ["人(ひと)知(し)らずして慍(いか)らず、亦(また)君子(くんし)ならずや", "孔子『論語』", "人に認められなくても腐らない人が、立派。"], ["吾(われ)日(ひ)に三(み)たび吾(わ)が身(み)を省(かえり)みる", "曾子『論語』", "毎日、自分の行いを振り返る。"], ["過(す)ぎたるは猶(なお)及(およ)ばざるが如(ごと)し", "孔子『論語』", "やり過ぎは、足りないのと同じく良くない。"], ["己(おのれ)に克(か)ちて礼(れい)に復(かえ)る", "孔子『論語』", "自分の欲に打ち勝ち、礼を尽くす。"], ["後生(こうせい)畏(おそ)るべし", "孔子『論語』", "若い人の可能性を、侮ってはならない。"], ["言(げん)は忠信(ちゅうしん)、行(こう)は篤敬(とっけい)", "孔子『論語』", "言葉は誠実に、行いは丁寧に。"], ["剛毅木訥(ごうきぼくとつ)、仁(じん)に近(ちか)し", "孔子『論語』", "口がうまく愛想のいい人より、芯が強く飾らない人のほうが、人への思いやり（仁）に近い。"], ["博(ひろ)く学(まな)びて篤(あつ)く志(こころざ)す", "子夏『論語』", "広く学び、志を固く持つ。"], ["士(し)は以(もっ)て弘毅(こうき)ならざるべからず", "曾子『論語』", "志ある者は、広い心と強い意志を持て。"], ["任(にん)重(おも)くして道(みち)遠(とお)し", "曾子『論語』", "責任は重く道は遠い。だからこそ歩み続ける。"], ["疾風(しっぷう)に勁草(けいそう)を知(し)る", "『後漢書』", "困難な時にこそ、人の真価が分かる。"], ["蛍雪(けいせつ)の功(こう)", "故事成語", "苦労しながら学問に励み、成果を得る。"], ["塞翁(さいおう)が馬(うま)", "『淮南子』", "幸不幸は予測できない。目先に一喜一憂しない。"], ["虎(とら)の威(い)を借(か)る狐(きつね)", "『戦国策』", "他人の力をかさに着てはいけない。"], ["漁夫(ぎょふ)の利(り)", "『戦国策』", "争いの間に第三者が利益を得る。無用な争いを避けよ。"], ["推敲(すいこう)", "故事成語", "文章も仕事も、何度も練り直して良くする。"], ["杞憂(きゆう)", "『列子』", "起こりそうもないことを心配しても仕方ない。"], ["背水(はいすい)の陣(じん)", "『史記』", "退路を断ち、全力で事にあたる。"], ["鶏口(けいこう)となるも牛後(ぎゅうご)となるなかれ", "『史記』", "大きな組織の末端より、小さくても先頭に立て。"], ["一諾千金(いちだくせんきん)", "『史記』", "一度の約束は、千金の重みがある。"], ["士(し)は己(おのれ)を知(し)る者(もの)の為(ため)に死(し)す", "『史記』", "自分を理解してくれる人のために、力を尽くす。"], ["良薬(りょうやく)は口(くち)に苦(にが)し", "『孔子家語』", "ためになる忠告ほど、耳が痛い。"], ["忠言(ちゅうげん)耳(みみ)に逆(さか)らう", "『孔子家語』", "正しい忠告ほど聞きづらいが、聞く価値がある。"], ["羹(あつもの)に懲(こ)りて膾(なます)を吹(ふ)く", "『楚辞』", "一度の失敗で、過度に用心しすぎない。"], ["得手(えて)に帆(ほ)を揚(あ)げよ", "ことわざ", "得意なことで勝負し、機会を逃すな。"], ["一葉(いちよう)落(お)ちて天下(てんか)の秋(あき)を知(し)る", "『淮南子』", "小さな兆しから、大きな変化を読み取る。"], ["医者(いしゃ)の不養生(ふようじょう)", "ことわざ", "人に言うことを、自分でも実践せよ。"], ["紺屋(こうや)の白袴(しろばかま)", "ことわざ", "他人のことに忙しく、自分のことが後回しにならぬよう。"], ["餅(もち)は餅屋(もちや)", "ことわざ", "専門のことは、専門家に任せるのが一番。"], ["蛇(じゃ)の道(みち)は蛇(へび)", "ことわざ", "その道のことは、同じ道の者がよく知る。"], ["船頭(せんどう)多(おお)くして船(ふね)山(やま)に上(のぼ)る", "ことわざ", "指示する人が多すぎると、物事はうまく進まない。"], ["隣(となり)の芝生(しばふ)は青(あお)い", "ことわざ", "他人のものは良く見える。自分の足元を大切に。"], ["花(はな)より団子(だんご)", "ことわざ", "見かけより実益。実を取る判断も大切。"], ["猫(ねこ)の手(て)も借(か)りたい", "ことわざ", "忙しい時は、どんな助けもありがたい。頼ることも大切。"], ["袖(そで)振(ふ)り合(あ)うも多生(たしょう)の縁(えん)", "ことわざ", "ささいな出会いも、大切な縁である。"], ["旅(たび)は道連(みちづ)れ、世(よ)は情(なさ)け", "ことわざ", "人生は、助け合いと思いやりで成り立つ。"], ["立(た)つ鳥(とり)跡(あと)を濁(にご)さず", "ことわざ", "去る時は、後をきれいに整えて去る。"], ["来年(らいねん)のことを言(い)えば鬼(おに)が笑(わら)う", "ことわざ", "遠い先より、目の前のことに集中する。"], ["鬼(おに)に金棒(かなぼう)", "ことわざ", "強い者にさらに力が加わる。得意を伸ばせ。"], ["一寸(いっすん)の虫(むし)にも五分(ごぶ)の魂(たましい)", "ことわざ", "小さな存在にも、意地や誇りがある。"], ["腹八分目(はらはちぶんめ)に医者(いしゃ)いらず", "ことわざ", "ほどほどが、健康と長続きの秘訣。"], ["寝(ね)る子(こ)は育(そだ)つ", "ことわざ", "よく眠ることが、成長と健康のもと。"], ["損(そん)して得(とく)取(と)れ", "ことわざ", "目先の損を受け入れ、後の大きな利益を得る。"], ["嘘(うそ)も方便(ほうべん)", "ことわざ", "時には、相手を思いやる柔らかな言い方も必要。"], ["安物買(やすものが)いの銭失(ぜにうしな)い", "ことわざ", "安さだけで選ぶと、結局高くつく。"], ["暖簾(のれん)に腕押(うでお)し", "ことわざ", "手応えのないことに、力を使いすぎない。"], ["縁(えん)の下(した)の力持(ちからも)ち", "ことわざ", "目立たない所で支える人こそ大切。"], ["仏(ほとけ)の顔(かお)も三度(さんど)まで", "ことわざ", "温厚な人でも、度重なる無礼には怒る。"], ["天(てん)高(たか)く馬(うま)肥(こ)ゆる秋(あき)", "ことわざ", "秋は空が高く、心身が充実する良い季節。"], ["春眠(しゅんみん)暁(あかつき)を覚(おぼ)えず", "孟浩然", "春の眠りは心地よい。季節を感じて暮らす。"], ["冬(ふゆ)来(き)たりなば春(はる)遠(とお)からじ", "シェリー", "つらい時期の後には、必ず良い時が来る。"], ["暑(あつ)さ寒(さむ)さも彼岸(ひがん)まで", "ことわざ", "厳しさには終わりがある。もう少しの辛抱。"], ["三寒四温(さんかんしおん)", "気候のことわざ", "寒さと暖かさを繰り返しながら、春は来る。"], ["一陽来復(いちようらいふく)", "『易経』", "悪いことが続いた後に、良い方向へ転じる。"], ["雲外蒼天(うんがいそうてん)", "禅語", "雲を抜ければ青空。困難の先に晴れ間がある。"], ["百花繚乱(ひゃっかりょうらん)", "四字熟語", "多くの才能が、一斉に花開く。"], ["不易流行(ふえきりゅうこう)", "松尾芭蕉", "変わらない本質を守りつつ、新しさも取り入れる。"], ["古池(ふるいけ)や蛙(かわず)飛(と)び込(こ)む水(みず)の音(おと)", "松尾芭蕉", "静けさの中の一瞬に、世界の深さがある。"], ["月日(つきひ)は百代(はくたい)の過客(かかく)にして、行(ゆ)きかふ年(とし)もまた旅人(たびびと)なり", "松尾芭蕉『おくのほそ道』", "時は旅人のように過ぎていく。今を歩め。"], ["行(ゆ)く川(かわ)の流(なが)れは絶(た)えずして、しかももとの水(みず)にあらず", "鴨長明『方丈記』", "すべては移り変わる。だから今を大切に。"], ["祇園精舎(ぎおんしょうじゃ)の鐘(かね)の声(こえ)、諸行無常(しょぎょうむじょう)の響(ひび)きあり", "『平家物語』", "どんな栄華も永遠ではない。驕らず謙虚に。"], ["人間五十年(にんげんごじゅうねん)、下天(げてん)のうちをくらぶれば夢幻(ゆめまぼろし)の如(ごと)くなり", "幸若舞『敦盛』", "人生は短く夢のよう。悔いなく生きる。"], ["散(ち)る桜(さくら) 残(のこ)る桜(さくら)も 散(ち)る桜(さくら)", "良寛", "すべては移ろう。今この時を慈しむ。"], ["柔(じゅう)よく剛(ごう)を制(せい)す", "『三略』", "柔らかいものが、かえって強いものに勝つ。"], ["木鶏(もっけい)", "『荘子』", "木彫りの鶏のように、動じない強さを持つ。"], ["大巧(たいこう)は拙(せつ)なるが若(ごと)し", "老子", "本当に巧みな者は、かえって不器用に見える。"], ["知(し)る者(もの)は言(い)わず、言(い)う者(もの)は知(し)らず", "老子", "本当に知る者は、むやみに語らない。"], ["天網恢恢(てんもうかいかい)疎(そ)にして漏(も)らさず", "老子", "悪事は必ず露見する。正しく生きよ。"]];
+const TODAY_IS = {"01-01": "元日", "01-02": "初夢の日", "01-03": "瞳の日", "01-04": "石の日", "01-05": "いちごの日", "01-06": "色の日", "01-07": "七草（人日の節句）", "01-08": "「平成」改元の日（1989）", "01-09": "風邪の日", "01-10": "110番の日", "01-11": "鏡開き", "01-12": "スキーの日（1911）", "01-13": "咸臨丸出航記念日（1860）", "01-14": "愛と希望と勇気の日（タロとジロ生存確認 1959）", "01-15": "小正月", "01-16": "禁酒の日", "01-17": "防災とボランティアの日", "01-18": "都バス記念日（1924）", "01-19": "のど自慢の日（1946）", "01-20": "二十日正月", "01-21": "ライバルが手を結ぶ日（薩長同盟 1866）", "01-22": "カレーの日", "01-23": "電子メールの日", "01-24": "ゴールドラッシュデー（1848）", "01-25": "日本最低気温の日（旭川 −41℃ 1902）", "01-26": "文化財防火デー", "01-27": "国旗制定記念日（1870）", "01-28": "初不動", "01-29": "人口調査記念日（1872）", "01-30": "3分間電話の日（1970）", "01-31": "愛妻の日", "02-01": "テレビ放送記念日（1953）", "02-02": "夫婦の日", "02-03": "節分（年により前後）", "02-04": "西の日", "02-05": "プロ野球の日（1936）", "02-06": "海苔の日", "02-07": "北方領土の日", "02-08": "針供養", "02-09": "ふくの日", "02-10": "ニットの日", "02-11": "建国記念の日", "02-12": "ペニシリン記念日（1941）", "02-13": "苗字制定記念日（1875）", "02-14": "バレンタインデー", "02-15": "春一番名付けの日", "02-16": "天気図記念日（1883）", "02-17": "天使の囁きの日", "02-18": "嫌煙運動の日", "02-19": "プロレスの日（1954）", "02-20": "歌舞伎の日（1607）", "02-21": "日刊新聞創刊の日（1872）", "02-22": "猫の日", "02-23": "天皇誕生日・富士山の日", "02-24": "月光仮面登場の日（1958）", "02-25": "箱根用水完成の日（1670）", "02-26": "脱出の日（ナポレオン エルバ島脱出 1815）", "02-27": "新選組の日", "02-28": "ビスケットの日", "02-29": "閏日", "03-01": "マーチの日（行進曲の日）", "03-02": "ミニの日", "03-03": "ひな祭り", "03-04": "ミシンの日", "03-05": "サンゴの日", "03-06": "世界一周記念日（1967）", "03-07": "消防記念日", "03-08": "国際女性デー", "03-09": "記念切手記念日（1894）", "03-10": "砂糖の日", "03-11": "東日本大震災の日（2011）", "03-12": "サイフの日", "03-13": "サンドイッチデー", "03-14": "ホワイトデー・円周率の日", "03-15": "靴の記念日（1870）", "03-16": "国立公園指定記念日（1934）", "03-17": "漫画週刊誌の日（1959）", "03-18": "精霊の日", "03-19": "ミュージックの日", "03-20": "電卓の日（1974）", "03-21": "ランドセルの日", "03-22": "放送記念日（1925）", "03-23": "世界気象デー", "03-24": "マネキン記念日（1928）", "03-25": "電気記念日（1878）", "03-26": "カチューシャの歌の日（1914）", "03-27": "さくらの日", "03-28": "三つ葉の日・シルクロードの日", "03-29": "マリモの日（1952）", "03-30": "国立競技場落成記念日（1958）", "03-31": "エッフェル塔落成記念日（1889）", "04-01": "エイプリルフール", "04-02": "国際子どもの本の日（アンデルセン誕生日）", "04-03": "日本橋開通記念日（1911）", "04-04": "あんぱんの日", "04-05": "ヘアカットの日（1872）", "04-06": "城の日", "04-07": "世界保健デー", "04-08": "花まつり（灌仏会）", "04-09": "大仏の日（752）", "04-10": "駅弁の日", "04-11": "メートル法公布記念日（1921）", "04-12": "世界宇宙飛行の日（1961）", "04-13": "喫茶店の日（1888）", "04-14": "オレンジデー", "04-15": "ヘリコプターの日（ダ・ヴィンチ誕生日）", "04-16": "ボーイズビーアンビシャスデー", "04-17": "恐竜の日（1923）", "04-18": "発明の日（1885）", "04-19": "地図の日（伊能忠敬 測量出発 1800）", "04-20": "郵政記念日（1871）", "04-21": "民放の日（1951）", "04-22": "アースデイ", "04-23": "世界本の日（サン・ジョルディの日）", "04-24": "植物学の日（牧野富太郎誕生日）", "04-25": "歩道橋の日（1963）", "04-26": "よい風呂の日", "04-27": "哲学の日", "04-28": "主権回復の日（1952）", "04-29": "昭和の日", "04-30": "図書館記念日（1950）", "05-01": "メーデー・スズランの日", "05-02": "緑茶の日", "05-03": "憲法記念日", "05-04": "みどりの日", "05-05": "こどもの日", "05-06": "ゴムの日", "05-07": "コナモンの日", "05-08": "世界赤十字デー", "05-09": "アイスクリームの日", "05-10": "愛鳥週間はじまり", "05-11": "長良川鵜飼い開き", "05-12": "看護の日（ナイチンゲール誕生日）", "05-13": "カクテルの日", "05-14": "温度計の日（ファーレンハイト誕生日）", "05-15": "沖縄本土復帰記念日（1972）", "05-16": "旅の日（芭蕉『おくのほそ道』出発）", "05-17": "世界電気通信の日", "05-18": "ことばの日", "05-19": "ボクシングの日（1952）", "05-20": "ローマ字の日", "05-21": "小学校開校の日（1869）", "05-22": "国際生物多様性の日", "05-23": "キスの日（1946）", "05-24": "ゴルフ場記念日（1903）", "05-25": "食堂車の日（1899）", "05-26": "ル・マンの日（1923）", "05-27": "百人一首の日（1235）", "05-28": "ゴルフ記念日（1927）", "05-29": "こんにゃくの日", "05-30": "ごみゼロの日", "05-31": "世界禁煙デー", "06-01": "気象記念日・写真の日", "06-02": "横浜開港記念日（1859）", "06-03": "測量の日（1949）", "06-04": "虫歯予防デー", "06-05": "世界環境デー", "06-06": "楽器の日・邦楽の日", "06-07": "母親大会記念日（1955）", "06-08": "大鳴門橋開通記念日（1985）", "06-09": "ロックの日", "06-10": "時の記念日", "06-11": "傘の日", "06-12": "恋人の日", "06-13": "小さな親切運動スタートの日（1963）", "06-14": "手羽先記念日", "06-15": "暑中見舞いの日（1950）", "06-16": "和菓子の日", "06-17": "砂漠化および干ばつと闘う国際デー", "06-18": "海外移住の日（1908）", "06-19": "朗読の日", "06-20": "ペパーミントの日", "06-21": "スナックの日", "06-22": "ボウリングの日（1861）", "06-23": "オリンピックデー（1894）", "06-24": "UFOの日（1947）", "06-25": "住宅デー（ガウディ誕生日）", "06-26": "露天風呂の日", "06-27": "日照権の日（1972）", "06-28": "貿易記念日（1859）", "06-29": "ビートルズ記念日（来日 1966）", "06-30": "ハーフタイムデー（一年の折り返し）", "07-01": "国民安全の日・海開き", "07-02": "うどんの日", "07-03": "ソフトクリームの日（1951）", "07-04": "梨の日", "07-05": "ビキニスタイルの日（1946）", "07-06": "サラダ記念日", "07-07": "七夕", "07-08": "質屋の日", "07-09": "ジェットコースターの日（1955）", "07-10": "納豆の日", "07-11": "真珠記念日（1893）", "07-12": "ラジオ本放送の日（1925）", "07-13": "日本標準時制定記念日（1886）", "07-14": "ひまわりの日（気象衛星 1977）・パリ祭", "07-15": "ファミコンの日（1983）", "07-16": "虹の日", "07-17": "東京の日（江戸→東京 1868）", "07-18": "光化学スモッグの日（1970）", "07-19": "女性大臣の日（1960）", "07-20": "月面着陸の日（1969）", "07-21": "自然公園の日（1957）", "07-22": "下駄の日", "07-23": "ふみの日（文月）", "07-24": "河童忌（芥川龍之介）", "07-25": "かき氷の日", "07-26": "幽霊の日（四谷怪談初演 1825）", "07-27": "スイカの日", "07-28": "なにわの日", "07-29": "アマチュア無線の日（1952）", "07-30": "プロレス記念日（1953）", "07-31": "蓄音機の日（1877）", "08-01": "水の日", "08-02": "ハーブの日・パンツの日", "08-03": "はちみつの日", "08-04": "箸の日", "08-05": "タクシーの日（1912）", "08-06": "広島平和記念日", "08-07": "鼻の日", "08-08": "そろばんの日・笑いの日", "08-09": "野球の日・長崎原爆の日", "08-10": "道の日（1920）", "08-11": "山の日", "08-12": "君が代記念日（1893）", "08-13": "国際左利きの日", "08-14": "専売特許の日（1885）", "08-15": "終戦の日", "08-16": "五山送り火", "08-17": "パイナップルの日", "08-18": "高校野球記念日（1915）", "08-19": "俳句の日", "08-20": "交通信号設置記念日（1931）", "08-21": "献血の日（1964）", "08-22": "チンチン電車の日（1903）", "08-23": "白虎隊の日（1868）", "08-24": "ポンペイ最後の日（79）", "08-25": "即席ラーメン記念日（1958）", "08-26": "ユースホステルの日", "08-27": "『男はつらいよ』の日（1969）", "08-28": "テレビCMの日（1953）", "08-29": "焼き肉の日", "08-30": "富士山測候所記念日（1895）", "08-31": "野菜の日", "09-01": "防災の日", "09-02": "宝くじの日", "09-03": "ホームラン記念日（王貞治 756号 1977）", "09-04": "くしの日", "09-05": "国民栄誉賞の日（1977）", "09-06": "黒の日", "09-07": "CMソングの日（1951）", "09-08": "サンフランシスコ平和条約調印記念日（1951）", "09-09": "重陽の節句・救急の日", "09-10": "下水道の日", "09-11": "公衆電話の日（1900）", "09-12": "宇宙の日（1992）", "09-13": "世界の法の日", "09-14": "コスモスの日", "09-15": "老人の日", "09-16": "競馬の日（1954）", "09-17": "モノレール開業記念日（1964）", "09-18": "かいわれ大根の日", "09-19": "苗字の日（1870）", "09-20": "バスの日（1903）", "09-21": "ファッションショーの日（1927）", "09-22": "カーフリーデー", "09-23": "不動産の日", "09-24": "清掃の日", "09-25": "10円カレーの日（1973）", "09-26": "ワープロ記念日（1978）", "09-27": "女性ドライバーの日（1917）", "09-28": "パソコン記念日（PC-8001 1979）", "09-29": "招き猫の日", "09-30": "クレーンの日（1972）", "10-01": "コーヒーの日・衣替え", "10-02": "豆腐の日", "10-03": "登山の日", "10-04": "イワシの日", "10-05": "時刻表記念日（1894）", "10-06": "国際協力の日（1954）", "10-07": "ミステリー記念日（ポー命日）", "10-08": "木の日", "10-09": "トラックの日・塾の日", "10-10": "目の愛護デー・銭湯の日", "10-11": "ウィンクの日", "10-12": "コロンブス・デー（1492）", "10-13": "サツマイモの日", "10-14": "鉄道の日（1872）", "10-15": "きのこの日", "10-16": "ボスの日", "10-17": "貯蓄の日", "10-18": "冷凍食品の日", "10-19": "海外旅行の日", "10-20": "リサイクルの日", "10-21": "あかりの日（エジソン電球 1879）", "10-22": "平安遷都の日（794）", "10-23": "電信電話記念日（1869）", "10-24": "国連デー", "10-25": "世界パスタデー", "10-26": "柿の日（子規 1895）", "10-27": "文字・活字文化の日（読書週間はじまり）", "10-28": "速記記念日（1882）", "10-29": "ホームビデオ記念日（1969）", "10-30": "香りの記念日（1992）", "10-31": "ハロウィン", "11-01": "計量記念日・犬の日", "11-02": "タイツの日", "11-03": "文化の日", "11-04": "ユネスコ憲章記念日（1946）", "11-05": "津波防災の日", "11-06": "お見合い記念日（1947）", "11-07": "鍋の日", "11-08": "いい歯の日", "11-09": "119番の日", "11-10": "トイレの日", "11-11": "ポッキー＆プリッツの日・電池の日", "11-12": "洋服記念日（1872）", "11-13": "うるしの日", "11-14": "いい石の日", "11-15": "七五三", "11-16": "幼稚園記念日（1876）", "11-17": "将棋の日", "11-18": "土木の日", "11-19": "鉄道電化の日（1956）", "11-20": "ピザの日", "11-21": "インターネット記念日（ARPANET 1969）", "11-22": "いい夫婦の日", "11-23": "勤労感謝の日", "11-24": "鰹節の日", "11-25": "ハイビジョンの日", "11-26": "ペンの日（1935）", "11-27": "ノーベル賞制定記念日（1895）", "11-28": "税関記念日（1872）", "11-29": "いい肉の日", "11-30": "カメラの日（1977）", "12-01": "映画の日（1896）", "12-02": "日本人宇宙飛行記念日（1990）", "12-03": "カレンダーの日（太陽暦採用 1872）", "12-04": "E.T.の日（1982）", "12-05": "国際ボランティア・デー", "12-06": "音の日（蓄音機 1877）", "12-07": "クリスマスツリーの日（横浜 1886）", "12-08": "針供養（関西）", "12-09": "障害者の日", "12-10": "世界人権デー・ノーベル賞授賞式", "12-11": "ユニセフ創立記念日（1946）", "12-12": "漢字の日", "12-13": "正月事始め・すす払い", "12-14": "忠臣蔵討ち入りの日（1702）", "12-15": "観光バス記念日（1925）", "12-16": "電話創業の日（1890）", "12-17": "飛行機の日（ライト兄弟 1903）", "12-18": "東京駅完成記念日（1914）", "12-19": "日本初飛行の日（1910）", "12-20": "デパート開業の日（三越 1904）", "12-21": "バスケットボールの日（1891）", "12-22": "冬至（年により前後）", "12-23": "東京タワー完成の日（1958）", "12-24": "クリスマス・イブ", "12-25": "クリスマス", "12-26": "プロ野球誕生の日（1934）", "12-27": "ピーターパンの日（1904）", "12-28": "御用納め", "12-29": "シャンソンの日", "12-30": "地下鉄記念日（浅草〜上野 1927）", "12-31": "大晦日"};
+function renderQuote() {
+  const p = jstParts(new Date()); const y = Number(p.year), mo = Number(p.month), d = Number(p.day);
+  // day of year (1..366), with Feb 29 at 60 so every calendar date keeps the same quote across years
+  const cum = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+  const doy = cum[mo - 1] + d;
+  const [q, by, meaning] = QUOTES[(doy - 1) % QUOTES.length];
+  const qt = clear($("quoteText")); const re = /([一-龥々〆ヵヶ〇]+)\(([ぁ-ゖー]+)\)/g; let last = 0, mm;
+  while ((mm = re.exec(q))) { if (mm.index > last) qt.append(q.slice(last, mm.index)); qt.append(h("ruby", null, mm[1], h("rp", { text: "（" }), h("rt", { text: mm[2] }), h("rp", { text: "）" }))); last = re.lastIndex; }
+  if (last < q.length) qt.append(q.slice(last));
+  $("quoteBy").textContent = "— " + by; $("quoteMeaning").textContent = meaning || "";
+  const key = p.month + "-" + p.day; const what = TODAY_IS[key]; if (what) { $("todayis").textContent = "今日は " + what; $("todayis").hidden = false; }
+}
+
+// ---------- state ----------
+const S = {
+  db: null, sample: null, mcp: null, user: null, canWrite: true,
+  me: null, tasks: [], brief: null, dismissed: { mail: {}, teams: {}, waiting: {} }, settings: {},
+  mailTab: "reply", unsub: [], cal2: null, selDay: null, nippo: {}, npDate: null, weather: null, weatherConfig: null, geo: null,
+};
+const today = ymd(new Date());
+const dow = dowJST(new Date());
+const weekEnd = addDays(today, (7 - dow) % 7);               // Sunday
+function nextMonthEnd() { const [y, m] = today.split("-").map(Number); const ny = m === 12 ? y + 1 : y, nm = m === 12 ? 1 : m + 1; const last = new Date(Date.UTC(ny, nm, 0)).getUTCDate(); return `${ny}-${String(nm).padStart(2, "0")}-${last}`; }
+const monthEnd = (() => { const [y, m] = today.split("-").map(Number); const last = new Date(Date.UTC(y, m, 0)).getUTCDate(); return `${y}-${String(m).padStart(2, "0")}-${last}`; })();
+$("daydate").textContent = (() => { const p = jstParts(new Date()); const w = { Sun:"日曜日", Mon:"月曜日", Tue:"火曜日", Wed:"水曜日", Thu:"木曜日", Fri:"金曜日", Sat:"土曜日" }[p.weekday]; return `${w} · ${p.year}年${Number(p.month)}月${Number(p.day)}日`; })();
+
+const MCP_COPY = {
+  needs_reauth: "Microsoft 365 の接続が切れています。claude.ai の設定 → コネクタで再接続してください。",
+  server_not_connected: "Microsoft 365 コネクタが見つかりません。claude.ai の設定 → コネクタで追加してください。",
+  selection_required: "Microsoft 365 コネクタが複数あります。使うものを選んでください。",
+  not_in_manifest: "このページには Microsoft 365 の利用が許可されていません。ページの権限設定で許可してください。",
+  approval_required: "承認が必要です。もう一度ボタンを押して、表示されるダイアログで許可してください。",
+  consent_required: "このページが Microsoft 365 を使うことを許可してください。",
+  blocked_by_policy: "組織のポリシーでこの操作は許可されていません。",
+  tool_error: "Microsoft 365 がエラーを返しました。",
+  server_unavailable: "Microsoft 365 に一時的につながりません。少し待って再度お試しください。",
+  not_granted: "このページに Microsoft 365 の利用が許可されていません。",
+};
+function mcpCopy(e) { const c = e && e.code; let m = MCP_COPY[c] || "Microsoft 365 の呼び出しに失敗しました。"; if (c === "tool_error" && e.message) m += " " + trunc(e.message, 160); return m; }
+const SAMPLE_COPY = {
+  not_granted: "このページから Claude を使うことが許可されていません。", sampling_disabled: "このアカウントでは Claude を使えません。",
+  rate_limited: "Claude の利用回数が上限に達しています。しばらくしてからお試しください。", refused: "Claude がこの内容への回答を見送りました。指示を変えてお試しください。",
+  invalid_json: "結果の形式が読めませんでした。もう一度お試しください。", prompt_too_large: "送る内容が大きすぎます。", cancelled: "",
+};
+function sampleCopy(e) { const c = e && e.code; return (c in SAMPLE_COPY) ? SAMPLE_COPY[c] : "Claude の呼び出しに失敗しました。もう一度お試しください。"; }
+
+function setStatus(msg) { $("status").textContent = msg || ""; }
+
+async function mcpCall(tool, input, opts) {
+  if (!S.mcp) throw { code: "not_granted", message: "mcp unavailable" };
+  return S.mcp.callTool(SERVER, tool, input, opts);
+}
+async function mcpItems(tool, input, opts) { return items(await mcpCall(tool, input, opts)); }
+
+// ---------- db ----------
+// Everything is stored under the viewer's own private subtree: data/users/<id>/...
+// Nobody else, the page owner included, can read or write it.
+let UID = null;
+function udoc(name) { return S.db.doc("data/users/" + UID + "/" + name); }
+function tasksCol() { return S.db.doc("data/users/" + UID + "/profile").collection("tasks"); }
+function docBrief() { return udoc("brief"); }
+function docDismissed() { return udoc("dismissed"); }
+function docSettings() { return udoc("settings"); }
+function writeFailed(e) { if (e && e.code === "invalid_argument" && S.canWrite) { S.canWrite = false; renderTasks(); setStatus("このアカウントには保存の権限がありません（共有設定が「閲覧者」のままの可能性があります）。"); } }
+async function saveDismissed() { if (!S.db || !S.canWrite) return; try { await docDismissed().set(S.dismissed); } catch (e) { writeFailed(e); toast("保存できませんでした"); } }
+function isDismissed(kind, id) { return !!(S.dismissed[kind] && S.dismissed[kind][String(id)]); }
+async function dismiss(kind, id) { S.dismissed[kind] = S.dismissed[kind] || {}; S.dismissed[kind][String(id)] = true; renderAll(); await saveDismissed(); }
+
+// ---------- tasks ----------
+function bucketOf(t) {
+  if (t.done) return "done";
+  if (t.due) { if (t.due <= today) return "today"; if (t.due <= weekEnd) return "week"; if (t.due <= monthEnd) return "month"; return "someday"; }
+  return t.scope || "someday";
+}
+async function addTask(title, due, scope, source) {
+  title = (title || "").trim(); if (!title) return;
+  if (!S.db || !S.canWrite) { toast("保存先が使えません（権限がありません）"); return; }
+  const t = { title, due: due || null, scope: scope || "week", done: false, createdAt: new Date().toISOString(), doneAt: null, source: source || null };
+  try { await tasksCol().add(t); toast("やることに追加しました"); } catch (e) { writeFailed(e); toast("追加できませんでした: " + (e.code || "")); }
+}
+async function updateTask(id, patch) { if (!S.db || !S.canWrite) return; try { await tasksCol().doc(id).update(patch); } catch (e) { writeFailed(e); toast("更新できませんでした"); } }
+async function deleteTask(id) { if (!S.db || !S.canWrite) return; try { await tasksCol().doc(id).delete(); } catch (e) { writeFailed(e); toast("削除できませんでした"); } }
+
+function renderTasks() {
+  const groups = { today: [], week: [], month: [], someday: [], done: [] };
+  for (const t of S.tasks) groups[bucketOf(t)].push(t);
+  const order = (a, b) => (a.due || "9999") < (b.due || "9999") ? -1 : (a.due || "9999") > (b.due || "9999") ? 1 : (a.createdAt || "") < (b.createdAt || "") ? -1 : 1;
+  groups.done.sort((a, b) => (b.doneAt || "") < (a.doneAt || "") ? -1 : 1);
+  for (const k of ["today", "week", "month", "someday"]) groups[k].sort(order);
+  for (const k of Object.keys(groups)) {
+    const ul = clear($("t-" + k));
+    $("c-" + k).textContent = groups[k].length ? String(groups[k].length) : "";
+    if (!groups[k].length && k !== "done" && k !== "someday") ul.append(h("li", { class: "muted", text: "なし" }));
+    for (const t of groups[k].slice(0, k === "done" ? 30 : 200)) ul.append(taskRow(t));
+  }
+  const open = S.tasks.filter(t => !t.done).length;
+  updateTabCounts();
+  $("tasks-sub").textContent = !S.db ? "保存されません" : S.canWrite ? "自分だけに見える保存領域に入ります" : "閲覧のみ（追加・編集はできません）";
+}
+function taskRow(t) {
+  const cb = h("input", { type: "checkbox" }); cb.checked = !!t.done;
+  cb.addEventListener("change", () => updateTask(t.id, { done: cb.checked, doneAt: cb.checked ? new Date().toISOString() : null }));
+  const title = h("span", { class: "t" + (t.done ? " done" : ""), text: t.title, title: "クリックで編集" });
+  title.addEventListener("click", () => {
+    const inp = h("input", { type: "text", class: "edit", value: t.title });
+    title.replaceWith(inp); inp.focus();
+    const commit = async () => { const v = inp.value.trim(); if (v && v !== t.title) await updateTask(t.id, { title: v }); inp.replaceWith(title); title.textContent = v || t.title; };
+    inp.addEventListener("blur", commit); inp.addEventListener("keydown", e => { if (e.key === "Enter") inp.blur(); if (e.key === "Escape") { inp.value = t.title; inp.blur(); } });
+  });
+  const due = t.due ? h("span", { class: "due" + (t.due < today && !t.done ? " over" : ""), text: t.due === today ? "今日" : fmtDateJa(t.due) }) : null;
+  const src = t.source && safeHref(t.source.link) ? h("a", { class: "src", href: t.source.link, target: "_blank", rel: "noopener", text: t.source.kind === "mail" ? "✉" : t.source.kind === "teams" ? "💬" : "🔗", title: "元の情報を開く" }) : null;
+  const x = h("button", { class: "x", title: "削除", text: "×", onclick: () => { if (confirm("削除しますか？\n" + t.title)) deleteTask(t.id); } });
+  return h("li", null, cb, title, due, src, S.canWrite ? x : null);
+}
+
+// ---------- calendar / terrain ----------
+function evDate(x) { if (!x || !x.dateTime) return new Date(NaN); const tz = String(x.timeZone || "UTC"); const suf = /tokyo|japan|jst/i.test(tz) ? "+09:00" : "Z"; return new Date(x.dateTime.replace(/\.\d+$/, "") + suf); }
+function evStart(ev) { return evDate(ev.start); }
+function evEnd(ev) { return evDate(ev.end); }
+function evOnDay(ev, y) { return !ev.isCancelled && ymd(evStart(ev)) === y; }
+function calEvents() { return (S.brief && S.brief.calendar) || []; }
+
+function isSiteLocation(loc) { return !!loc && !/会議室|本社|teams|online|オンライン|zoom|web|電話|tel/i.test(loc); }
+function wxLink(loc) { return isSiteLocation(loc) ? h("a", { class: "wx", href: "https://www.google.com/search?q=" + encodeURIComponent("天気 " + loc), target: "_blank", rel: "noopener", text: "天気", title: loc + " の天気を検索" }) : null; }
+function renderCalendar() {
+  const evs = calEvents().filter(e => !e.isCancelled);
+  const todayEvs = evs.filter(e => evOnDay(e, today)).sort((a, b) => evStart(a) - evStart(b));
+  const weekEvs = evs.filter(e => { const y = ymd(evStart(e)); return y > today && y <= addDays(today, 7); }).sort((a, b) => evStart(a) - evStart(b));
+  const fill = (ul, list, withDate) => {
+    clear(ul);
+    for (const e of list) {
+      const tm = e.isAllDay ? "終日" : hm(evStart(e)) + "–" + hm(evEnd(e));
+      ul.append(h("li", null, h("span", { class: "tm", text: (withDate ? fmtDateJa(ymd(evStart(e))) + " " : "") + tm }),
+        h("span", null, link(e.webLink, e.subject || "（件名なし）"), e.location ? h("span", { class: "loc", text: "  " + e.location }) : null, wxLink(e.location))));
+    }
+  };
+  fill($("ev-today"), todayEvs, false); $("ev-today-empty").hidden = todayEvs.length > 0;
+  fill($("ev-week"), weekEvs, true); $("ev-week-empty").hidden = weekEvs.length > 0;
+  $("cal-sub").textContent = S.brief && S.brief.generatedAt ? "" : "更新するとここに予定が入ります";
+  drawTerrain(todayEvs);
+  renderActs(todayEvs);
+  renderMonths();
+}
+function cal2Events() { const list = (S.cal2 && S.cal2.events) || []; return list.length ? list : calEvents(); }
+function monthMeta(ym) { const [y, m] = ym.split("-").map(Number); const first = new Date(Date.UTC(y, m - 1, 1)); const days = new Date(Date.UTC(y, m, 0)).getUTCDate(); return { y, m, days, firstDow: first.getUTCDay() }; }
+function renderMonths() {
+  const box = clear($("months"));
+  const evs = cal2Events().filter(e => !e.isCancelled);
+  const byDay = {}; for (const e of evs) { const d = ymd(evStart(e)); (byDay[d] = byDay[d] || []).push(e); }
+  const [ty, tm] = today.split("-").map(Number);
+  const months = [`${ty}-${String(tm).padStart(2, "0")}`, tm === 12 ? `${ty + 1}-01` : `${ty}-${String(tm + 1).padStart(2, "0")}`];
+  for (const ym of months) {
+    const { y, m, days, firstDow } = monthMeta(ym);
+    const grid = h("div", { class: "grid" });
+    for (const w of ["日", "月", "火", "水", "木", "金", "土"]) grid.append(h("div", { class: "dow", text: w }));
+    for (let i = 0; i < firstDow; i++) grid.append(h("div", { class: "day pad" }));
+    for (let d = 1; d <= days; d++) {
+      const key = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dow = (firstDow + d - 1) % 7;
+      const list = (byDay[key] || []).sort((a, b) => evStart(a) - evStart(b));
+      const cell = h("div", { class: "day" + (dow === 0 ? " sun" : dow === 6 ? " wk" : "") + (key === today ? " today" : "") + (key === S.selDay ? " sel" : ""), onclick: () => { S.selDay = key; renderMonths(); } }, h("div", { class: "n", text: String(d) }));
+      for (const e of list.slice(0, 3)) cell.append(h("div", { class: "ev", text: (e.isAllDay ? "" : hm(evStart(e)) + " ") + e.subject }));
+      if (list.length > 3) cell.append(h("div", { class: "more", text: "+" + (list.length - 3) }));
+      if (list.length) cell.append(h("div", { class: "dots", text: "●".repeat(Math.min(list.length, 4)) }));
+      grid.append(cell);
+    }
+    box.append(h("div", { class: "month" }, h("h3", null, h("span", { text: `${y}年${m}月` }), link("https://outlook.office.com/calendar/view/month", "Outlook で開く")), grid));
+  }
+  const dd = clear($("daydetail"));
+  if (S.selDay) {
+    const list = (byDay[S.selDay] || []).sort((a, b) => evStart(a) - evStart(b));
+    dd.append(h("h3", { text: fmtDateJa(S.selDay) + " の予定" }));
+    if (!list.length) dd.append(h("p", { class: "calm", text: "予定はありません。" }));
+    const ul = h("ul", { class: "evlist" });
+    for (const e of list) ul.append(h("li", null, h("span", { class: "tm", text: e.isAllDay ? "終日" : hm(evStart(e)) + "–" + hm(evEnd(e)) }), h("span", null, link(e.webLink, e.subject || "（件名なし）"), e.location ? h("span", { class: "loc", text: "  " + e.location }) : null, wxLink(e.location))));
+    dd.append(ul);
+    dd.append(h("div", { class: "addrow" }, h("button", { class: "btn small ghost", text: "この日の日報を書く", onclick: () => { setNippoDate(S.selDay); goto("sec-nippo"); } }), h("button", { class: "btn small ghost", text: "この日の会議室を調べる", onclick: () => { $("roomDate").value = S.selDay; checkRooms(); goto("sec-rooms"); } })));
+  }
+  $("cal2-sub").textContent = S.cal2 && S.cal2.generatedAt ? "2か月分は " + fmtWhen(S.cal2.generatedAt) + " 時点。日付をクリックすると詳細が出ます。" : "更新すると 2 か月分の予定が入ります。";
+}
+
+// ---------- weather (written by the morning scheduled task into shared/weather) ----------
+function wmo(code) {
+  const c = Number(code);
+  if (c === 0) return ["☀️", "快晴"]; if (c === 1) return ["🌤️", "晴れ"]; if (c === 2) return ["⛅", "晴れ時々くもり"]; if (c === 3) return ["☁️", "くもり"];
+  if (c === 45 || c === 48) return ["🌫️", "霧"]; if (c >= 51 && c <= 57) return ["🌦️", "霧雨"]; if (c >= 61 && c <= 67) return ["🌧️", "雨"];
+  if (c >= 71 && c <= 77) return ["🌨️", "雪"]; if (c >= 80 && c <= 82) return ["🌦️", "にわか雨"]; if (c === 85 || c === 86) return ["🌨️", "にわか雪"];
+  if (c >= 95) return ["⛈️", "雷雨"]; return ["🌡️", "—"];
+}
+function distKm(a, b) { const R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLon = (b.lon - a.lon) * Math.PI / 180; const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLon / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+function renderWeather() {
+  const row = clear($("wxrow")), meta = clear($("wxmeta"));
+  const w = S.weather;
+  if (!w || !Array.isArray(w.locations) || !w.locations.length) {
+    meta.append(h("span", { text: w && w.error ? "天気を取得できませんでした: " + trunc(String(w.error), 120) : "天気は毎朝の定期タスクが取得します（まだ取得されていません）。" }));
+    meta.append(currentLocationLink()); return;
+  }
+  let locs = w.locations.slice();
+  if (S.geo) locs = locs.map(l => ({ ...l, km: distKm(S.geo, l) })).sort((a, b) => a.km - b.km);
+  locs.forEach((l, i) => {
+    const card = h("div", { class: "wxcard" + (S.geo && i === 0 ? " near" : "") }, h("div", { class: "nm" }, h("span", { text: l.name }), l.km != null ? h("span", { class: "dist", text: (l.km < 1 ? "現在地" : "約 " + Math.round(l.km) + " km") }) : null));
+    const days = h("div", { class: "wxdays" });
+    for (const d of (l.days || []).slice(0, 3)) {
+      const [ic, label] = wmo(d.code);
+      days.append(h("div", { class: "wxday", title: label }, h("div", { class: "d", text: d.date === today ? "今日" : d.date === addDays(today, 1) ? "明日" : fmtDateJa(d.date) }), h("div", { class: "ic", text: ic }), h("div", { class: "t", text: `${Math.round(d.tmax)}° / ${Math.round(d.tmin)}°` }), h("div", { class: "pp", text: d.pop != null ? "降水 " + Math.round(d.pop) + "%" : "" })));
+    }
+    card.append(days); row.append(card);
+  });
+  meta.append(h("span", { text: (w.source || "Open-Meteo") + "　" + (w.updatedAt ? fmtWhen(w.updatedAt) + " 取得" : "") }));
+  meta.append(h("button", { class: "btn small ghost", text: S.geo ? "現在地に近い順で表示中" : "現在地に近い順にする", onclick: locateMe }));
+  meta.append(currentLocationLink());
+}
+function currentLocationLink() { if (S.geo) return h("a", { href: `https://weather.com/ja-JP/weather/today/l/${S.geo.lat.toFixed(4)},${S.geo.lon.toFixed(4)}`, target: "_blank", rel: "noopener", text: "現在地の天気を開く" }); return h("a", { href: "https://www.google.com/search?q=" + encodeURIComponent("天気"), target: "_blank", rel: "noopener", text: "現在地の天気を検索" }); }
+function locateMe() {
+  if (!navigator.geolocation) { toast("この環境では位置情報を使えません。"); return; }
+  navigator.geolocation.getCurrentPosition(pos => { S.geo = { lat: pos.coords.latitude, lon: pos.coords.longitude }; renderWeather(); toast("現在地を取得しました"); }, err => { toast("位置情報を取得できませんでした（" + (err.code === 1 ? "許可されていません" : "取得失敗") + "）。ブラウザの位置情報の許可を確認してください。"); }, { timeout: 10000, maximumAge: 600000 });
+}
+function wxConfigText() { const c = S.weatherConfig && Array.isArray(S.weatherConfig.locations) ? S.weatherConfig.locations : []; return c.map(l => `${l.name} | ${l.lat} | ${l.lon}`).join("\n"); }
+async function saveWxConfig(text) {
+  const locations = text.split(/\n/).map(l => l.split("|").map(x => x.trim())).filter(a => a.length >= 3 && a[0] && isFinite(Number(a[1])) && isFinite(Number(a[2]))).map(a => ({ name: a[0], lat: Number(a[1]), lon: Number(a[2]) }));
+  if (text.trim() === wxConfigText().trim()) return;
+  if (!S.db) return;
+  try { await S.db.doc("shared/weather_config").set({ locations, updatedAt: new Date().toISOString() }); } catch (e) { toast("天気の地点は編集権限のある人だけが変更できます。"); }
+}
+
+// ---------- rooms ----------
+function roomsFromSettings() { return (S.settings.rooms || "").split(/\n/).map(l => l.split("|").map(x => x.trim())).filter(a => a.length >= 2 && /@/.test(a[1])).map(a => ({ name: a[0], email: a[1] })); }
+async function checkRooms() {
+  const box = clear($("rooms")); const date = $("roomDate").value || today;
+  const rooms = roomsFromSettings();
+  if (!rooms.length) { box.append(h("p", { class: "calm", text: "「設定」で会議室の名前とメールアドレスを登録してください。" })); return; }
+  if (!S.mcp) { box.append(h("p", { class: "err", text: "Microsoft 365 をこのページから読めません。" })); return; }
+  $("roomStatus").textContent = fmtDateJa(date) + " を調べています…";
+  const startUTC = new Date(jstISO(date, "08:00:00")).toISOString().replace(/\.\d+Z$/, "Z"), endUTC = new Date(jstISO(date, "19:00:00")).toISOString().replace(/\.\d+Z$/, "Z");
+  const hours = h("div", { class: "hours" }); for (let hh = 8; hh <= 18; hh++) hours.append(h("span", { text: hh + ":00" })); box.append(hours);
+  const results = await Promise.all(rooms.map(async (room) => {
+    try { const r = await mcpCall("outlook_find_available_time", { afterDateTime: startUTC, beforeDateTime: endUTC, durationMinutes: 30, maxCandidates: 50, isOrganizerOptional: true, participants: [room.email] }, { cache: { staleTime: 120000 } }); return { room, data: blocks(r)[0] || {} }; }
+    catch (e) { return { room, error: e }; }
+  }));
+  for (const { room, data, error } of results) {
+    const row = h("div", { class: "roomrow" }, h("span", { class: "name", text: room.name }));
+    if (error) { row.append(h("span", { class: "err", text: mcpCopy(error) })); box.append(row); continue; }
+    const unknown = (Array.isArray(data.unavailableParticipants) && data.unavailableParticipants.some(x => String(x).toLowerCase() === room.email.toLowerCase()))
+      || (data.availableTimes || []).some(sl => (sl.attendeeAvailability || []).some(a => String(a.email).toLowerCase() === room.email.toLowerCase() && a.availability === "unknown"));
+    const slots = (data.availableTimes || []).map(sl => ({ s: evDate(sl.start).getTime(), e: evDate(sl.end).getTime() })).filter(x => !isNaN(x.s));
+    const cells = h("div", { class: "cells" });
+    const base = new Date(jstISO(date, "08:00:00")).getTime();
+    let freeCount = 0;
+    for (let i = 0; i < 22; i++) {
+      const cs = base + i * 1800000, ce = cs + 1800000;
+      const free = slots.some(x => x.s <= cs && x.e >= ce);
+      if (free) freeCount++;
+      cells.append(h("div", { class: "c" + (unknown ? " unknown" : free ? " free" : ""), title: `${hm(new Date(cs))}–${hm(new Date(ce))} ${unknown ? "不明" : free ? "空き" : "予約あり"}` }));
+    }
+    row.append(h("div", null, cells, h("div", { class: "muted", text: unknown ? "この部屋の予定表は読めませんでした（権限がないか、アドレスが違います）" : freeCount === 22 ? "終日空いています" : freeCount === 0 ? "空きがありません" : "" })));
+    box.append(row);
+  }
+  box.append(h("p", { class: "muted", text: "緑が空き、灰色が予約あり。予約は Outlook から行ってください。" }));
+  $("roomStatus").textContent = "";
+}
+function drawTerrain(evs) {
+  const svg = clear($("terrain"));
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+  const X = (min) => Math.max(0, Math.min(840, (min - 7 * 60) / (13 * 60) * 840));
+  const bumps = [];
+  for (const e of evs) { if (e.isAllDay) continue; const s = minutesOf(evStart(e)), en = minutesOf(evEnd(e)); const dur = Math.max(15, en - s); bumps.push({ xc: X((s + en) / 2), w: Math.max(26, (dur / (13 * 60)) * 840 / 2), hgt: Math.min(72, 18 + dur / 5), dur }); }
+  const y = (x) => { let v = 118; for (const b of bumps) v -= b.hgt * Math.exp(-(((x - b.xc) / b.w) ** 2)); return v; };
+  let d = "";
+  for (let x = 0; x <= 840; x += 4) d += (x ? " L" : "M") + x + " " + y(x).toFixed(1);
+  if (!bumps.length) d = "M0 118 C 70 118, 110 121, 180 119 S 300 116, 380 118 S 520 121, 600 119 S 760 116, 840 118";
+  svg.append(mk("path", { d, fill: "none", stroke: "var(--ink)", "stroke-width": "2", "stroke-linecap": "round" }));
+  for (const b of bumps) svg.append(mk("circle", { cx: b.xc.toFixed(1), cy: y(b.xc).toFixed(1), r: String(6 + Math.min(7, b.dur / 30)), fill: "var(--ink)" }));
+  if (!bumps.length) {
+    const birds = mk("g", { fill: "none", stroke: "var(--ink)", "stroke-width": "1.6", "stroke-linecap": "round" });
+    birds.append(mk("path", { d: "M684 52 q6 -7 12 0 q6 -7 12 0" })); birds.append(mk("path", { d: "M712 40 q5 -6 10 0 q5 -6 10 0" }));
+    svg.append(birds);
+  }
+}
+function renderActs(evs) {
+  const acts = (S.brief && Array.isArray(S.brief.acts) && S.brief.acts.length === 3) ? S.brief.acts : null;
+  const win = [[9 * 60, 12 * 60, "9:00 – 12:00"], [12 * 60, 15 * 60, "12:00 – 15:00"], [15 * 60, 24 * 60, "15:00 以降"]];
+  const box = clear($("acts"));
+  win.forEach(([a, b, label], i) => {
+    let s;
+    if (acts) s = String(acts[i] || "");
+    else { const inWin = evs.filter(e => !e.isAllDay && minutesOf(evStart(e)) < b && minutesOf(evEnd(e)) > a); s = inWin.length ? inWin.map(e => e.subject).join("、") : "予定はありません。"; }
+    box.append(h("div", { class: "act" }, h("span", { class: "time", text: label }), h("p", { text: s })));
+  });
+}
+
+// ---------- gather + classify ----------
+function bulkWords() { const w = (S.settings.bulkWords || "newsletter,no-reply,noreply,marketing,seminar,info@,news,notification,mailer,bizinfo,campaign").split(",").map(s => s.trim().toLowerCase()).filter(Boolean); return w; }
+function looksBulk(m) {
+  const s = ((m.sender || "") + " " + (m.senderName || "")).toLowerCase();
+  if (/承認依頼|承認のお願い|承認待ち|決裁/.test(m.subject || "")) return false;
+  if (bulkWords().some(w => s.includes(w))) return true;
+  if (/teams\.mail\.microsoft|office365alerts|sharepointonline|azure-noreply/.test(s)) return true;
+  const subj = m.subject || "";
+  if (/承認依頼|承認のお願い|承認待ち|決裁/.test(subj)) return false;
+  if (/【.*(セミナー|ウェビナー|開催|配信|無料|ご案内|キャンペーン).*】/.test(subj)) return true;
+  return false;
+}
+function compactMail(m) {
+  return { id: m.id, subject: m.subject || "", sender: m.sender || "", senderName: m.senderName || "", recipients: (m.recipients || []).slice(0, 6), received: m.receivedDateTime || m.sentDateTime || "", isRead: !!m.isRead, summary: trunc(m.summary || "", 280), webLink: m.webLink || "", hasAttachments: !!m.hasAttachments };
+}
+function compactChat(c) {
+  return { id: c.id, chatId: c.chatId || "", channel: !!c.channelUri, subject: c.subject || "", from: (c.from && c.from.displayName) || "", fromEmail: (c.from && c.from.email) || "", created: c.createdDateTime || "", summary: trunc(c.summary || "", 280), webUrl: c.webUrl || "" };
+}
+function compactEvent(e) {
+  return { id: e.id, uri: e.uri || "", subject: e.subject || "", start: e.start, end: e.end, location: e.location || "", isAllDay: !!e.isAllDay, isCancelled: !!e.isCancelled, isOrganizer: !!e.isOrganizer, organizerName: e.organizerName || "", attendees: (e.namedAttendees || []).map(a => a.name).slice(0, 12), summary: trunc(e.summary || "", 240), webLink: e.webLink || "" };
+}
+function compactFile(f) { return { id: f.id, name: f.name || "", webUrl: f.webUrl || "", modified: f.lastModifiedDateTime || "", summary: trunc(f.summary || "", 120) }; }
+
+function fingerprint(b) { return [...(b.inbox || []).map(m => m.id), ...(b.chats || []).map(c => c.id), ...(b.calendar || []).map(e => e.id + ":" + (e.start && e.start.dateTime))].join("|"); }
+let refreshing = false, lastRefreshAt = 0, autoTimer = null;
+async function refreshAll(opts) {
+  opts = opts || {};
+  if (!S.mcp) { if (!opts.auto) toast("Microsoft 365 をこのページから読めません。claude.ai で開いてください。"); return; }
+  if (refreshing) return; refreshing = true;
+  const btn = $("btnRefresh"); btn.disabled = true; $("banner").hidden = true;
+  const errors = [];
+  const brief = { generatedAt: new Date().toISOString(), calendar: [], inbox: [], sent: [], chats: [], files: [], cls: null };
+  const prev = prevBizDay(today), next = nextBizDay(today);
+  const step = async (label, fn) => { setStatus(label + "…"); try { return await fn(); } catch (e) { errors.push(label + ": " + mcpCopy(e)); return null; } };
+
+  try {
+    if (!S.me) await step("ユーザー情報を確認", async () => { const r = await mcpCall("get_me", {}); const p = blocks(r)[0]; if (p && p.mail) S.me = { mail: String(p.mail).toLowerCase(), name: p.displayName || "" }; });
+    const cal = await step("予定表を読み込み", () => mcpItems("outlook_calendar_search", { query: "*", afterDateTime: jstISO(prev), beforeDateTime: jstISO(addDays(today, 8)), order: "oldest", limit: 25 }, { cache: { staleTime: 60000 } }));
+    if (cal) brief.calendar = cal.map(compactEvent);
+    const days = Number(S.settings.mailDays) || 3; const since = jstISO(addDays(today, -days));
+    const inbox1 = await step("受信メールを読み込み", () => mcpItems("outlook_email_search", { order: "newest", afterDateTime: since, limit: 25 }, { cache: { staleTime: 60000 } }));
+    let inbox = inbox1 || [];
+    if (inbox1 && inbox1.length === 25) { const more = await step("受信メール（続き）", () => mcpItems("outlook_email_search", { order: "newest", afterDateTime: since, limit: 25, offset: 25 }, { cache: { staleTime: 60000 } })); if (more) inbox = inbox.concat(more); }
+    brief.inbox = inbox.map(compactMail);
+    const sent = await step("送信済みメールを読み込み", () => mcpItems("outlook_email_search", { folderName: "Sent Items", order: "newest", limit: 25 }, { cache: { staleTime: 60000 } }));
+    if (sent) brief.sent = sent.filter(m => (m.sentDateTime || "") >= jstISO(addDays(today, -10))).map(compactMail);
+    const chats1 = await step("Teams を読み込み", () => mcpItems("chat_message_search", { query: "*", afterDateTime: since, limit: 25 }, { cache: { staleTime: 60000 } }));
+    let chats = chats1 || [];
+    if (chats1 && chats1.length === 25) { const more = await step("Teams（続き）", () => mcpItems("chat_message_search", { query: "*", afterDateTime: since, limit: 25, offset: 25 }, { cache: { staleTime: 60000 } })); if (more) chats = chats.concat(more); }
+    brief.chats = chats.map(compactChat);
+    const files = await step("SharePoint を確認", () => mcpItems("sharepoint_search", { query: "*", afterDateTime: jstISO(prev), limit: 25 }, { cache: { staleTime: 60000 } }));
+    if (files) brief.files = files.map(compactFile);
+
+    // two-month calendar (this month + next), paged
+    const cal2Fresh = opts.auto && S.cal2 && S.cal2.generatedAt && (Date.now() - new Date(S.cal2.generatedAt).getTime()) < 3600000;
+    const c2 = cal2Fresh ? null : await step("2か月分の予定表を読み込み", async () => {
+      const from = today.slice(0, 8) + "01"; const to = addDays(nextMonthEnd(), 1); let all = []; let off = 0;
+      for (let i = 0; i < 10; i++) { const page = await mcpItems("outlook_calendar_search", { query: "*", afterDateTime: jstISO(from), beforeDateTime: jstISO(to), order: "oldest", limit: 25, offset: off }, { cache: { staleTime: 60000 } }); all = all.concat(page); if (page.length < 25) break; off += 25; }
+      return all;
+    });
+    if (c2) { S.cal2 = { generatedAt: brief.generatedAt, events: c2.map(e => ({ id: e.id, subject: e.subject || "", start: e.start, end: e.end, isAllDay: !!e.isAllDay, isCancelled: !!e.isCancelled, location: e.location || "", webLink: e.webLink || "" })) }; if (S.db && S.canWrite) { try { await udoc("calendar2").set(S.cal2); } catch (e) { writeFailed(e); } } }
+
+    // classification by Claude (skipped on auto refresh when nothing changed)
+    brief.fp = fingerprint(brief);
+    const unchanged = opts.auto && S.brief && S.brief.cls && S.brief.fp === brief.fp;
+    const cap = Number(S.settings.clsCap != null ? S.settings.clsCap : 2);
+    const recent = ((S.brief && S.brief.clsTimes) || []).filter(t => Date.now() - new Date(t).getTime() < 3600000);
+    brief.clsTimes = recent;
+    const capped = opts.auto && cap > 0 && recent.length >= cap && S.brief && S.brief.cls;
+    if (unchanged || capped) { brief.cls = S.brief.cls; brief.generatedAt = S.brief.generatedAt; brief.checkedAt = new Date().toISOString(); if (capped && !unchanged) errors.push(`新着がありますが、自動更新での仕分けは 1 時間に ${cap} 回までの設定なので見送りました（「更新する」を押せばすぐ仕分けます）。`); }
+    else if (S.sample) {
+      setStatus("Claude が仕分け中…（30秒ほど）");
+      try { brief.cls = await classify(brief, prev, next); brief.clsTimes = recent.concat([new Date().toISOString()]); }
+      catch (e) { if (e.code !== "cancelled") errors.push("仕分け: " + sampleCopy(e)); if (S.brief && S.brief.cls) brief.cls = S.brief.cls; }
+    } else errors.push("このページから Claude を使えないため、仕分けは行っていません。");
+    brief.acts = brief.cls && brief.cls.acts || null;
+    S.brief = brief;
+    if (S.db && S.canWrite) { try { await docBrief().set(brief); } catch (e) { writeFailed(e); errors.push("保存: この画面の結果は保存されませんでした（" + (e.code || "") + "）"); } }
+    renderAll();
+    lastRefreshAt = Date.now();
+    setStatus((errors.length ? "更新しましたが一部失敗しました。" : "更新しました（" + hm(new Date()) + "）") + autoLabel());
+    if (roomsFromSettings().length) { try { await checkRooms(); } catch (e) {} }
+    if (errors.length) { const b = clear($("banner")); b.hidden = false; for (const m of errors) b.append(h("div", { text: m })); }
+  } finally { btn.disabled = false; refreshing = false; }
+}
+function autoMin() { const v = S.settings.autoMin; return v == null ? 10 : Number(v) || 0; }
+function autoLabel() { const m = autoMin(); return m ? `　自動更新 ${m} 分ごと` : ""; }
+function scheduleAuto() {
+  if (autoTimer) clearInterval(autoTimer);
+  autoTimer = setInterval(() => { const m = autoMin(); if (!m || !S.mcp || refreshing || document.hidden) return; if (Date.now() - lastRefreshAt >= m * 60000) refreshAll({ auto: true }); }, 30000);
+}
+document.addEventListener("visibilitychange", () => { const m = autoMin(); if (!document.hidden && m && S.mcp && !refreshing && Date.now() - lastRefreshAt >= m * 60000) refreshAll({ auto: true }); });
+
+async function classify(brief, prev, next) {
+  const me = S.me || {};
+  const myName = (S.settings.name || me.name || "").trim();
+  const inbox = brief.inbox.filter(m => !looksBulk(m)).slice(0, 45).map(m => ({ id: m.id, from: m.senderName || m.sender, fromAddr: m.sender, to: m.recipients, at: m.received, subject: m.subject, text: m.summary, read: m.isRead }));
+  const sent = brief.sent.slice(0, 25).map(m => ({ id: m.id, to: m.recipients, at: m.received, subject: m.subject, text: m.summary }));
+  const chats = brief.chats.filter(c => !/teams\.microsoft\.com$/.test(c.fromEmail)).slice(0, 60).map(c => ({ id: c.id, chat: c.chatId.slice(-12), channel: c.channel, from: c.from, me: !!(me.mail && c.fromEmail.toLowerCase() === me.mail), at: c.created, text: c.summary }));
+  const cal = brief.calendar.map(e => ({ id: e.id, subject: e.subject, start: e.start && e.start.dateTime, end: e.end && e.end.dateTime, tz: (e.start && e.start.timeZone) || "UTC", location: e.location, organizer: e.isOrganizer, attendees: e.attendees, note: e.summary, allDay: e.isAllDay, cancelled: e.isCancelled }));
+  const dowJa = (d) => ["日", "月", "火", "水", "木", "金", "土"][dowJST(new Date(d + "T12:00:00+09:00"))] + "曜日";
+  const week = Array.from({ length: 8 }, (_, i) => { const d = addDays(today, i); return `${d}（${dowJa(d)}）`; }).join("、");
+  const prompt = `あなたは「${myName || "私"}」の秘書です。以下は私の Microsoft 365 から取得した最近のデータです（JSON）。
+今日は ${today}（${dowJa(today)}、日本時間）です。曜日は必ずこの表記に従い、自分で計算しないこと。今日から 1 週間の日付と曜日: ${week}。
+前の営業日は ${prev}（${dowJa(prev)}）、次の営業日は ${next}（${dowJa(next)}）。
+祝日や連休は、データ（予定表）に書かれていない限り言及しないこと。予定の時刻は各予定の tz（UTC なら日本時間に +9 時間）で解釈してください。
+
+このデータを読んで、次の JSON だけを返してください（説明文は不要）:
+{
+ "headline": "今日の一日を友人のように一文で言い表した日本語の見出し（${myName ? "「" + myName + "」と呼びかける" : "呼びかけなし"}。予定の多さや、今日だけの特別な出来事を一つだけ言う。命令・励まし・謝罪はしない）",
+ "acts": ["9:00–12:00 の様子を予定表に基づき一文で", "12:00–15:00 を一文で", "15:00 以降を一文で（明日の予定にも触れてよい）"],
+ "mail_reply": [{"id": "受信メールの id", "ask": "相手が私に何を求めているか（短く、相手の言葉を一言引用してもよい）", "why": "今日見るべき理由"}],
+ "mail_fyi": [{"id": "受信メールの id", "note": "一言の要約"}],
+ "waiting": [{"id": "送信メールの id", "to": "相手", "what": "何の返事を待っているか", "sinceDays": 日数}],
+ "teams": [{"id": "チャットメッセージの id", "who": "送った人", "ask": "私に何を求めているか"}],
+ "prep": [{"eventId": "次の営業日の予定の id", "note": "事前に読む・決める・用意しておくと良いこと（具体的に）"}]
+}
+
+判断の基準:
+- mail_reply: 私（宛先に自分が含まれる）に返事や行動を求めていて、私がまだ送信済みメールで返していないもの。経費精算などの「承認依頼」は入れて ask を「承認する」とする。メルマガ・セミナー案内・自動通知・単なる共有は入れない。
+- mail_fyi: 人からのメールで、返事は要らないが知っておくべきもの。案内メールは入れない。
+- waiting: 私が送ったメールのうち、相手に回答や資料を求めていて、受信メールに相手からの返事が見当たらないもの。
+- teams: 私宛（1対1、または私の名前を呼んでいる、または私が担当だと分かる）質問・依頼で、その後に私（me:true）の返信が同じ chat にないもの。全員向けの一斉連絡や単なる報告は入れない。
+- prep: 次の営業日の予定のうち、準備が意味を持つもの。なければ空配列。
+- 該当がなければ空配列。id は必ずデータ内のものをそのまま使う。
+
+データ:
+${JSON.stringify({ inbox, sent, chats, calendar: cal })}`;
+  const r = await S.sample.json(prompt, { modelTier: "default", cache: false });
+  if (!r || typeof r !== "object") throw { code: "invalid_json", message: "no object" };
+  for (const k of ["mail_reply", "mail_fyi", "waiting", "teams", "prep"]) r[k] = Array.isArray(r[k]) ? r[k].filter(x => x && typeof x === "object").map(x => ({ ...x, id: x.id != null ? String(x.id) : undefined, eventId: x.eventId != null ? String(x.eventId) : undefined })) : [];
+  if (!Array.isArray(r.acts) || r.acts.length !== 3) r.acts = null;
+  return r;
+}
+
+// ---------- render: mail / teams / waiting ----------
+function mailById(id) { id = String(id); return (S.brief && S.brief.inbox || []).find(m => String(m.id) === id); }
+function sentById(id) { id = String(id); return (S.brief && S.brief.sent || []).find(m => String(m.id) === id); }
+function chatById(id) { id = String(id); return (S.brief && S.brief.chats || []).find(c => String(c.id) === id); }
+function evById(id) { id = String(id); return calEvents().find(e => String(e.id) === id); }
+
+function renderMail() {
+  const cls = S.brief && S.brief.cls || {};
+  const inbox = S.brief && S.brief.inbox || [];
+  const reply = (cls.mail_reply || []).map(x => ({ ...x, m: mailById(x.id) })).filter(x => x.m && !isDismissed("mail", x.id));
+  const fyi = (cls.mail_fyi || []).map(x => ({ ...x, m: mailById(x.id) })).filter(x => x.m && !isDismissed("mail", x.id));
+  const classified = new Set([...(cls.mail_reply || []), ...(cls.mail_fyi || [])].map(x => String(x.id)));
+  const bulk = inbox.filter(m => !classified.has(String(m.id)));
+  const approval = inbox.filter(m => APPROVAL_RE.test(m.subject || "") && !isDismissed("mail", m.id));
+  $("mc-reply").textContent = reply.length || ""; $("mc-fyi").textContent = fyi.length || ""; $("mc-bulk").textContent = bulk.length || ""; $("mc-approval").textContent = approval.length || "";
+  for (const x of $("mailTabs").querySelectorAll("button")) x.classList.toggle("on", x.dataset.tab === S.mailTab);
+
+  $("mail-sub").textContent = S.brief && S.brief.generatedAt ? "直近" + (Number(S.settings.mailDays) || 3) + "日分、" + fmtWhen(S.brief.generatedAt) + " 時点" : "更新するとここに仕分け結果が入ります";
+  const box = clear($("mailList"));
+  if (S.mailTab === "reply") { if (!reply.length) box.append(h("p", { class: "calm", text: S.brief ? "返事を待っているメールはありません。" : "" })); for (const x of reply) box.append(mailCard(x.m, x.ask, x.why, true)); }
+  if (S.mailTab === "approval") { if (!approval.length) box.append(h("p", { class: "calm", text: "承認待ちはありません。" })); for (const m of approval) { const c = mailCard(m, approvalSystem(m) + " の承認依頼", "", false); box.append(c); } }
+  if (S.mailTab === "fyi") { if (!fyi.length) box.append(h("p", { class: "calm", text: "読むだけのメールはありません。" })); for (const x of fyi) box.append(mailCard(x.m, x.note, "", false)); }
+  if (S.mailTab === "bulk") { if (!bulk.length) box.append(h("p", { class: "calm", text: "なし" })); for (const m of bulk.slice(0, 60)) box.append(mailCard(m, "", "", false)); }
+}
+function mailCard(m, ask, why, replyable) {
+  const card = h("div", { class: "card" },
+    h("div", { class: "head" }, h("span", { class: "who", text: m.senderName || m.sender }), h("span", { class: "when", text: fmtWhen(m.received) })),
+    h("div", { class: "subj" }, link(m.webLink, m.subject || "（件名なし）")),
+    ask ? h("p", { class: "ask" }, h("b", { text: replyable ? "求められていること: " : "" }), ask, why ? h("span", { class: "muted", text: "　" + why }) : null) : null,
+    h("p", { class: "muted", text: trunc(m.summary, 160) }));
+  const actions = h("div", { class: "actions" });
+  if (S.sample) actions.append(h("button", { class: "btn small" + (replyable ? "" : " ghost"), text: "返信を下書き", onclick: () => toggleDraftPanel(card, m, replyable ? ask : "") }));
+  actions.append(h("button", { class: "btn small ghost", text: "やることに追加", onclick: () => addTask("返信: " + (m.subject || m.senderName), today, "today", { kind: "mail", link: m.webLink, id: m.id }) }));
+  actions.append(h("button", { class: "btn small ghost", text: "対応済み", onclick: () => dismiss("mail", m.id) }));
+  card.append(actions);
+  return card;
+}
+
+function renderTeams() {
+  const cls = S.brief && S.brief.cls || {};
+  const list = (cls.teams || []).map(x => ({ ...x, c: chatById(x.id) })).filter(x => x.c && !isDismissed("teams", x.id));
+
+  const box = clear($("teamsList"));
+  if (!list.length) { box.append(h("p", { class: "calm", text: S.brief ? "返事がまだの Teams メッセージはありません。" : "更新するとここに入ります。" })); return; }
+  for (const x of list) {
+    const c = x.c;
+    const card = h("div", { class: "card" },
+      h("div", { class: "head" }, h("span", { class: "who", text: x.who || c.from }), h("span", { class: "when", text: fmtWhen(c.created) })),
+      c.subject ? h("div", { class: "subj", text: c.subject }) : null,
+      h("p", { class: "ask" }, h("b", { text: "求められていること: " }), x.ask || ""),
+      h("p", { class: "muted", text: trunc(c.summary, 200) }),
+      h("div", { class: "links" }, link(c.webUrl, "Teams で開く")));
+    const actions = h("div", { class: "actions" });
+    if (S.sample) actions.append(h("button", { class: "btn small", text: "返信案を作る", onclick: () => toggleChatReplyPanel(card, c, x.ask) }));
+    actions.append(h("button", { class: "btn small ghost", text: "やることに追加", onclick: () => addTask("Teams 返信: " + (x.who || c.from) + " " + trunc(x.ask || c.summary, 30), today, "today", { kind: "teams", link: c.webUrl, id: c.id }) }));
+    actions.append(h("button", { class: "btn small ghost", text: "対応済み", onclick: () => dismiss("teams", c.id) }));
+    card.append(actions); box.append(card);
+  }
+}
+function renderWaiting() {
+  const cls = S.brief && S.brief.cls || {};
+  const list = (cls.waiting || []).map(x => ({ ...x, m: sentById(x.id) })).filter(x => x.m && !isDismissed("waiting", x.id));
+
+  const box = clear($("waitingList"));
+  if (!list.length) { box.append(h("p", { class: "calm", text: S.brief ? "返事待ちのものはありません。" : "更新するとここに入ります。" })); return; }
+  for (const x of list) {
+    const m = x.m;
+    const card = h("div", { class: "card" },
+      h("div", { class: "head" }, h("span", { class: "who", text: x.to || (m.recipients || []).join(", ") }), h("span", { class: "when", text: fmtWhen(m.received) + (x.sinceDays ? "（" + x.sinceDays + "日）" : "") })),
+      h("div", { class: "subj" }, link(m.webLink, m.subject || "（件名なし）")),
+      h("p", { class: "ask" }, h("b", { text: "待っているもの: " }), x.what || ""));
+    const actions = h("div", { class: "actions" });
+    if (S.sample) actions.append(h("button", { class: "btn small", text: "催促の文面を作る", onclick: () => toggleRemindPanel(card, m, x.what) }));
+    actions.append(h("button", { class: "btn small ghost", text: "やることに追加", onclick: () => addTask("催促: " + (m.subject || x.to), addDays(today, 1), "week", { kind: "mail", link: m.webLink, id: m.id }) }));
+    actions.append(h("button", { class: "btn small ghost", text: "対応済み", onclick: () => dismiss("waiting", m.id) }));
+    card.append(actions); box.append(card);
+  }
+}
+
+// ---------- drafting panels ----------
+function signatureBlock() { const s = (S.settings.signature || "").trim(); return s ? "\n\n" + s : ""; }
+function makePanel() {
+  const p = h("div", { class: "panel" });
+  const instr = h("input", { type: "text", placeholder: "指示（任意）例: 承諾して11/10で確定する／丁寧に断る／要点を3つに絞る" });
+  const tone = h("select", null, h("option", { value: "丁寧", text: "丁寧" }), h("option", { value: "簡潔", text: "簡潔" }), h("option", { value: "社内向けのくだけた調子", text: "社内向け" }));
+  const ta = h("textarea", { placeholder: "ここに下書きが入ります。自由に編集できます。" });
+  const status = h("div", { class: "status" });
+  const row1 = h("div", { class: "row" }, instr, tone);
+  const row2 = h("div", { class: "row" });
+  p.append(row1, row2, ta, status);
+  return { p, instr, tone, ta, status, row2 };
+}
+async function runSample(prompt, ta, status, opts) {
+  const ctl = new AbortController();
+  status.textContent = "Claude が考えています…";
+  const stop = h("button", { class: "btn small ghost", text: "停止", onclick: () => ctl.abort() });
+  status.append(" ", stop);
+  try {
+    const r = await S.sample(prompt, { signal: ctl.signal, cache: false, modelTier: (opts && opts.tier) || "default", onText: ({ text }) => { ta.value = text; } });
+    ta.value = r.text; status.textContent = r.truncated ? "長すぎて途中で切れました。" : "できました。内容を確認して編集してください。";
+    return r.text;
+  } catch (e) { status.textContent = e.code === "cancelled" ? "停止しました。" : sampleCopy(e); if (e.text) ta.value = e.text; return null; }
+}
+async function fetchMailBody(m) {
+  try { const r = await mcpCall("read_resource", { uri: "mail:///messages/" + encodeURIComponent(m.id) }, { cache: { staleTime: 600000 } }); const d = blocks(r)[0] || {}; const body = d.body && d.body.contentType === "html" ? htmlToText(d.body.content) : (d.body && d.body.content) || d.bodyPreview || m.summary; return trunc(body, 7000); }
+  catch (e) { return m.summary || ""; }
+}
+function toggleDraftPanel(card, m, ask) {
+  const old = card.querySelector(".panel"); if (old) { old.remove(); return; }
+  const { p, instr, tone, ta, status, row2 } = makePanel();
+  const gen = h("button", { class: "btn small", text: "下書きを作る" });
+  const proof = h("button", { class: "btn small ghost", text: "校正する" });
+  const save = h("button", { class: "btn small ghost", text: "Outlook に下書き保存" });
+  const copy = h("button", { class: "btn small ghost", text: "コピー" });
+  row2.append(gen, proof, save, copy);
+  gen.onclick = async () => {
+    gen.disabled = true; status.textContent = "元のメールを読んでいます…";
+    const body = await fetchMailBody(m);
+    const prompt = `次の受信メールへの返信を、日本語のビジネスメールとして書いてください。${S.me && S.me.name ? "差出人（私）は " + S.me.name + " です。" : ""}
+調子: ${tone.value}。${instr.value.trim() ? "指示: " + instr.value.trim() : ""}
+${ask ? "相手の依頼の要点: " + ask : ""}
+宛名から始め、本文、結びまで。件名や署名は書かない。返信文だけを出力する。相手に無い事実を作らない。決めかねる点は【要確認】と書く。
+
+--- 受信メール ---
+差出人: ${m.senderName || ""} <${m.sender || ""}>
+件名: ${m.subject || ""}
+本文:
+${body}`;
+    const t = await runSample(prompt, ta, status);
+    if (t != null) ta.value = t + signatureBlock();
+    gen.disabled = false;
+  };
+  proof.onclick = () => proofreadInto(ta, status);
+  save.onclick = async () => {
+    if (!ta.value.trim()) { status.textContent = "下書きが空です。"; return; }
+    save.disabled = true; status.textContent = "Outlook に保存しています…";
+    try {
+      const r = await mcpCall("outlook_create_reply_draft", { messageId: m.id, body: textToHtml(ta.value), bodyType: "html" }, { cache: false });
+      const d = blocks(r)[0] || {};
+      status.textContent = "Outlook の下書きに保存しました。"; status.append(" ", link(d.webLink, "下書きを開く"));
+    } catch (e) { status.textContent = "保存できませんでした: " + mcpCopy(e) + "（文面をコピーして Outlook に貼り付けてください）"; }
+    finally { save.disabled = false; }
+  };
+  copy.onclick = () => copyText(ta.value);
+  card.append(p);
+}
+function toggleChatReplyPanel(card, c, ask) {
+  const old = card.querySelector(".panel"); if (old) { old.remove(); return; }
+  const { p, instr, tone, ta, status, row2 } = makePanel();
+  tone.value = "社内向けのくだけた調子";
+  const gen = h("button", { class: "btn small", text: "返信案を作る" });
+  const copy = h("button", { class: "btn small ghost", text: "コピー" });
+  row2.append(gen, copy);
+  gen.onclick = async () => {
+    gen.disabled = true;
+    const thread = (S.brief.chats || []).filter(x => x.chatId === c.chatId).sort((a, b) => a.created < b.created ? -1 : 1).slice(-12).map(x => `${x.from}${S.me && x.fromEmail.toLowerCase() === S.me.mail ? "（私）" : ""} [${fmtWhen(x.created)}]: ${x.summary}`).join("\n");
+    const prompt = `Teams のチャットへの返信文を日本語で書いてください。調子: ${tone.value}。短く、チャットらしく。${instr.value.trim() ? "指示: " + instr.value.trim() : ""}
+${ask ? "相手が求めていること: " + ask : ""}
+返信文だけを出力する。相手に無い事実を作らない。決めかねる点は【要確認】と書く。
+
+--- 直近のやり取り ---
+${thread}`;
+    await runSample(prompt, ta, status, { tier: "quick" });
+    gen.disabled = false;
+  };
+  copy.onclick = () => copyText(ta.value);
+  card.append(p);
+}
+function toggleRemindPanel(card, m, what) {
+  const old = card.querySelector(".panel"); if (old) { old.remove(); return; }
+  const { p, instr, tone, ta, status, row2 } = makePanel();
+  const gen = h("button", { class: "btn small", text: "催促文を作る" });
+  const save = h("button", { class: "btn small ghost", text: "Outlook に下書き保存" });
+  const copy = h("button", { class: "btn small ghost", text: "コピー" });
+  row2.append(gen, save, copy);
+  gen.onclick = async () => {
+    gen.disabled = true; status.textContent = "元のメールを読んでいます…";
+    const body = await fetchMailBody(m);
+    const prompt = `以下は私が送ったメールです。相手からまだ返事がありません。角が立たない催促（リマインド）のメールを日本語で書いてください。調子: ${tone.value}。${instr.value.trim() ? "指示: " + instr.value.trim() : ""}
+待っているもの: ${what || ""}
+宛名から始め、本文、結びまで。件名や署名は書かない。返信文だけを出力する。
+
+--- 送信済みメール ---
+宛先: ${(m.recipients || []).join(", ")}
+件名: ${m.subject || ""}
+本文:
+${body}`;
+    const t = await runSample(prompt, ta, status);
+    if (t != null) ta.value = t + signatureBlock();
+    gen.disabled = false;
+  };
+  save.onclick = async () => {
+    if (!ta.value.trim()) { status.textContent = "下書きが空です。"; return; }
+    save.disabled = true; status.textContent = "Outlook に保存しています…";
+    try {
+      const to = (m.recipients || []).filter(a => /@/.test(a));
+      const r = await mcpCall("outlook_create_draft", { to, subject: "RE: " + (m.subject || ""), body: textToHtml(ta.value), bodyType: "html" }, { cache: false });
+      const d = blocks(r)[0] || {};
+      status.textContent = "Outlook の下書きに保存しました。"; status.append(" ", link(d.webLink, "下書きを開く"));
+    } catch (e) { status.textContent = "保存できませんでした: " + mcpCopy(e) + "（文面をコピーして Outlook に貼り付けてください）"; }
+    finally { save.disabled = false; }
+  };
+  copy.onclick = () => copyText(ta.value);
+  card.append(p);
+}
+async function proofreadInto(ta, status) {
+  const src = ta.value.trim(); if (!src) { status.textContent = "校正する文章がありません。"; return; }
+  status.textContent = "校正しています…";
+  try {
+    const r = await S.sample.json(`次の日本語の文章を校正してください。誤字脱字、敬語の誤り、二重敬語、読みにくい箇所、事実関係の矛盾を直します。意味や決定事項は変えません。
+JSON だけを返す: {"corrected": "修正後の全文", "notes": ["直した点を短く", ...]}
+
+--- 文章 ---
+${src}`, { modelTier: "default", cache: false });
+    if (r && typeof r.corrected === "string") { ta.value = r.corrected; status.textContent = (Array.isArray(r.notes) && r.notes.length) ? "直した点: " + r.notes.join(" / ") : "直す点はありませんでした。"; }
+    else status.textContent = "結果を読めませんでした。";
+  } catch (e) { status.textContent = sampleCopy(e); }
+}
+async function copyText(t) { if (!t) { toast("コピーするものがありません"); return; } try { await navigator.clipboard.writeText(t); toast("コピーしました"); } catch { toast("コピーできませんでした。手動で選択してください。"); } }
+
+// ---------- meetings ----------
+function renderMeetings() {
+  const prev = prevBizDay(today), next = nextBizDay(today);
+  $("meet-prev-h").textContent = (prev === addDays(today, -1) ? "昨日" : fmtDateJa(prev)) + "の会議";
+  $("meet-next-h").textContent = (next === addDays(today, 1) ? "明日" : fmtDateJa(next)) + "の準備";
+  const evs = calEvents();
+  const prevEvs = evs.filter(e => evOnDay(e, prev)), nextEvs = evs.filter(e => evOnDay(e, next));
+  const prep = (S.brief && S.brief.cls && S.brief.cls.prep) || [];
+  const a = clear($("meetPrev")), b = clear($("meetNext"));
+  if (!prevEvs.length) a.append(h("p", { class: "calm", text: S.brief ? "会議はありませんでした。" : "更新するとここに入ります。" }));
+  for (const e of prevEvs) {
+    const card = h("div", { class: "card" }, h("div", { class: "head" }, h("span", { class: "who" }, link(e.webLink, e.subject || "（件名なし）")), h("span", { class: "when", text: hm(evStart(e)) + "–" + hm(evEnd(e)) })), e.attendees && e.attendees.length ? h("p", { class: "muted", text: e.attendees.join("、") }) : null);
+    const actions = h("div", { class: "actions" });
+    if (S.sample) actions.append(h("button", { class: "btn small", text: "文字起こしからアクション抽出", onclick: () => extractActions(card, e) }));
+    actions.append(h("button", { class: "btn small ghost", text: "やることに追加", onclick: () => addTask("フォロー: " + e.subject, today, "today", { kind: "cal", link: e.webLink, id: e.id }) }));
+    card.append(actions); a.append(card);
+  }
+  if (!nextEvs.length) b.append(h("p", { class: "calm", text: S.brief ? "予定はありません。" : "更新するとここに入ります。" }));
+  for (const e of nextEvs) {
+    const pn = prep.find(x => String(x.eventId) === String(e.id));
+    const card = h("div", { class: "card" }, h("div", { class: "head" }, h("span", { class: "who" }, link(e.webLink, e.subject || "（件名なし）")), h("span", { class: "when", text: e.isAllDay ? "終日" : hm(evStart(e)) + "–" + hm(evEnd(e)) })),
+      e.location ? h("p", { class: "muted" }, e.location, wxLink(e.location)) : null,
+      pn ? h("p", { class: "ask" }, h("b", { text: "準備: " }), pn.note) : null);
+    const actions = h("div", { class: "actions" });
+    if (S.sample) actions.append(h("button", { class: "btn small", text: "準備メモを作る", onclick: () => prepNote(card, e) }));
+    actions.append(h("button", { class: "btn small ghost", text: "やることに追加", onclick: () => addTask("準備: " + e.subject, today, "today", { kind: "cal", link: e.webLink, id: e.id }) }));
+    card.append(actions); b.append(card);
+  }
+}
+async function extractActions(card, e) {
+  const old = card.querySelector(".panel"); if (old) old.remove();
+  const p = h("div", { class: "panel" }); const status = h("div", { class: "status", text: "会議の詳細を読んでいます…" }); p.append(status); card.append(p);
+  try {
+    const r = await mcpCall("read_resource", { uri: e.uri || ("calendar:///events/" + encodeURIComponent(e.id)) }, { cache: { staleTime: 600000 } });
+    const d = blocks(r)[0] || {};
+    const turl = d.meetingTranscriptUrl || d.transcriptUrl || (d.onlineMeeting && d.onlineMeeting.transcriptUrl);
+    if (!turl) { status.textContent = "この会議には Teams の文字起こしがありません（Teams 会議で文字起こしを有効にすると使えます）。"; return; }
+    status.textContent = "文字起こしを読んでいます…";
+    const tr = await mcpCall("read_resource", { uri: turl }, { cache: { staleTime: 600000 } });
+    const text = blocks(tr).map(b => typeof b === "string" ? b : (b.text || b.content || JSON.stringify(b))).join("\n");
+    if (!text.trim()) { status.textContent = "文字起こしが空でした。"; return; }
+    status.textContent = "Claude がアクションを抽出しています…";
+    const res = await S.sample.json(`次は会議「${e.subject}」の文字起こしです。決まったこと、私（${S.me && S.me.name || "本人"}）または他の人がやると言ったことを抽出してください。
+JSON だけを返す: {"decisions": ["決定事項", ...], "actions": [{"who": "担当", "what": "やること", "due": "期限（分かれば YYYY-MM-DD、不明なら null）"}]}
+
+--- 文字起こし（抜粋） ---
+${trunc(text, 60000)}`, { modelTier: "default", cache: false });
+    clear(p);
+    if (Array.isArray(res.decisions) && res.decisions.length) { p.append(h("h3", { text: "決まったこと" }), h("ul", { class: "notes" }, res.decisions.map(x => h("li", { text: String(x) })))); }
+    p.append(h("h3", { text: "アクション" }));
+    if (!Array.isArray(res.actions) || !res.actions.length) p.append(h("p", { class: "calm", text: "明確なアクションはありませんでした。" }));
+    for (const act of (res.actions || [])) {
+      const row = h("div", { class: "row" }, h("span", { text: `${act.who || ""}: ${act.what || ""}${act.due ? "（" + act.due + "）" : ""}` }),
+        h("button", { class: "btn small ghost", text: "やることに追加", onclick: () => addTask(`${act.what}${act.who ? "（" + act.who + "）" : ""}`, /^\d{4}-\d{2}-\d{2}$/.test(act.due || "") ? act.due : null, "week", { kind: "cal", link: e.webLink, id: e.id }) }));
+      p.append(row);
+    }
+  } catch (err) { status.textContent = err.code && SAMPLE_COPY[err.code] !== undefined ? sampleCopy(err) : mcpCopy(err); }
+}
+async function prepNote(card, e) {
+  const old = card.querySelector(".panel"); if (old) { old.remove(); return; }
+  const p = h("div", { class: "panel" }); const ta = h("textarea"); const status = h("div", { class: "status" }); p.append(ta, status, h("div", { class: "row" }, h("button", { class: "btn small ghost", text: "コピー", onclick: () => copyText(ta.value) }))); card.append(p);
+  let ctx = "";
+  try {
+    const kw = (e.subject || "").replace(/[【】\[\]（）()・:：\-]/g, " ").split(/\s+/).filter(w => w.length >= 2).slice(0, 3).join(" ");
+    if (kw) { const hits = await mcpItems("chat_message_search", { query: kw, afterDateTime: jstISO(addDays(today, -14)), limit: 15 }, { cache: { staleTime: 300000 } }); ctx = hits.map(c => `${c.from && c.from.displayName || ""} [${fmtWhen(c.createdDateTime)}]: ${trunc(c.summary, 200)}`).join("\n"); }
+  } catch { ctx = ""; }
+  const related = (S.brief.inbox || []).filter(m => e.attendees && e.attendees.some(a => a && (m.senderName || "").includes(a.split(/[\s　]/)[0]))).slice(0, 6).map(m => `${m.senderName} [${fmtWhen(m.received)}] ${m.subject}: ${trunc(m.summary, 160)}`).join("\n");
+  const prompt = `次の予定に向けた準備メモを日本語で書いてください。開く冒頭の一言、確認すべき資料や論点、相手から聞かれそうなこと、決めておくべきこと、を箇条書きで。推測は推測と分かるように。
+予定: ${e.subject} / ${fmtDateJa(ymd(evStart(e)))} ${hm(evStart(e))}–${hm(evEnd(e))} / 場所: ${e.location || "未定"} / 主催: ${e.isOrganizer ? "私" : e.organizerName} / 参加者: ${(e.attendees || []).join("、")}
+予定の本文: ${e.summary || "（なし）"}
+
+--- 関連しそうな Teams のやり取り ---
+${ctx || "（見つかりませんでした）"}
+--- 参加者からの最近のメール ---
+${related || "（なし）"}`;
+  await runSample(prompt, ta, status);
+}
+
+// ---------- files ----------
+function renderFiles() {
+  const files = (S.brief && S.brief.files || []).slice().sort((a, b) => a.modified < b.modified ? 1 : -1);
+  const ul = clear($("fileList"));
+  $("fileEmpty").hidden = !(S.brief && !files.length);
+  for (const f of files.slice(0, 30)) ul.append(h("li", null, link(f.webUrl, f.name), h("span", { class: "when", text: fmtWhen(f.modified) })));
+}
+
+// ---------- proof / compose ----------
+async function runProof(mode) {
+  const src = $("proofIn").value.trim(); if (!src) { $("proofStatus").textContent = "文章を入れてください。"; return; }
+  if (!S.sample) { $("proofStatus").textContent = "このページから Claude を使えません。"; return; }
+  $("proofStatus").textContent = "Claude が作業中…"; $("proofPanel").hidden = false; $("proofOut").value = ""; clear($("proofNotes"));
+  try {
+    if (mode === "proof") {
+      const r = await S.sample.json(`次の日本語の文章を校正してください。誤字脱字、敬語の誤り、二重敬語、読みにくい箇所を直し、意味や決定事項は変えません。
+JSON だけを返す: {"corrected": "修正後の全文", "notes": ["直した点を短く", ...]}
+
+--- 文章 ---
+${src}`, { modelTier: "default", cache: false });
+      $("proofOut").value = r.corrected || ""; for (const n of (r.notes || [])) $("proofNotes").append(h("li", { text: String(n) }));
+      $("proofStatus").textContent = (r.notes || []).length ? "" : "直す点はありませんでした。";
+    } else {
+      const out = $("proofOut");
+      const r = await S.sample(`次の要点から、日本語のビジネスメールの本文を書いてください。${S.me && S.me.name ? "差出人は " + S.me.name + "。" : ""}宛名、本文、結びまで。件名は最初の行に「件名: …」として付ける。署名は書かない。無い事実を作らず、不明な点は【要確認】と書く。
+
+--- 要点 ---
+${src}`, { modelTier: "default", cache: false, onText: ({ text }) => { out.value = text; } });
+      let body = r.text; const mm = body.match(/^件名[:：]\s*(.+)\n?/); if (mm) { if (!$("mailSubj").value.trim()) $("mailSubj").value = mm[1].trim(); body = body.replace(mm[0], "").replace(/^\n+/, ""); }
+      out.value = body + signatureBlock(); $("proofStatus").textContent = "";
+    }
+  } catch (e) { $("proofStatus").textContent = sampleCopy(e); if (e.text) $("proofOut").value = e.text; }
+}
+async function saveNewDraft() {
+  const body = $("proofOut").value.trim(); const to = $("mailTo").value.split(/[,、;\s]+/).map(x => x.trim()).filter(x => /@/.test(x)); const subject = $("mailSubj").value.trim();
+  if (!body) { $("mailDraftStatus").textContent = "本文が空です。"; return; }
+  if (!S.mcp) { $("mailDraftStatus").textContent = "Microsoft 365 をこのページから使えません。"; return; }
+  $("mailDraftStatus").textContent = "保存しています…";
+  try { const r = await mcpCall("outlook_create_draft", { to, subject, body: textToHtml(body), bodyType: "html" }, { cache: false }); const d = blocks(r)[0] || {}; const st = $("mailDraftStatus"); st.textContent = "Outlook の下書きに保存しました。"; st.append(" ", link(d.webLink, "開く")); }
+  catch (e) { $("mailDraftStatus").textContent = "保存できませんでした: " + mcpCopy(e) + "（コピーして Outlook に貼り付けてください）"; }
+}
+
+// ---------- reviews ----------
+async function calendarRange(from, to) {
+  try { return (await mcpItems("outlook_calendar_search", { query: "*", afterDateTime: jstISO(from), beforeDateTime: jstISO(addDays(to, 1)), order: "oldest", limit: 25 }, { cache: { staleTime: 300000 } })).map(compactEvent); } catch { return []; }
+}
+function tasksBetween(from, to, doneOnly) { return S.tasks.filter(t => doneOnly ? (t.done && t.doneAt && ymd(new Date(t.doneAt)) >= from && ymd(new Date(t.doneAt)) <= to) : (!t.done)); }
+async function runReview(kind) {
+  if (!S.sample) { $("reviewStatus").textContent = "このページから Claude を使えません。"; return; }
+  $("reviewStatus").textContent = "集めています…"; $("reviewPanel").hidden = false; const out = $("reviewOut"); out.textContent = "";
+  let from, to, title;
+  if (kind === "weekly") { from = addDays(today, -((dow + 6) % 7)); to = today; title = "今週の振り返り"; }
+  else { const pr = periodOf(today); from = pr.from; to = today < pr.to ? today : pr.to; title = "月次業務報告（下書き）" + pr.label; }
+  const cal = S.mcp ? await calendarRange(from, to) : [];
+  const done = tasksBetween(from, to, true).map(t => `- ${t.title}（${ymd(new Date(t.doneAt))}）`).join("\n") || "（記録なし）";
+  const open = S.tasks.filter(t => !t.done).map(t => `- ${t.title}${t.due ? "（期限 " + t.due + "）" : ""}`).join("\n") || "（なし）";
+  const meetings = cal.filter(e => !e.isCancelled).map(e => `- ${ymd(evStart(e))} ${e.isAllDay ? "終日" : hm(evStart(e))} ${e.subject}${e.location ? " @" + e.location : ""}`).join("\n") || "（なし）";
+  const nippo = Object.values(S.nippo).filter(n => n.date >= from && n.date <= to).sort((a, b) => a.date < b.date ? -1 : 1).map(n => `- ${n.date}${n.note ? "（" + n.note + "）" : ""}: ${(n.body || "").replace(/\s+/g, " ")}`).join("\n") || "（なし）";
+  const ot = Object.values(S.nippo).filter(n => n.date >= from && n.date <= to).reduce((a, n) => a + (overtimeMinutes(n) || 0), 0);
+  const prompt = kind === "weekly"
+    ? `期間 ${from}〜${to} の仕事を振り返る短い文章を日本語で書いてください。見出し「できたこと」「会議と打合せ」「持ち越し」「来週の最初の3件」。事実だけを簡潔に、箇条書き中心。無いものは無いと書く。
+
+完了したやること:\n${done}\n\n未完了のやること:\n${open}\n\n会議・予定:\n${meetings}\n\n日報:\n${nippo}`
+    : `期間 ${from}〜${to} の月次業務報告書の下書きを日本語で書いてください。見出し「今月の主な業務」「成果・完了事項」「会議・打合せ」「課題と対応」「来月の予定」。日報があればそれを主な材料にし、同じ内容は週ごとにまとめる。事実だけを簡潔に。情報が足りない見出しには【追記】と書いて空けておく。
+
+完了したやること:\n${done}\n\n未完了のやること:\n${open}\n\n会議・予定:\n${meetings}\n\n日報（日ごと）:\n${nippo}\n\n残業合計: ${fmtMin(ot)}`;
+  $("reviewStatus").textContent = "Claude が書いています…";
+  try { const r = await S.sample(prompt, { modelTier: "default", cache: false, onText: ({ text }) => { out.textContent = text; } }); out.textContent = title + "\n\n" + r.text; $("reviewStatus").textContent = ""; }
+  catch (e) { $("reviewStatus").textContent = sampleCopy(e); if (e.text) out.textContent = e.text; }
+}
+async function runEvening() {
+  if (!S.sample) { toast("このページから Claude を使えません。"); return; }
+  const b = clear($("banner")); b.hidden = false; const out = h("div", { style: "white-space:pre-wrap; flex:1 1 100%" , text: "Claude がまとめています…" }); b.append(out);
+  const next = nextBizDay(today);
+  const left = S.tasks.filter(t => !t.done && bucketOf(t) === "today").map(t => "- " + t.title).join("\n") || "（なし）";
+  const tomorrow = calEvents().filter(e => evOnDay(e, next)).map(e => `- ${e.isAllDay ? "終日" : hm(evStart(e)) + "–" + hm(evEnd(e))} ${e.subject}${e.location ? " @" + e.location : ""}`).join("\n") || "（なし）";
+  const openMail = ((S.brief && S.brief.cls && S.brief.cls.mail_reply) || []).filter(x => !isDismissed("mail", x.id)).map(x => "- " + (mailById(x.id) || {}).subject + ": " + x.ask).join("\n") || "（なし）";
+  try {
+    const r = await S.sample(`夕方のまとめを日本語で書いてください。見出しは「今日やり残したこと」「${fmtDateJa(next)}の最初の3件」の二つ。短く、事実だけ。命令しない。
+
+今日のやること（未完了）:\n${left}\n\n返信していないメール:\n${openMail}\n\n次の営業日の予定:\n${tomorrow}`, { modelTier: "quick", cache: false, onText: ({ text }) => { out.textContent = text; } });
+    out.textContent = r.text;
+  } catch (e) { out.textContent = sampleCopy(e); }
+}
+
+// ---------- search ----------
+async function runSearch() {
+  const q = $("searchQ").value.trim(); if (!q) return;
+  if (!S.mcp) { $("searchStatus").textContent = "Microsoft 365 をこのページから使えません。"; return; }
+  $("searchOut").hidden = false; $("searchStatus").textContent = "検索しています…";
+  const fill = (ul, list, mk) => { clear(ul); if (!list) return; if (!list.length) ul.append(h("li", { class: "m", text: "該当なし" })); for (const x of list) ul.append(mk(x)); };
+  const [mail, chat, file] = await Promise.all([
+    mcpItems("outlook_email_search", { query: q, limit: 10 }, { cache: { staleTime: 120000 } }).catch(e => ({ error: e })),
+    mcpItems("chat_message_search", { query: q, limit: 10 }, { cache: { staleTime: 120000 } }).catch(e => ({ error: e })),
+    mcpItems("sharepoint_search", { query: q, limit: 10 }, { cache: { staleTime: 120000 } }).catch(e => ({ error: e })),
+  ]);
+  const errs = [];
+  const asList = (r, ul) => { if (r && r.error) { clear(ul).append(h("li", { class: "err", text: mcpCopy(r.error) })); return null; } return r; };
+  fill($("sr-mail"), asList(mail, $("sr-mail")), m => h("li", null, link(m.webLink, m.subject || "（件名なし）"), h("div", { class: "m", text: (m.senderName || m.sender || "") + " · " + fmtWhen(m.receivedDateTime) + " · " + trunc(m.summary, 80) })));
+  fill($("sr-chat"), asList(chat, $("sr-chat")), c => h("li", null, link(c.webUrl, trunc(c.summary, 60) || "（本文なし）"), h("div", { class: "m", text: ((c.from && c.from.displayName) || "") + " · " + fmtWhen(c.createdDateTime) })));
+  fill($("sr-file"), asList(file, $("sr-file")), f => h("li", null, link(f.webUrl, f.name || "（名前なし）"), h("div", { class: "m", text: fmtWhen(f.lastModifiedDateTime) + " · " + trunc(f.summary || "", 80) })));
+  $("searchStatus").textContent = "";
+}
+
+// ---------- nippo (daily report) ----------
+function nippoCol() { return S.db.doc("data/users/" + UID + "/profile").collection("nippo"); }
+function setNippoDate(d) { S.npDate = d; $("npDate").value = d; const n = S.nippo[d]; const wk = [0, 6].includes(dowJST(new Date(d + "T12:00:00+09:00"))); $("npIn").value = n ? (n.in || "") : (wk ? "" : stdStart()); $("npOut").value = n ? (n.out || "") : (wk ? "" : stdEnd()); $("npNote").value = n && n.note || ""; $("npBody").value = n && n.body || ""; renderNippoList(); }
+async function saveNippo() {
+  const d = $("npDate").value || today; if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+  const data = { date: d, in: $("npIn").value, out: $("npOut").value, note: $("npNote").value.trim(), body: $("npBody").value.trim(), updatedAt: new Date().toISOString() };
+  S.nippo[d] = data; renderNippoList();
+  if (!S.db || !S.canWrite) { $("npStatus").textContent = "保存先が使えないため、この画面を閉じると消えます。"; return; }
+  try { await nippoCol().doc(d).set(data); $("npStatus").textContent = fmtDateJa(d) + " を保存しました。"; } catch (e) { writeFailed(e); $("npStatus").textContent = "保存できませんでした。"; }
+}
+function toMin(t) { if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null; const [hh, mm] = t.split(":").map(Number); return hh * 60 + mm; }
+function stdStart() { return S.settings.stdStart || "08:45"; }
+function stdEnd() { return S.settings.stdEnd || "17:30"; }
+function otStart() { return S.settings.otStart || "18:00"; }
+// 残業 = 業務終了が「時間外の起算」（既定 18:00）より後の分。定時終業〜起算の間（既定 17:30〜18:00）は休憩として数えない。
+function overtimeMinutes(n) { if (!n || !n.out) return null; const inM = toMin(n.in), outM0 = toMin(n.out), ot = toMin(otStart()); if (outM0 == null || ot == null) return null; let outM = outM0; if (inM != null && outM < inM) outM += 1440; let total = Math.max(0, outM - ot); const early = toMin(S.settings.earlyBefore || ""); if (early != null && inM != null && inM < early) total += early - inM; return total; }
+function workMinutes(n) { if (!n || !n.in || !n.out) return null; const a = toMin(n.in), b0 = toMin(n.out); if (a == null || b0 == null) return null; let b = b0; if (b < a) b += 1440; const se = toMin(stdEnd()), ot = toMin(otStart()); let w = b - a; if (b > ot) w -= (ot - se); else if (b > se) w -= (b - se); return Math.max(0, w); }
+function fmtMin(m) { if (m == null) return ""; return Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0"); }
+function closeDay() { return Math.min(28, Math.max(1, Number(S.settings.closeDay) || 10)); }
+// 締め期間: 前月(締め日+1)日 〜 当月 締め日。ラベルは締め月。
+function periodOf(d) {
+  const [y, m, dd] = d.split("-").map(Number); const c = closeDay();
+  let ey = y, em = m; if (dd > c) { em = m + 1; if (em === 13) { em = 1; ey = y + 1; } }
+  let sy = ey, sm = em - 1; if (sm === 0) { sm = 12; sy = ey - 1; }
+  const from = `${sy}-${String(sm).padStart(2, "0")}-${String(c + 1).padStart(2, "0")}`;
+  const to = `${ey}-${String(em).padStart(2, "0")}-${String(c).padStart(2, "0")}`;
+  return { from, to, label: `${ey}年${em}月${c}日締め（${Number(sm)}/${c + 1}〜${em}/${c}）` };
+}
+function periodDays(pr) { const out = []; let d = pr.from; while (d <= pr.to) { out.push(d); d = addDays(d, 1); } return out; }
+function renderNippoList() {
+  const d = $("npDate").value || today; const pr = periodOf(d);
+  const t = clear($("npList"));
+  t.append(h("tr", null, h("th", { text: "日付" }), h("th", { text: "始業" }), h("th", { text: "業務終了" }), h("th", { text: "残業" }), h("th", { text: "内容" }), h("th", { text: "備考" })));
+  let totW = 0, totO = 0, cnt = 0;
+  for (const key of periodDays(pr)) {
+    const dow = dowJST(new Date(key + "T12:00:00+09:00")); const n = S.nippo[key];
+    const w = workMinutes(n), o = overtimeMinutes(n); if (o != null) { totO += o; cnt++; } if (w != null) totW += w;
+    t.append(h("tr", { class: (dow === 0 || dow === 6 ? "wk" : "") + (key === d ? " cur" : "") },
+      h("td", { class: "d" }, h("button", { class: "pick", text: fmtDateJa(key), onclick: () => setNippoDate(key) })),
+      h("td", { text: n && n.in || "" }), h("td", { text: n && n.out || "" }), h("td", { class: "num", text: o != null ? fmtMin(o) : "" }),
+      h("td", { text: n ? trunc(n.body, 60) : "" }), h("td", { text: n && n.note || "" })));
+  }
+  t.append(h("tr", { class: "total" }, h("td", { text: "合計（" + cnt + " 日）" }), h("td"), h("td"), h("td", { class: "num", text: fmtMin(totO) }), h("td", { text: `定時 ${stdStart()}〜${stdEnd()}、${stdEnd()}〜${otStart()} は休憩、${otStart()} 以降を残業として集計${S.settings.earlyBefore ? "、" + S.settings.earlyBefore + " より前の始業分も残業に加算" : "（早出は未集計）"}` }), h("td")));
+  $("nippo-sub").textContent = `${pr.label}　残業 ${fmtMin(totO)}`;
+}
+function copyNippoMonth() {
+  const pr = periodOf($("npDate").value || today); const lines = [];
+  for (const key of periodDays(pr)) { const n = S.nippo[key] || {}; lines.push([key, n.in || "", n.out || "", fmtMin(overtimeMinutes(n)), (n.body || "").replace(/\s+/g, " "), n.note || ""].join("\t")); }
+  copyText(lines.join("\n"));
+}
+async function nippoAI() {
+  if (!S.sample) { $("npStatus").textContent = "このページから Claude を使えません。"; return; }
+  const d = $("npDate").value || today;
+  const evs = cal2Events().filter(e => !e.isCancelled && ymd(evStart(e)) === d).map(e => `- ${e.isAllDay ? "終日" : hm(evStart(e)) + "–" + hm(evEnd(e))} ${e.subject}${e.location ? " @" + e.location : ""}`).join("\n") || "（なし）";
+  const done = S.tasks.filter(t => t.done && t.doneAt && ymd(new Date(t.doneAt)) === d).map(t => "- " + t.title).join("\n") || "（なし）";
+  const sent = ((S.brief && S.brief.sent) || []).filter(m => ymd(new Date(m.received)) === d).map(m => `- ${m.subject}（${(m.recipients || []).join(", ")}）`).join("\n") || "（なし）";
+  const chats = ((S.brief && S.brief.chats) || []).filter(c => S.me && c.fromEmail.toLowerCase() === S.me.mail && ymd(new Date(c.created)) === d).map(c => "- " + trunc(c.summary, 80)).join("\n") || "（なし）";
+  $("npStatus").textContent = "Claude が下書きしています…";
+  try {
+    const r = await S.sample(`${fmtDateJa(d)} の日報の本文を日本語で書いてください。箇条書きで 3〜7 行、事実だけ、敬語は不要。会議・打合せ、送ったメール、完了したやること、Teams での対応を材料にし、無いものは書かない。見出しや日付は書かない。
+
+会議・予定:\n${evs}\n\n完了したやること:\n${done}\n\n送ったメール:\n${sent}\n\n自分が Teams に書いたこと:\n${chats}${$("npBody").value.trim() ? "\n\n既に書いてあるメモ（活かす）:\n" + $("npBody").value.trim() : ""}`, { modelTier: "quick", cache: false, onText: ({ text }) => { $("npBody").value = text; } });
+    $("npBody").value = r.text; $("npStatus").textContent = "下書きしました。直して保存してください。";
+  } catch (e) { $("npStatus").textContent = sampleCopy(e); }
+}
+
+// ---------- team board (shared) ----------
+let boardTimer = null, boardLoaded = false, boardLocal = false;
+function boardChanged() { boardLocal = true; $("boardStatus").textContent = "…"; clearTimeout(boardTimer); boardTimer = setTimeout(async () => { if (!S.db || !S.canWrite) { $("boardStatus").textContent = "書き込み権限がありません（閲覧のみ）。"; return; } try { await S.db.doc("shared/board").set({ text: $("board").value, updatedAt: new Date().toISOString() }); $("boardStatus").textContent = "保存しました " + hm(new Date()); } catch (e) { writeFailed(e); $("boardStatus").textContent = "保存できませんでした。"; } finally { boardLocal = false; } }, 1200); }
+
+// ---------- memo ----------
+let memoTimer = null, memoLoaded = false;
+function memoChanged() { $("memoStatus").textContent = "…"; clearTimeout(memoTimer); memoTimer = setTimeout(async () => { if (!S.db || !S.canWrite) { $("memoStatus").textContent = "保存先が使えないため保存されません。"; return; } try { await udoc("memo").set({ text: $("memo").value, updatedAt: new Date().toISOString() }); $("memoStatus").textContent = "保存しました " + hm(new Date()); } catch (e) { writeFailed(e); $("memoStatus").textContent = "保存できませんでした。"; } }, 1200); }
+
+// ---------- settings ----------
+const DEFAULT_LINKS = "Outlook 予定表 | https://outlook.office.com/calendar/view/month\nOutlook メール | https://outlook.office.com/mail/\nTeams | https://teams.microsoft.com/";
+function linksFromSettings() { return (S.settings.links != null && S.settings.links.trim() ? S.settings.links : DEFAULT_LINKS).split(/\n/).map(l => l.split("|").map(x => x.trim())).filter(a => a.length >= 2 && safeHref(a[1])).map(a => ({ name: a[0], url: a[1] })); }
+function renderLinks() { const box = clear($("links")); for (const l of linksFromSettings()) box.append(h("a", { href: l.url, target: "_blank", rel: "noopener", text: l.name })); const np = linksFromSettings().find(l => /日報/.test(l.name)); const a = $("npFileLink"); if (np) { a.href = np.url; a.hidden = false; } else a.hidden = true; }
+function fillSettings() { $("setName").value = S.settings.name || ""; $("setSig").value = S.settings.signature || ""; $("setBulk").value = S.settings.bulkWords || ""; $("setLinks").value = S.settings.links != null ? S.settings.links : DEFAULT_LINKS; $("setRooms").value = S.settings.rooms || ""; $("setStdStart").value = S.settings.stdStart || "08:45"; $("setStdEnd").value = S.settings.stdEnd || "17:30"; $("setOtStart").value = S.settings.otStart || "18:00"; $("setEarly").value = S.settings.earlyBefore || ""; $("setCloseDay").value = S.settings.closeDay || 10; $("setWx").value = wxConfigText(); $("setAuto").value = String(S.settings.autoMin != null ? S.settings.autoMin : 10); $("setDays").value = String(S.settings.mailDays || 3); $("setCap").value = String(S.settings.clsCap != null ? S.settings.clsCap : 2); }
+async function saveSettings() {
+  S.settings = { ...S.settings, name: $("setName").value.trim(), signature: $("setSig").value, bulkWords: $("setBulk").value.trim(), links: $("setLinks").value.trim(), rooms: $("setRooms").value.trim(), stdStart: $("setStdStart").value || "08:45", stdEnd: $("setStdEnd").value || "17:30", otStart: $("setOtStart").value || "18:00", earlyBefore: $("setEarly").value || "", closeDay: Math.min(28, Math.max(1, Number($("setCloseDay").value) || 10)), theme: S.theme || null, autoMin: Number($("setAuto").value) || 0, mailDays: Number($("setDays").value) || 3, clsCap: Number($("setCap").value) || 0 };
+  scheduleAuto();
+  renderNippoList();
+  renderLinks();
+  saveWxConfig($("setWx").value);
+  if (S.db && S.canWrite) { try { await docSettings().set(S.settings); toast("保存しました"); } catch (e) { writeFailed(e); toast("保存できませんでした"); } }
+  showTab("home");
+}
+
+// ---------- render all ----------
+const APPROVAL_RE = /承認依頼|承認のお願い|承認待ち|承認をお願い|申請があります|決裁/;
+function approvalSystem(m) { const s = ((m.sender || "") + " " + (m.subject || "")).toLowerCase(); if (/rakus|楽楽精算|楽々精算/.test(s)) return "楽楽精算"; if (/kingtime|タッチオンタイム/.test(s)) return "タッチオンタイム"; return "その他"; }
+function renderApprovals() {
+  const el = $("approvals"); const inbox = (S.brief && S.brief.inbox) || [];
+  const list = inbox.filter(m => APPROVAL_RE.test(m.subject || "") && !isDismissed("mail", m.id) && (m.received || "") >= jstISO(addDays(today, -7)));
+  if (!list.length) { el.hidden = true; return; }
+  const by = {}; for (const m of list) { const k = approvalSystem(m); by[k] = (by[k] || 0) + 1; }
+  clear(el); el.hidden = false;
+  el.append(h("span", { class: "pill", text: "承認待ち " + list.length + " 件" }), h("span", { text: Object.entries(by).map(([k, v]) => `${k} ${v}`).join("・") }));
+  const links = linksFromSettings(); for (const k of Object.keys(by)) { const l = links.find(x => x.name.includes(k)); if (l) el.append(h("a", { href: l.url, target: "_blank", rel: "noopener", text: k + " を開く" })); }
+  el.append(h("a", { href: "#sec-mail", text: "メール一覧へ", onclick: (e) => { e.preventDefault(); S.mailTab = "approval"; renderMail(); goto("sec-mail"); } }));
+}
+function renderAll() {
+  renderApprovals();
+  const todayW = ["日", "月", "火", "水", "木", "金", "土"][dow];
+  const hl = S.brief && S.brief.cls && S.brief.cls.headline ? String(S.brief.cls.headline) : "";
+  const wrongDay = hl && [...hl.matchAll(/([日月火水木金土])曜/g)].some(m => m[1] !== todayW && /今日|本日/.test(hl));
+  if (hl && !wrongDay) $("headline").textContent = hl;
+  else if (S.brief) $("headline").textContent = calEvents().some(e => evOnDay(e, today)) ? "今日の予定が入っています。" : "予定のない一日です。";
+  renderCalendar(); renderTasks(); renderMail(); renderTeams(); renderWaiting(); renderMeetings(); renderFiles(); renderLinks(); renderWeather(); updateTabCounts();
+}
+
+// ---------- JARVIS (work assistant, runs on the viewer's own Claude) ----------
+const J = { turns: [], busy: false, ctl: null, listening: false, rec: null, memory: [], voices: [], spokenUpto: 0, timers: new Map() };
+function jState(t, cls) { $("jState").textContent = t; const o = $("jOrb"); o.classList.remove("listening", "thinking", "speaking"); if (cls) o.classList.add(cls); }
+function jLog(role, text) { const el = h("div", { class: "jmsg " + role, text }); $("jLog").append(el); $("jLog").scrollTop = $("jLog").scrollHeight; return el; }
+function jSpeakEnabled() { return $("jSpeak").checked && !!window.speechSynthesis; }
+function jPickVoice() { const sel = $("jVoice"); return J.voices.find(x => x.name === sel.value) || J.voices[0] || null; }
+function jLoadVoices() {
+  if (!window.speechSynthesis) return;
+  J.voices = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang));
+  const pref = /Nanami|Kyoko|O-ren|Google 日本語|Hattori|Ichiro/i;
+  J.voices.sort((a, b) => (pref.test(b.name) ? 1 : 0) - (pref.test(a.name) ? 1 : 0));
+  const sel = clear($("jVoice")); let saved = ""; try { saved = localStorage.getItem("jarvis.voice") || ""; } catch {}
+  for (const v of J.voices) sel.append(h("option", { value: v.name, text: v.name.replace(/Microsoft |Google /, "") }));
+  if (!J.voices.length) sel.append(h("option", { value: "", text: "日本語の声がありません" }));
+  if (saved && J.voices.some(v => v.name === saved)) sel.value = saved;
+}
+function jSpeak(text) {
+  if (!jSpeakEnabled() || !text.trim()) return;
+  const u = new SpeechSynthesisUtterance(text.replace(/[*#_`>]/g, "")); const v = jPickVoice(); if (v) u.voice = v; u.lang = "ja-JP"; u.rate = Number($("jRate").value) || 1;
+  u.onstart = () => { if (!J.busy) jState("話しています…", "speaking"); };
+  u.onend = () => { if (!speechSynthesis.speaking && !J.busy) jState("球体を押して話しかけてください"); };
+  speechSynthesis.speak(u);
+}
+function jStreamSpeak(fullText) {
+  const rest = fullText.slice(J.spokenUpto); const m = rest.match(/^[\s\S]*?[。！？!?\n]+/); if (!m) return;
+  J.spokenUpto += m[0].length; jSpeak(m[0]);
+}
+function jMemoryText() { return J.memory.length ? J.memory.map((x, i) => `${i + 1}. ${x.t}`).join("\n") : "（なし）"; }
+async function jSaveMemory() { if (!S.db || !S.canWrite) { toast("記憶を保存できません（権限なし）"); return; } try { await udoc("jarvis_memory").set({ items: J.memory, updatedAt: new Date().toISOString() }); } catch (e) { writeFailed(e); } }
+function jRenderMemory() { const ul = clear($("jMem")); if (!J.memory.length) ul.append(h("li", { class: "muted", text: "なし" })); for (const x of J.memory) ul.append(h("li", { text: x.t })); }
+function jSystem() {
+  const p = jstParts(new Date()); const dowJa = ["日", "月", "火", "水", "木", "金", "土"][dow];
+  const name = (S.settings.name || (S.me && S.me.name) || "").trim();
+  return `あなたは「ジャービス」。${name ? name + " の" : ""}仕事用アシスタントです。返答は日本語で、音声で読み上げるので短く（原則 1〜3 文、箇条書きや記号・絵文字は使わない）。
+今日は ${today}（${dowJa}曜日）、現在 ${p.hour}:${p.minute}（日本時間）。曜日は自分で計算しない。
+事実（予定、メール、やること、会議室、日報、天気）は必ずツールで確認してから答える。推測で答えない。見つからなければ「見当たりません」と言う。
+ユーザーが「覚えて」と言ったら remember、「忘れて」と言ったら forget を使う。やることの追加・完了、日報の保存のような変更は、依頼が明確なときだけ行い、行った内容を一言で報告する。
+覚えていること:
+${jMemoryText()}`;
+}
+function jTools() {
+  const evList = (list) => list.filter(e => !e.isCancelled).sort((a, b) => evStart(a) - evStart(b)).map(e => `${e.isAllDay ? "終日" : hm(evStart(e)) + "-" + hm(evEnd(e))} ${e.subject}${e.location ? "（" + e.location + "）" : ""}`);
+  const dayEvents = (d) => evList(cal2Events().filter(e => ymd(evStart(e)) === d));
+  const taskLines = (list) => list.map(t => `${t.title}${t.due ? "（期限 " + t.due + "）" : ""}`);
+  const cls = () => (S.brief && S.brief.cls) || {};
+  const inbox = () => (S.brief && S.brief.inbox) || [];
+  return [
+    { name: "get_overview", description: "今日の全体像を返す: 予定、今日のやること、要返信メールと承認待ちの件数、Teams 未返信件数、天気。最初の質問や「今日どう？」に使う。",
+      execute: () => { const w = (S.weather && S.weather.locations || [])[0]; return { date: today, events_today: dayEvents(today), next_bizday: { date: nextBizDay(today), events: dayEvents(nextBizDay(today)) }, tasks_today: taskLines(S.tasks.filter(t => !t.done && bucketOf(t) === "today")), tasks_week: taskLines(S.tasks.filter(t => !t.done && bucketOf(t) === "week")).slice(0, 10), mail_reply_count: (cls().mail_reply || []).filter(x => mailById(x.id) && !isDismissed("mail", x.id)).length, approvals: inbox().filter(m => APPROVAL_RE.test(m.subject || "") && !isDismissed("mail", m.id)).length, teams_unanswered: (cls().teams || []).filter(x => chatById(x.id) && !isDismissed("teams", x.id)).length, weather: w ? { place: w.name, days: (w.days || []).slice(0, 2).map(d => ({ date: d.date, weather: wmo(d.code)[1], tmax: d.tmax, tmin: d.tmin, pop: d.pop })) } : null, data_as_of: S.brief && S.brief.generatedAt || null }; } },
+    { name: "get_events", description: "指定日の予定一覧を返す。date は YYYY-MM-DD。「明日」「来週月曜」などは日付に直して渡す。", inputSchema: { type: "object", properties: { date: { type: "string" } }, required: ["date"] }, execute: ({ date }) => ({ date: String(date), events: dayEvents(String(date)) }) },
+    { name: "list_tasks", description: "やることを返す。scope は today / week / month / someday / done。省略時は未完了すべて。", inputSchema: { type: "object", properties: { scope: { type: "string" } } }, execute: ({ scope }) => ({ tasks: S.tasks.filter(t => scope ? bucketOf(t) === String(scope) : !t.done).map(t => ({ title: t.title, due: t.due, done: t.done })) }) },
+    { name: "add_task", description: "やることを追加する。due は YYYY-MM-DD（任意）、scope は today/week/month/someday（任意、既定 week）。", inputSchema: { type: "object", properties: { title: { type: "string" }, due: { type: "string" }, scope: { type: "string" } }, required: ["title"] }, execute: async ({ title, due, scope }) => { if (!S.db || !S.canWrite) throw new Error("保存先が使えません"); await addTask(String(title), /^\d{4}-\d{2}-\d{2}$/.test(due || "") ? due : null, ["today", "week", "month", "someday"].includes(scope) ? scope : "week", { kind: "jarvis" }); return { ok: true }; } },
+    { name: "complete_task", description: "タイトルに含まれる語で未完了のやることを探して完了にする。複数一致したら候補を返すので、ユーザーに確認する。", inputSchema: { type: "object", properties: { title_contains: { type: "string" } }, required: ["title_contains"] }, execute: async ({ title_contains }) => { const q = String(title_contains); const hits = S.tasks.filter(t => !t.done && t.title.includes(q)); if (hits.length === 1) { await updateTask(hits[0].id, { done: true, doneAt: new Date().toISOString() }); return { completed: hits[0].title }; } return { candidates: hits.map(t => t.title) }; } },
+    { name: "get_mail", description: "メールの仕分け結果を返す。kind は reply（要返信）/ approval（承認待ち）/ fyi（読むだけ）/ waiting（返事待ち）。", inputSchema: { type: "object", properties: { kind: { type: "string" } }, required: ["kind"] },
+      execute: ({ kind }) => { if (kind === "approval") return { items: inbox().filter(m => APPROVAL_RE.test(m.subject || "") && !isDismissed("mail", m.id)).map(m => ({ from: m.senderName || m.sender, subject: m.subject, when: fmtWhen(m.received), system: approvalSystem(m) })) }; if (kind === "waiting") return { items: (cls().waiting || []).map(x => ({ ...x, m: sentById(x.id) })).filter(x => x.m && !isDismissed("waiting", x.id)).map(x => ({ to: x.to, subject: x.m.subject, what: x.what, sinceDays: x.sinceDays })) }; const src = kind === "fyi" ? cls().mail_fyi : cls().mail_reply; return { items: (src || []).map(x => ({ ...x, m: mailById(x.id) })).filter(x => x.m && !isDismissed("mail", x.id)).map(x => ({ from: x.m.senderName || x.m.sender, subject: x.m.subject, when: fmtWhen(x.m.received), ask: x.ask || x.note, why: x.why })) }; } },
+    { name: "get_teams", description: "Teams で自分宛に来ていて返事がまだのメッセージを返す。", execute: () => ({ items: (cls().teams || []).map(x => ({ ...x, c: chatById(x.id) })).filter(x => x.c && !isDismissed("teams", x.id)).map(x => ({ who: x.who || x.c.from, ask: x.ask, when: fmtWhen(x.c.created), text: trunc(x.c.summary, 160) })) }) },
+    { name: "check_rooms", description: "指定日の会議室の空き時間（8:00〜19:00）を返す。date は YYYY-MM-DD。", inputSchema: { type: "object", properties: { date: { type: "string" } }, required: ["date"] }, execute: async ({ date }, ctx) => roomFreeSlots(String(date), ctx.signal) },
+    { name: "search", description: "メール・Teams・SharePoint を横断検索して上位の結果を返す。人名、件名、案件番号、ファイル名など。", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+      execute: async ({ query }, ctx) => { const q = String(query); const opt = { cache: { staleTime: 120000 }, signal: ctx.signal }; const [mail, chat, file] = await Promise.all([mcpItems("outlook_email_search", { query: q, limit: 5 }, opt).catch(() => []), mcpItems("chat_message_search", { query: q, limit: 5 }, opt).catch(() => []), mcpItems("sharepoint_search", { query: q, limit: 5 }, opt).catch(() => [])]); return { mail: mail.map(m => ({ from: m.senderName || m.sender, subject: m.subject, when: fmtWhen(m.receivedDateTime), snippet: trunc(m.summary, 120) })), teams: chat.map(c => ({ from: c.from && c.from.displayName, when: fmtWhen(c.createdDateTime), text: trunc(c.summary, 120) })), files: file.map(f => ({ name: f.name, modified: fmtWhen(f.lastModifiedDateTime) })) }; } },
+    { name: "get_nippo", description: "指定日の日報（始業・業務終了・内容・備考）を返す。date は YYYY-MM-DD。", inputSchema: { type: "object", properties: { date: { type: "string" } }, required: ["date"] }, execute: ({ date }) => ({ date: String(date), nippo: S.nippo[String(date)] || null }) },
+    { name: "save_nippo", description: "指定日の日報を保存する。body（内容）、in（始業 HH:MM）、out（業務終了 HH:MM）、note（備考）は指定されたものだけ上書きする。", inputSchema: { type: "object", properties: { date: { type: "string" }, body: { type: "string" }, in: { type: "string" }, out: { type: "string" }, note: { type: "string" } }, required: ["date"] },
+      execute: async (inp) => { const d = String(inp.date); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error("date は YYYY-MM-DD"); const cur = S.nippo[d] || { date: d, in: "", out: "", note: "", body: "" }; const data = { ...cur, date: d, updatedAt: new Date().toISOString() }; for (const k of ["body", "in", "out", "note"]) if (inp[k] != null) data[k] = String(inp[k]); S.nippo[d] = data; if (S.db && S.canWrite) await nippoCol().doc(d).set(data); if (S.npDate === d) setNippoDate(d); else renderNippoList(); return { ok: true, saved: data }; } },
+    { name: "get_weather", description: "登録地点の天気予報（今日から 3 日）を返す。", execute: () => ({ updatedAt: S.weather && S.weather.updatedAt, error: S.weather && S.weather.error, locations: ((S.weather && S.weather.locations) || []).map(l => ({ name: l.name, days: (l.days || []).map(d => ({ date: d.date, weather: wmo(d.code)[1], tmax: d.tmax, tmin: d.tmin, pop: d.pop })) })) }) },
+    { name: "set_timer", description: "タイマーをセットする。指定秒数後にアラーム音を鳴らし、ラベルを読み上げる。", inputSchema: { type: "object", properties: { seconds: { type: "integer" }, label: { type: "string" } }, required: ["seconds", "label"] }, execute: ({ seconds, label }) => { const sec = Math.min(86400, Math.max(1, Math.round(Number(seconds) || 0))); const id = "t" + Date.now(); const hh = setTimeout(() => { J.timers.delete(id); jBeep(); jLog("sys", "⏰ " + label); jSpeak(label + "の時間です。"); }, sec * 1000); J.timers.set(id, { h: hh, label }); return { ok: true, fires_at: hm(new Date(Date.now() + sec * 1000)) }; } },
+    { name: "open_url", description: "URL を新しいタブで開く。検索は Google 検索の URL を組み立てて渡す。", inputSchema: { type: "object", properties: { url: { type: "string" }, title: { type: "string" } }, required: ["url", "title"] }, execute: ({ url, title }) => { const u = safeHref(String(url)); if (!u) throw new Error("https の URL のみ"); const w = window.open(u, "_blank", "noopener"); const el = jLog("sys", ""); el.append("🔗 ", h("a", { href: u, target: "_blank", rel: "noopener", text: String(title || u) })); return { ok: true, opened: !!w }; } },
+    { name: "remember", description: "ユーザーに頼まれたことを長期記憶に保存する（短い一文）。", inputSchema: { type: "object", properties: { text: { type: "string" } }, required: ["text"] }, execute: async ({ text }) => { J.memory.push({ t: trunc(String(text), 200), at: new Date().toISOString() }); J.memory = J.memory.slice(-60); jRenderMemory(); await jSaveMemory(); return { ok: true, count: J.memory.length }; } },
+    { name: "forget", description: "長期記憶から、指定した語を含む項目を削除する。", inputSchema: { type: "object", properties: { contains: { type: "string" } }, required: ["contains"] }, execute: async ({ contains }) => { const q = String(contains); const before = J.memory.length; J.memory = J.memory.filter(x => !x.t.includes(q)); jRenderMemory(); await jSaveMemory(); return { removed: before - J.memory.length }; } },
+  ];
+}
+async function roomFreeSlots(date, signal) {
+  const rooms = roomsFromSettings(); if (!rooms.length) return { error: "会議室が設定されていません" };
+  const startUTC = new Date(jstISO(date, "08:00:00")).toISOString().replace(/\.\d+Z$/, "Z"), endUTC = new Date(jstISO(date, "19:00:00")).toISOString().replace(/\.\d+Z$/, "Z");
+  const out = [];
+  for (const room of rooms) {
+    try {
+      const r = await mcpCall("outlook_find_available_time", { afterDateTime: startUTC, beforeDateTime: endUTC, durationMinutes: 30, maxCandidates: 50, isOrganizerOptional: true, participants: [room.email] }, { cache: { staleTime: 120000 }, signal });
+      const data = blocks(r)[0] || {}; const slots = (data.availableTimes || []).map(sl => [evDate(sl.start), evDate(sl.end)]).filter(x => !isNaN(x[0])).sort((a, b) => a[0] - b[0]);
+      const merged = []; for (const [s0, e0] of slots) { const last = merged[merged.length - 1]; if (last && s0 <= last[1]) last[1] = new Date(Math.max(last[1], e0)); else merged.push([s0, e0]); }
+      out.push({ room: room.name, free: merged.map(([a, b]) => hm(a) + "-" + hm(b)) });
+    } catch (e) { out.push({ room: room.name, error: mcpCopy(e) }); }
+  }
+  return { date, rooms: out };
+}
+function jBeep() { try { const ac = new (window.AudioContext || window.webkitAudioContext)(); [0, .25, .5].forEach(t => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(.0001, ac.currentTime + t); g.gain.exponentialRampToValueAtTime(.3, ac.currentTime + t + .02); g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + t + .2); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + .22); }); } catch {} }
+async function jAsk(text) {
+  text = (text || "").trim(); if (!text || J.busy) return;
+  if (!S.sample) { jLog("sys", "このページから Claude を使えないため、ジャービスは動きません。"); return; }
+  jLog("user", text); J.turns.push({ role: "user", content: text });
+  J.busy = true; J.ctl = new AbortController(); J.spokenUpto = 0; if (window.speechSynthesis) speechSynthesis.cancel();
+  jState("考えています…", "thinking"); $("jSend").disabled = true;
+  const el = jLog("ai", "…");
+  try {
+    const r = await S.sample([{ role: "user", content: jSystem() }, ...J.turns.slice(-16)], { tools: jTools(), cache: false, signal: J.ctl.signal, modelTier: "default", onText: ({ text: t }) => { el.textContent = t; $("jLog").scrollTop = $("jLog").scrollHeight; jStreamSpeak(t); } });
+    const final = r.text.trim(); el.textContent = final; J.turns.push({ role: "assistant", content: final });
+    const rest = final.slice(J.spokenUpto); if (rest.trim()) jSpeak(rest);
+    jState(jSpeakEnabled() ? "話しています…" : "球体を押して話しかけてください", jSpeakEnabled() ? "speaking" : null);
+  } catch (e) {
+    if (e.code === "cancelled") el.textContent = (e.text || "") + "（停止）";
+    else { el.textContent = e.text || ""; jLog("sys", sampleCopy(e)); }
+    J.turns.pop(); jState("球体を押して話しかけてください");
+  } finally { J.busy = false; J.ctl = null; $("jSend").disabled = false; }
+}
+function jStopAll() { if (J.ctl) J.ctl.abort(); if (window.speechSynthesis) speechSynthesis.cancel(); if (J.rec && J.listening) { try { J.rec.stop(); } catch {} } J.listening = false; jState("球体を押して話しかけてください"); }
+function jToggleListen() {
+  if (J.listening) { try { J.rec.stop(); } catch {} J.listening = false; jState("球体を押して話しかけてください"); return; }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { jLog("sys", "このブラウザでは音声認識が使えません。文字で入力してください（Chrome か Edge なら使えます）。"); $("jText").focus(); return; }
+  if (!J.rec) {
+    const rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    rec.onresult = (ev) => { let fin = "", interim = ""; for (const res of ev.results) { if (res.isFinal) fin += res[0].transcript; else interim += res[0].transcript; } if (interim) jState("「" + interim + "」", "listening"); if (fin.trim()) { J.listening = false; jAsk(fin); } };
+    rec.onerror = (ev) => { J.listening = false; const code = ev.error; jState("球体を押して話しかけてください"); jLog("sys", code === "not-allowed" || code === "service-not-allowed" ? "マイクが許可されていません。この画面でマイクを使えない場合は文字で入力してください。" : code === "no-speech" ? "声が聞き取れませんでした。もう一度押して話してください。" : "音声認識のエラー: " + code); };
+    rec.onend = () => { if (J.listening) { J.listening = false; jState("球体を押して話しかけてください"); } };
+    J.rec = rec;
+  }
+  try { J.rec.start(); J.listening = true; jState("聞いています…", "listening"); } catch (e) { J.listening = false; jLog("sys", "音声認識を開始できませんでした。文字で入力してください。"); }
+}
+function jarvisInit() {
+  jLoadVoices(); if (window.speechSynthesis) speechSynthesis.onvoiceschanged = jLoadVoices;
+  try { const r = localStorage.getItem("jarvis.rate"); if (r) $("jRate").value = r; const sp = localStorage.getItem("jarvis.speak"); if (sp != null) $("jSpeak").checked = sp === "1"; } catch {}
+  $("jVoice").addEventListener("change", () => { try { localStorage.setItem("jarvis.voice", $("jVoice").value); } catch {} });
+  $("jRate").addEventListener("change", () => { try { localStorage.setItem("jarvis.rate", $("jRate").value); } catch {} });
+  $("jSpeak").addEventListener("change", () => { try { localStorage.setItem("jarvis.speak", $("jSpeak").checked ? "1" : "0"); } catch {} });
+  $("jOrb").onclick = () => { if (J.busy) { jStopAll(); return; } jToggleListen(); };
+  $("jSend").onclick = () => { const t = $("jText").value; $("jText").value = ""; jAsk(t); };
+  $("jText").addEventListener("keydown", e => { if (e.key === "Enter") { const t = $("jText").value; $("jText").value = ""; jAsk(t); } });
+  $("jStop").onclick = jStopAll;
+  $("jClear").onclick = () => { J.turns = []; clear($("jLog")); jLog("sys", "会話を消しました。"); };
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && (J.busy || (window.speechSynthesis && speechSynthesis.speaking))) jStopAll(); });
+  if (!S.sample) jLog("sys", "このページから Claude を使えないため、ジャービスは使えません。");
+  else jLog("sys", "おはようございます。球体を押して話すか、下の欄に入力してください。");
+  if (S.db) S.unsub.push(udoc("jarvis_memory").onSnapshot(snap => { J.memory = snap.exists ? ((snap.data() || {}).items || []) : []; jRenderMemory(); }, () => {})); else jRenderMemory();
+}
+
+
+// ---------- theme ----------
+const ACCENTS = { clay: ["#C6613F", "#AE5133", "#D9774F", "#E88A62"], blue: ["#2F6DB5", "#255A96", "#5B93D6", "#7AAAE3"], green: ["#2E8B57", "#246F45", "#4FB37A", "#6CC58F"], purple: ["#7B57C9", "#6446A8", "#9C7FE0", "#B49AEA"], teal: ["#1F8A8A", "#176E6E", "#3FB0B0", "#62C4C4"], rose: ["#C24A6B", "#A33C59", "#D96B8A", "#E68AA4"] };
+function applyTheme(t) {
+  const mode = t.mode || "auto", accent = ACCENTS[t.accent] ? t.accent : "clay";
+  const root = document.documentElement;
+  if (mode === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", mode);
+  const dark = mode === "dark" || (mode === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const c = ACCENTS[accent]; root.style.setProperty("--clay", dark ? c[2] : c[0]); root.style.setProperty("--clay-hover", dark ? c[3] : c[1]);
+  S.theme = { mode, accent };
+  try { localStorage.setItem("dash.theme", JSON.stringify(S.theme)); } catch {}
+  renderSwatches();
+}
+function renderSwatches() {
+  const box = $("swatches"); if (!box) return; clear(box);
+  for (const [k, v] of Object.entries(ACCENTS)) box.append(h("button", { type: "button", class: (S.theme && S.theme.accent === k) ? "on" : "", style: "background:" + v[0], title: k, onclick: () => applyTheme({ ...(S.theme || {}), accent: k }) }));
+  if ($("setMode")) $("setMode").value = (S.theme && S.theme.mode) || "auto";
+}
+function loadTheme() {
+  let t = null; try { t = JSON.parse(localStorage.getItem("dash.theme") || "null"); } catch {}
+  applyTheme(t || { mode: "auto", accent: "clay" });
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => applyTheme(S.theme || {}));
+}
+
+// ---------- tabs ----------
+function openOverlay(id) { for (const o of document.querySelectorAll(".ov")) o.classList.toggle("on", o.id === id); const first = document.querySelector("#" + id + " input[type=text], #" + id + " textarea"); if (first) setTimeout(() => first.focus(), 50); }
+function closeOverlays() { for (const o of document.querySelectorAll(".ov")) o.classList.remove("on"); }
+function showTab(name) { if (name === "settings") openOverlay("ov-settings"); else if (name === "files") openOverlay("ov-search"); else if (name === "memo") openOverlay("ov-memo"); else if (name === "jarvis") { $("jText").focus(); $("sec-jarvis").scrollIntoView({ block: "nearest" }); } else closeOverlays(); }
+function goto(sectionId) { const sec = $(sectionId); if (!sec) return; const ov = sec.closest(".ov"); if (ov) { openOverlay(ov.id); return; } if (sec.tagName === "DETAILS") sec.open = true; sec.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+function updateTabCounts() {
+  const cls = S.brief && S.brief.cls || {}; const inbox = S.brief && S.brief.inbox || [];
+  const mail = (cls.mail_reply || []).filter(x => mailById(x.id) && !isDismissed("mail", x.id)).length + inbox.filter(m => APPROVAL_RE.test(m.subject || "") && !isDismissed("mail", m.id)).length;
+  const teams = (cls.teams || []).filter(x => chatById(x.id) && !isDismissed("teams", x.id)).length;
+  const open = S.tasks.filter(t => !t.done && bucketOf(t) === "today").length;
+  $("tc-mail").textContent = mail || ""; $("tc-teams").textContent = teams || ""; $("tc-home").textContent = open || "";
+}
+
+// ---------- boot ----------
+function wire() {
+  $("btnRefresh").onclick = () => refreshAll();
+  $("btnJarvis").onclick = () => showTab("jarvis");
+  $("btnEvening").onclick = runEvening;
+  $("btnSettings").onclick = () => { fillSettings(); showTab("settings"); };
+  $("btnSaveSettings").onclick = saveSettings; $("btnCloseSettings").onclick = closeOverlays;
+  for (const b of document.querySelectorAll(".ovclose")) b.onclick = closeOverlays;
+  for (const o of document.querySelectorAll(".ov")) o.addEventListener("click", e => { if (e.target === o) closeOverlays(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeOverlays(); });
+  $("btnOpenSearch").onclick = () => openOverlay("ov-search");
+  $("btnOpenMemo").onclick = () => openOverlay("ov-memo");
+  const add = () => { addTask($("newTitle").value, $("newDue").value || null, $("newScope").value, null); $("newTitle").value = ""; $("newDue").value = ""; };
+  $("btnAdd").onclick = add; $("newTitle").addEventListener("keydown", e => { if (e.key === "Enter") add(); });
+  for (const b of $("mailTabs").querySelectorAll("button")) b.onclick = () => { S.mailTab = b.dataset.tab; for (const x of $("mailTabs").querySelectorAll("button")) x.classList.toggle("on", x === b); renderMail(); };
+  $("btnProof").onclick = () => runProof("proof"); $("btnCompose").onclick = () => runProof("compose"); $("btnProofCopy").onclick = () => copyText($("proofOut").value); $("btnMailDraft").onclick = saveNewDraft;
+  $("btnSearch").onclick = runSearch; $("searchQ").addEventListener("keydown", e => { if (e.key === "Enter") runSearch(); });
+  $("btnRooms").onclick = checkRooms; $("roomDate").value = [0, 6].includes(dow) ? nextBizDay(today) : today;
+  $("btnNpSave").onclick = saveNippo; $("btnNpAI").onclick = nippoAI; $("btnNpCopyMonth").onclick = copyNippoMonth; $("npDate").addEventListener("change", () => setNippoDate($("npDate").value || today));
+  $("memo").addEventListener("input", memoChanged);
+  $("board").addEventListener("input", boardChanged);
+  setNippoDate(today);
+  $("btnWeekly").onclick = () => runReview("weekly"); $("btnMonthly").onclick = () => runReview("monthly"); $("btnReviewCopy").onclick = () => copyText($("reviewOut").textContent);
+}
+async function boot() {
+  loadTheme(); renderQuote(); wire(); renderAll();
+  $("setMode").addEventListener("change", () => applyTheme({ ...(S.theme || {}), mode: $("setMode").value }));
+  if (!window.claude || typeof window.claude.use !== "function") { setStatus("claude.ai の中で開くと、Microsoft 365 とやることの保存が使えます。"); jarvisInit(); return; }
+  const [db, sample, mcp, user] = await Promise.all([claude.use("db"), claude.use("sample"), claude.use("mcp"), claude.use("user")]);
+  S.db = db; S.sample = sample; S.mcp = mcp; S.user = user;
+  if (user && typeof user.can === "function") { try { const c = await user.can("data.write"); if (c === false) S.canWrite = false; } catch {} }
+  if (!mcp) setStatus("Microsoft 365 をこのページから読めません。");
+  if (!sample) $("btnEvening").hidden = true;
+  if (db && user && typeof user.id === "function") { try { UID = await user.id(); } catch { UID = null; } }
+  if (db && !UID) { S.db = null; setStatus("サインインしていないため、やることや仕分け結果はこの画面を閉じると消えます。"); }
+  if (S.db) {
+    let loaded = 0; const t = setTimeout(() => { if (loaded < 3) setStatus("保存データの読み込みに時間がかかっています…"); }, 10000);
+    S.unsub.push(tasksCol().onSnapshot(snap => { S.tasks = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTasks(); if (!snap.metadata.fromCache) loaded++; }, e => { setStatus("やることを読めません: " + (e.code || "")); }));
+    S.unsub.push(docBrief().onSnapshot(snap => { if (snap.exists) { S.brief = snap.data(); renderAll(); } if (!snap.metadata.fromCache) { loaded++; checkStale(); } }, () => {}));
+    S.unsub.push(docDismissed().onSnapshot(snap => { if (snap.exists) { S.dismissed = { mail: {}, teams: {}, waiting: {}, ...snap.data() }; renderAll(); } if (!snap.metadata.fromCache) loaded++; }, () => {}));
+    S.unsub.push(docSettings().onSnapshot(snap => { if (snap.exists) { S.settings = snap.data() || {}; let local = null; try { local = localStorage.getItem("dash.theme"); } catch {} if (!local && S.settings.theme) applyTheme(S.settings.theme); } renderLinks(); }, () => {}));
+    S.unsub.push(udoc("calendar2").onSnapshot(snap => { if (snap.exists) { S.cal2 = snap.data(); renderMonths(); } }, () => {}));
+    S.unsub.push(nippoCol().onSnapshot(snap => { S.nippo = {}; for (const d of snap.docs) S.nippo[d.id] = d.data(); if (S.npDate) setNippoDate(S.npDate); else renderNippoList(); }, () => {}));
+    S.unsub.push(db.doc("shared/weather").onSnapshot(snap => { S.weather = snap.exists ? snap.data() : null; renderWeather(); }, () => {}));
+    S.unsub.push(db.doc("shared/weather_config").onSnapshot(snap => { S.weatherConfig = snap.exists ? snap.data() : null; }, () => {}));
+    S.unsub.push(db.doc("shared/board").onSnapshot(snap => { if (snap.exists) { const d = snap.data() || {}; if (!boardLocal && document.activeElement !== $("board")) { $("board").value = d.text || ""; } $("boardStatus").textContent = d.updatedAt ? "最終更新 " + fmtWhen(d.updatedAt) : ""; } boardLoaded = true; }, () => {}));
+    S.unsub.push(udoc("memo").onSnapshot(snap => { if (snap.exists && !memoLoaded) { $("memo").value = (snap.data() || {}).text || ""; } memoLoaded = true; }, () => {}));
+    setTimeout(() => clearTimeout(t), 11000);
+  } else { setStatus("保存領域が使えません。やることはこの画面を閉じると消えます。"); checkStale(); }
+  jarvisInit();
+}
+let staleChecked = false;
+function checkStale() {
+  if (!S.mcp || staleChecked) return; staleChecked = true;
+  const last = S.brief && (S.brief.checkedAt || S.brief.generatedAt);
+  const ageMin = last ? (Date.now() - new Date(last).getTime()) / 60000 : Infinity;
+  lastRefreshAt = last ? new Date(last).getTime() : 0;
+  if (autoMin() && ageMin >= Math.min(autoMin(), 60)) refreshAll({ auto: true });
+  else if (!autoMin() && ageMin > 360) { const b = clear($("banner")); b.hidden = false; b.append(h("span", { text: S.brief ? "前回の更新から " + Math.floor(ageMin / 60) + " 時間たっています。" : "まだ一度も更新していません。" }), h("button", { class: "btn small", text: "いま更新する", onclick: () => refreshAll() })); }
+  scheduleAuto();
+}
+boot();
+})();
+</script>
+</body>
+</html>
