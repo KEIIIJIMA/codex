@@ -206,8 +206,17 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
       <select id="provider">
         <option value="claude">Claude（Anthropic）— 高品質・有料（前払いクレジット）</option>
         <option value="gemini">Gemini（Google）— 無料枠あり・カード不要</option>
+        <option value="proxy">共有サーバー経由 — 管理者のキーを使う（利用者はキー不要）</option>
       </select>
       <div class="note">切り替えると今の会話はリセットされます（記憶は残ります）。</div>
+    </div>
+    <div id="secProxy">
+    <h3>共有サーバー</h3>
+    <div class="row">
+      <div class="field"><label for="proxyUrl">サーバーのURL（管理者から受け取る）</label><input id="proxyUrl" type="text" placeholder="https://jarvis-proxy.xxxx.workers.dev" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="proxyPass">合言葉（設定されている場合）</label><input id="proxyPass" type="password" autocomplete="off"></div>
+    </div>
+    <div class="note">API キーは管理者のサーバーに置かれ、このページには入りません。使うモデルはサーバー側で決まります。<span id="proxyInfo"></span></div>
     </div>
     <div id="secGemini">
     <h3>GEMINI API</h3>
@@ -315,15 +324,26 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
    設定
    ========================================================= */
 const LS_KEY = 'jarvis.settings.v1';
+// 共有サーバー（Cloudflare Worker）を立てたら、ここにその URL を入れると初回から設定なしで動く。
+// 例: const DEFAULT_PROXY = 'https://jarvis-proxy.xxxx.workers.dev';
+const DEFAULT_PROXY = '';
 const DEFAULTS = {
-  provider:'claude', apiKey:'', model:'claude-opus-5-5', effort:'low', webSearch:true,
+  provider: DEFAULT_PROXY ? 'proxy' : 'claude', apiKey:'', model:'claude-opus-5-5', effort:'low', webSearch:true,
   geminiKey:'', geminiModel:'gemini-3.5-flash-lite',
+  proxyUrl: DEFAULT_PROXY, proxyPass:'',
   voice:'', rate:1.1, wake:'ジャービス', lang:'ja-JP', wakeAlways:false,
   botName:'ジャービス', userName:'', persona:'', mode:'ptt'
 };
 let S = {...DEFAULTS};
 try { Object.assign(S, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch {}
 const saveSettings = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch {} };
+// 共有リンク: ?proxy=<WorkerのURL>&pass=<合言葉> を開くと取り込んで、URL からは消す
+{
+  const q = new URLSearchParams(location.search); let touched = false;
+  if (q.get('proxy')) { S.proxyUrl = q.get('proxy').replace(/\/+$/, ''); S.provider = 'proxy'; touched = true; }
+  if (q.has('pass')) { S.proxyPass = q.get('pass'); if (S.proxyUrl) S.provider = 'proxy'; touched = true; }
+  if (touched) { saveSettings(); q.delete('proxy'); q.delete('pass'); window.history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
+}
 
 const $ = id => document.getElementById(id);
 const orb = $('orb'), bars = [...$('bars').children], live = $('live'), statusEl = $('status'), logEl = $('log');
@@ -548,9 +568,19 @@ const API = 'https://api.anthropic.com/v1/messages';
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models/';
 let history = [];      // 使用中プロバイダの形式でそのまま保持（Claude: {role,content:[blocks]} / Gemini: {role,parts:[...]}）
 let busy = false, abortCtl = null;
-const isGemini = () => S.provider === 'gemini';
-const activeModel = () => isGemini() ? (S.geminiModel || DEFAULTS.geminiModel) : S.model;
-const activeKey = () => isGemini() ? S.geminiKey : S.apiKey;
+const isProxy = () => S.provider === 'proxy';
+let proxyCfg = null;                      // 共有サーバーの /config の結果 {provider, model, needsPass, name}
+const effective = () => isProxy() ? (proxyCfg?.provider || 'gemini') : S.provider;
+const isGemini = () => effective() === 'gemini';
+const activeModel = () => isProxy() ? (proxyCfg?.model || '(共有サーバー)') : isGemini() ? (S.geminiModel || DEFAULTS.geminiModel) : S.model;
+const activeKey = () => isProxy() ? (S.proxyUrl || '') : isGemini() ? S.geminiKey : S.apiKey;
+const proxyBase = () => (S.proxyUrl || '').replace(/\/+$/, '');
+async function loadProxyCfg(force) {
+  if (proxyCfg && !force) return proxyCfg;
+  const res = await fetch(proxyBase() + '/config', { headers: S.proxyPass ? { 'x-jarvis-pass': S.proxyPass } : {} });
+  if (!res.ok) throw Object.assign(new Error('共有サーバーに接続できません（' + res.status + '）。URLを確認してください。'), { status: res.status, proxy: true });
+  proxyCfg = await res.json(); return proxyCfg;
+}
 
 function systemPrompt() {
   const now = new Date();
@@ -620,20 +650,23 @@ const claude = {
   isToolResultTurn: m => m.role === 'user' && Array.isArray(m.content) && m.content.some(b => b.type === 'tool_result'),
   body() {
     const tools = TOOLS.map(({run, ...t}) => t);
-    if (S.webSearch) tools.push({ type: S.model.startsWith('claude-haiku') ? 'web_search_20250305' : 'web_search_20260209', name:'web_search', max_uses:3 });
-    const body = { model: S.model, max_tokens: 8000, stream: true, system: systemPrompt(), messages: history, tools, output_config: { effort: S.effort } };
-    if (!S.model.startsWith('claude-haiku')) body.fallbacks = 'default';   // 安全分類器で拒否されたら別モデルで再実行（Haiku は非対応）
+    const model = activeModel();
+    if (S.webSearch) tools.push({ type: model.startsWith('claude-haiku') ? 'web_search_20250305' : 'web_search_20260209', name:'web_search', max_uses:3 });
+    const body = { model, max_tokens: 8000, stream: true, system: systemPrompt(), messages: history, tools, output_config: { effort: S.effort } };
+    if (!model.startsWith('claude-haiku')) body.fallbacks = 'default';   // 安全分類器で拒否されたら別モデルで再実行（Haiku は非対応）
     return body;
   },
   headers() {
-    const h = { 'content-type':'application/json', 'x-api-key': S.apiKey, 'anthropic-version':'2026-10-21', 'anthropic-dangerous-direct-browser-access':'true' };
-    if (!S.model.startsWith('claude-haiku')) h['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+    const h = isProxy()
+      ? { 'content-type':'application/json', ...(S.proxyPass ? { 'x-jarvis-pass': S.proxyPass } : {}) }   // キーはサーバー側が付ける
+      : { 'content-type':'application/json', 'x-api-key': S.apiKey, 'anthropic-version':'2026-10-21', 'anthropic-dangerous-direct-browser-access':'true' };
+    if (!activeModel().startsWith('claude-haiku')) h['anthropic-beta'] = 'server-side-fallback-2026-07-01';
     return h;
   },
   // SSE を読んで content ブロックを組み立てる。文が完成するたびに onSentence を呼ぶ
   async stream(signal, onSentence, onToolStart) {
     const tStart = performance.now(); let firstTok = false;
-    const res = await fetch(API, { method:'POST', headers: this.headers(), body: JSON.stringify(this.body()), signal });
+    const res = await fetch(isProxy() ? proxyBase() + '/v1/messages' : API, { method:'POST', headers: this.headers(), body: JSON.stringify(this.body()), signal });
     if (!res.ok) throw await httpError(res);
     const sb = sentenceBuffer(onSentence);
     let blocks = [], stop = null, stopDetails = null;
@@ -701,8 +734,8 @@ const gemini = {
   async stream(signal, onSentence, onToolStart, opts = {}) {
     const tStart = performance.now(); let firstTok = false;
     const model = activeModel();
-    const res = await fetch(`${GEMINI_API}${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
-      method:'POST', headers: { 'content-type':'application/json', 'x-goog-api-key': S.geminiKey }, body: JSON.stringify(this.body(opts)), signal });
+    const res = await fetch(isProxy() ? proxyBase() + '/gemini' : `${GEMINI_API}${encodeURIComponent(model)}:streamGenerateContent?alt=sse`, {
+      method:'POST', headers: isProxy() ? { 'content-type':'application/json', ...(S.proxyPass ? { 'x-jarvis-pass': S.proxyPass } : {}) } : { 'content-type':'application/json', 'x-goog-api-key': S.geminiKey }, body: JSON.stringify(this.body(opts)), signal });
     if (!res.ok) {
       const e = await httpError(res);
       // 組み合わせやパラメータを受け付けないモデルへの救済（1回だけ外して再試行）
@@ -758,9 +791,13 @@ function trimHistory() {
 
 let askGen = 0, currentRollback = null;
 async function ask(text) {
-  if (!activeKey()) { openSettings(); addSys(`先に設定で ${provider().name} の API キーを入れてください。`); return; }
+  if (!activeKey()) { openSettings(); addSys(isProxy() ? '先に設定で共有サーバーのURLを入れてください。' : `先に設定で ${provider().name} の API キーを入れてください。`); return; }
   if (busy) { stopAll(); currentRollback && currentRollback(); }   // 前のターンは中断して履歴を巻き戻す（その catch/finally は世代不一致で何もしない）
   const myGen = ++askGen; H.turns++;
+  if (isProxy() && !proxyCfg) {
+    try { await loadProxyCfg(); } catch (err) { if (myGen !== askGen) return; const m = err.status === 401 ? '合言葉が違うか、未設定です。設定で合言葉を入れてください。' : err.message; addErr(m); setState('error', esc(m)); hudLog('error', m); return; }
+    if (myGen !== askGen) return;
+  }
   const P = provider();
   busy = true; stopSpeaking();
   if (S.mode === 'hands') pauseRecognition();
@@ -818,7 +855,10 @@ async function ask(text) {
     else {
       console.error(err);
       let m = err.message || String(err);
-      if (isGemini()) {
+      if (isProxy() && err.status === 401) m = '合言葉が違うか、未設定です。設定で合言葉を確認してください。';
+      else if (isProxy() && err.status === 429) m = '共有サーバーの利用上限に達しました。少し待ってからもう一度どうぞ。';
+      else if (isProxy() && err.status === 402) m = '共有サーバー側の API 残高が不足しています。管理者に連絡してください。';
+      else if (isGemini()) {
         if (err.status === 400 && /API key|API_KEY/i.test(m)) m = 'Gemini の API キーが無効です。設定を確認してください。';
         else if (err.status === 403) m = 'Gemini の API キーに権限がありません。AI Studio で新しいキーを作ってみてください。';
         else if (err.status === 429) m = 'Gemini の無料枠の上限（1分あたり、または1日あたり）に達しました。少し待つか、設定でモデルを Flash-Lite に変えてください。';
@@ -842,7 +882,7 @@ async function ask(text) {
 function safeHost(u) { try { return new URL(u).hostname; } catch { return u; } }
 function stopAll() { if (abortCtl) abortCtl.abort(); stopSpeaking(); }
 function idle() {
-  if (!activeKey()) { setState('off', `設定で ${provider().name} の API キーを入れると起動します`); return; }
+  if (!activeKey()) { setState('off', isProxy() ? '設定で共有サーバーのURLを入れると起動します' : `設定で ${provider().name} の API キーを入れると起動します`); return; }
   if (!SR) { setState('off', 'このブラウザは音声認識に未対応です。下の入力欄から文字で話しかけられます（Chrome / Edge / Safari 推奨）。'); return; }
   if (S.mode === 'hands') setState(handsOn ? 'listening' : 'off', handsOn ? (S.wakeAlways ? '聞いています' : `「<b>${esc(S.wake)}</b>」と呼びかけてください`) : '球体をタップするとハンズフリー待機を開始します');
   else setState('off', '球体を押している間、聞き取ります');
@@ -897,7 +937,8 @@ function unlockAudio() { if (unlocked || !synth) return; unlocked = true; const 
    ========================================================= */
 const dlg = $('dlg');
 function openSettings() {
-  $('provider').value = S.provider; $('geminiKey').value = S.geminiKey; $('geminiModel').value = S.geminiModel; syncProviderUI();
+  $('provider').value = S.provider; $('geminiKey').value = S.geminiKey; $('geminiModel').value = S.geminiModel; $('proxyUrl').value = S.proxyUrl; $('proxyPass').value = S.proxyPass; syncProviderUI();
+  $('proxyInfo').textContent = proxyCfg ? `（接続中: ${proxyCfg.name || ''} ${proxyCfg.provider} / ${proxyCfg.model}）` : '';
   $('apiKey').value = S.apiKey; $('model').value = S.model; $('effort').value = S.effort; $('webSearch').checked = S.webSearch;
   loadVoices(); $('rate').value = S.rate; $('rateVal').textContent = S.rate; $('wake').value = S.wake; $('lang').value = S.lang; $('wakeAlways').checked = S.wakeAlways;
   $('botName').value = S.botName; $('userName').value = S.userName; $('persona').value = S.persona;
@@ -913,7 +954,7 @@ function memoryFromTextarea() {
 $('memCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('memText').value); $('memCopy').textContent = 'コピーしました'; setTimeout(() => $('memCopy').textContent = 'コピー', 1500); } catch { $('memText').select(); } });
 $('memClear').addEventListener('click', () => { if (confirm('覚えていることをすべて消します。よろしいですか？')) { $('memText').value = ''; } });
 $('btnSettings').addEventListener('click', openSettings);
-function syncProviderUI() { const g = $('provider').value === 'gemini'; $('secGemini').style.display = g ? '' : 'none'; $('secClaude').style.display = g ? 'none' : ''; }
+function syncProviderUI() { const v = $('provider').value; $('secGemini').style.display = v === 'gemini' ? '' : 'none'; $('secClaude').style.display = v === 'claude' ? '' : 'none'; $('secProxy').style.display = v === 'proxy' ? '' : 'none'; }
 $('provider').addEventListener('change', syncProviderUI);
 $('rate').addEventListener('input', e => $('rateVal').textContent = e.target.value);
 $('lang').addEventListener('change', () => { S.lang = $('lang').value; loadVoices(); });
@@ -926,9 +967,10 @@ $('dlgTest').addEventListener('click', () => {
 $('dlgSave').addEventListener('click', () => {
   const prevProvider = S.provider;
   S.provider = $('provider').value; S.geminiKey = $('geminiKey').value.trim(); S.geminiModel = $('geminiModel').value.trim() || DEFAULTS.geminiModel;
+  const prevProxy = S.proxyUrl; S.proxyUrl = $('proxyUrl').value.trim().replace(/\/+$/, ''); S.proxyPass = $('proxyPass').value; if (prevProxy !== S.proxyUrl) proxyCfg = null;
   S.apiKey = $('apiKey').value.trim(); S.model = $('model').value; S.effort = $('effort').value; S.webSearch = $('webSearch').checked;
   gemini.noSearch = false; gemini.noThinking = false;
-  if (prevProvider !== S.provider) { stopAll(); history = []; addSys(`頭脳を ${S.provider === 'gemini' ? 'Gemini' : 'Claude'} に切り替えました。会話をリセットします。`); }
+  if (prevProvider !== S.provider) { stopAll(); history = []; addSys(`頭脳を ${S.provider === 'gemini' ? 'Gemini' : S.provider === 'proxy' ? '共有サーバー' : 'Claude'} に切り替えました。会話をリセットします。`); }
   S.voice = $('voice').value; S.rate = +$('rate').value; S.wake = $('wake').value.trim() || 'ジャービス'; S.lang = $('lang').value; S.wakeAlways = $('wakeAlways').checked;
   S.botName = $('botName').value.trim() || 'ジャービス'; S.userName = $('userName').value.trim(); S.persona = $('persona').value.trim();
   memoryFromTextarea();

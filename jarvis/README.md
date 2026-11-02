@@ -29,6 +29,10 @@
 
 設定画面の「頭脳」で切り替えます。切り替えると会話はリセットされますが、記憶は共通です。Gemini のモデル名は一覧から選ぶほか、新しいモデルが出たら直接入力できます（既定は無料枠が広めの `gemini-3.5-flash-lite`）。
 
+## 他の人に使ってもらう（キーを入れさせない）
+
+`proxy/` にある Cloudflare Worker をあなたのアカウントに置くと、API キーはそのサーバーにだけ存在し、利用者はページの URL（と合言葉）だけで使えます。設定画面の「頭脳 → 共有サーバー経由」がこのモードで、`?proxy=<WorkerのURL>&pass=<合言葉>` 付きのリンクを開けば自動で取り込まれます。合言葉・1 IP あたりの回数制限・モデル固定・発信元制限つき。手順は [proxy/README.md](proxy/README.md)。
+
 ## 使い方
 
 1. [Claude Console](https://platform.claude.com/) で API キーを発行する（Gemini を使うなら [AI Studio](https://aistudio.google.com/apikey) で）
@@ -54,6 +58,9 @@ API キーはこのブラウザの `localStorage` にだけ保存され、リク
 
 ```
 jarvis/
-  index.html   # アプリ本体（HTML/CSS/JS、依存なし）
+  index.html         # アプリ本体（HTML/CSS/JS、依存なし）
   README.md
+  proxy/worker.js    # 共有サーバー（Cloudflare Worker）。管理者のキーを隠して中継
+  proxy/wrangler.toml
+  proxy/README.md    # 共有サーバーの設置手順
 ```
