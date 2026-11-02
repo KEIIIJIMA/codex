@@ -184,7 +184,7 @@
 ["supercilious","形",["傲慢な","見下した"],"His supercilious manner made him unpopular with his colleagues.","彼の傲慢な態度は同僚たちの間で不人気だった。","",4,["性格","評価"]],
 ["surreptitious","形",["こっそりした","内密の"],"She cast a surreptitious glance at the clock during the lecture.","彼女は講義中にこっそり時計を盗み見た。","surreptitiously 副",4,["行動","性格"]],
 ["taciturn","形",["無口な"],"The taciturn farmer rarely spoke to anyone in the village.","その無口な農夫は村の誰とも滅多に話さなかった。","",4,["性格"]],
-["temerity","名",["無鉄砲","厚かましさ"],"Nobody had the temerity to challenge the director's decision.","誰も所長の決定に異議を唱える度胸を持たなかった。","",4,["性格","行動"]],
+["temerity","名",["無鉄砲","厚かましさ"],"Nobody had the temerity to challenge the director's decision.","所長の決定に異議を唱えるほど無鉄砲な者は誰もいなかった。","",4,["性格","行動"]],
 ["tirade","名",["長い非難演説"],"The coach launched into a tirade against the referee after the match.","試合後、監督は審判に対する長い非難を浴びせ始めた。","",4,["言語","行動"]],
 ["torpor","名",["無気力","麻痺状態"],"The hot afternoon left everyone in a state of torpor.","暑い午後のせいで、誰もが無気力な状態になった。","torpid 形 無気力な",4,["心理","身体・健康"]],
 ["truculent","形",["反抗的な","攻撃的な"],"The truculent teenager refused to answer any of the questions.","その反抗的な少年はどの質問にも答えようとしなかった。","",4,["性格","行動"]],
@@ -198,6 +198,6 @@
 ["winsome","形",["魅力的な","愛嬌のある"],"The child greeted the visitors with a winsome smile.","その子は愛らしい笑顔で訪問客を迎えた。","",4,["性格","評価"]],
 ["zenith","名",["頂点","天頂"],"The empire reached its zenith in the sixteenth century.","その帝国は16世紀に絶頂期を迎えた。","↔ nadir 最低点",4,["時間","抽象"]],
 ["zealot","名",["熱狂者","狂信者"],"Religious zealots often refuse to listen to opposing views.","宗教の狂信者はしばしば反対意見に耳を貸そうとしない。","",4,["性格","社会"]],
-["stoic","形・名",["禁欲的な","ストア派の"],"He bore the pain with stoic calm and did not complain.","彼は禁欲的な落ち着きで痛みに耐え、不平を言わなかった。","stoicism 名 禁欲主義",4,["性格","心理"]],
+["stoic","形・名",["(苦痛・逆境に)動じない・不平を言わず耐える","ストア派の","(名)不平を言わず耐える人・ストア派の哲学者"],"He bore the pain with stoic calm and did not complain.","彼は痛みにも平静を保って耐え、不平を言わなかった。","stoicism 名 克己・不平を言わず耐える態度 / (Stoicism)ストア哲学",4,["性格","心理"]],
 ["trite","形",["陳腐な"],"The film was criticized for its trite plot and flat characters.","その映画は陳腐な筋書きと平板な登場人物を批判された。","",4,["評価","文化"]]
 ]
