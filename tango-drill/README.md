@@ -44,6 +44,7 @@ tango-drill/
   book/                 # 古文330・読み70・古文常識の元データと組み立てスクリプト
   src/joshiki_data.js   # 古文常識（book/build_joshiki.py が生成）
   src/extra_data.js     # 文学史・和歌・文法（book/build_extra.py が生成）
+  src/joshiki_img.js    # 古文常識の挿絵23点と表の写真3点（JPEG を data URI で埋め込み）
   build.js              # src/ から index.html と dist/ を生成
 ```
 
