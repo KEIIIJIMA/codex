@@ -181,11 +181,15 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 table.ref{border-collapse:collapse;font-size:.8rem;min-width:100%;white-space:nowrap}
 table.ref.wide{white-space:normal;min-width:760px}
 table.ref th,table.ref td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
-table.ref tr:first-child th{background:var(--surface2);color:var(--muted);font-weight:500;position:sticky;top:0}
+table.ref tr:first-child th{background:var(--surface2);color:var(--muted);font-weight:500}
+table.ref.wrap{white-space:normal}
+table.ref.wrap td:nth-child(2){min-width:4.5em}
 table.ref th{background:var(--surface2);font-weight:500}
 table.ref b{font-family:var(--serif-ja);font-size:1rem}
 table.ref tr>*:first-child{white-space:normal;min-width:4.2em;max-width:6.5em}
 table.ref small{display:block;color:var(--muted);font-size:.72rem;margin-bottom:4px}
+table.ref td.tr{color:var(--accent)}
+table.ref td[rowspan],table.ref th[rowspan]{vertical-align:middle}
 table.ref mark{background:var(--accent-soft);color:var(--accent);font-weight:700;padding:0 2px;border-radius:3px}
 .refimg{display:block;width:1100px;max-width:none}
 .refd .cap{font-size:.75rem;color:var(--muted);margin:6px 0 0}
