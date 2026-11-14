@@ -909,7 +909,8 @@ function render(){
   else if(S.tab==='home')v.innerHTML=viewHome();
   else if(S.tab==='list')v.innerHTML=viewList();
   else v.innerHTML=viewStats();
-  try{window.scrollTo({top:0});}catch(e){}
+  const vk=S.subj+'|'+S.tab+'|'+(S.session?'s'+S.session.i:'');
+  if(vk!==render.vk){render.vk=vk;try{window.scrollTo({top:0});}catch(e){}}
   const a=$('#ans');if(a&&S.session&&S.session.picked===null)a.focus();
 }
 function wordHtml(it,cls){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${it.k?`<div class="kanji">${esc(it.k)}</div>`:''}`;}
