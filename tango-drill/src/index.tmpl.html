@@ -135,6 +135,15 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .note{margin-top:12px;font-size:.86rem;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:8px 12px}
 .note b{color:var(--warn);margin-right:6px}
 .der{margin-top:10px;font-size:.86rem;color:var(--muted)}
+.figbox{margin-top:14px;padding:10px;background:var(--surface2);border-radius:10px;overflow-x:auto}
+.figbox svg{display:block;width:100%;max-width:380px;height:auto;margin:0 auto}
+.figbox svg text{font-family:var(--sans);fill:var(--fg)}
+.figbox table{border-collapse:collapse;font-size:.82rem;width:100%}
+.figbox td,.figbox th{border:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top}
+.figbox th{color:var(--muted);font-weight:500;white-space:nowrap}
+.figbox mark{background:var(--accent-soft);color:var(--accent);font-weight:700;padding:0 2px;border-radius:3px}
+.figbox .cap{font-size:.75rem;color:var(--muted);margin-top:6px;text-align:center}
+.ill{margin:14px 0 0}.ill img{display:block;max-width:100%;max-height:360px;margin:0 auto;border-radius:8px;border:1px solid var(--line)}
 .means.per{gap:10px}.means.per li>span{min-width:0;flex:1}
 .ex.sm{display:block;margin:6px 0 0;padding:7px 12px;font-weight:400;font-size:.95rem}
 .ex.sm .q,.ex.sm .tr{display:block}.ex.sm .tr{font-size:.85rem}
@@ -260,7 +269,8 @@ const SUBJ={kobun:{name:'古文単語',cls:'ja',qw:'語',lv:{1:'必修',2:'発�
 if(typeof BOOK_RAW!=='undefined')SUBJ.book=Object.assign({name:'単語集',cls:'ja',qw:'語',book:true,lv:{1:'1章',2:'2章',3:'3章',4:'4章',5:'5章'},lvd:{1:'1章',2:'2章',3:'3章',4:'4章',5:'5章'}},typeof BOOK_META!=='undefined'?BOOK_META:{});
 if(typeof YOMI_RAW!=='undefined')SUBJ.yomi={name:'読み',cls:'ja',qw:'漢字',yomi:true,lv:{1:'読み'},lvd:{1:'読み重要語'}};
 for(const l of [1,2,3,4])SUBJ['eigo'+l]=Object.assign({},SUBJ.eigo,{name:SUBJ.eigo.lv[l],base:'eigo',fixLv:l});
-const GROUPS=[{key:'kobun',name:'古文',subs:['kobun','book','yomi']},{key:'eigo',name:'英語',subs:['eigo','eigo1','eigo2','eigo3','eigo4']}];
+if(typeof JOSHIKI_RAW!=='undefined')SUBJ.joshiki=Object.assign({name:'古文常識',cls:'ja',qw:'語',joshiki:true,noCloze:true,lv:{},lvd:{}},JOSHIKI_META);
+const GROUPS=[{key:'kobun',name:'古文',subs:['kobun','book','yomi','joshiki']},{key:'eigo',name:'英語',subs:['eigo','eigo1','eigo2','eigo3','eigo4']}];
 const SUBLABEL={kobun:'古文単語',eigo:'全レベル'};
 const baseOf=k=>SUBJ[k].base||k;const groupOf=k=>GROUPS.find(g=>g.subs.includes(k)).key;const isEn=()=>baseOf(S.subj)==='eigo';
 const lvName=(it)=>SUBJ[S.subj].lv[it.lv]||('Lv'+it.lv);
@@ -272,8 +282,9 @@ let BOOKREL=[];
 if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],pos:r[3],m:r[4],ex:r[5],tr:r[6],note:r[7],lv:r[8],tags:r[9],rel:r[10]||[],exs:r[11]||null}));
   DATA.book.forEach(it=>{if(it.exs&&it.exs[0]){it.ex=it.exs[0][0];it.tr=it.exs[0][1];}});
   DATA.book.forEach(it=>it.rel.forEach((x,i)=>BOOKREL.push({id:'br:'+it.num+':'+i,num:it.num,w:x[0],k:'',pos:x[1],m:x[2].split('・'),ex:'',tr:'',note:'「'+it.w+'」（No.'+it.num+'）の関連語',lv:it.lv,tags:['関連語'],rel:[],isRel:true,parent:it})));}
-if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],alt:r[4]||'',ex:'',tr:'',note:r[3]+(r[4]&&r[4]!==r[2]?'（歴史的仮名遣い：'+r[4]+'）':''),lv:1,tags:[],yomi:true}));
+if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],rd:r[2],alt:r[4]||'',ex:'',tr:'',note:r[3]+(r[4]&&r[4]!==r[2]?'（歴史的仮名遣い：'+r[4]+'）':''),lv:1,tags:[],yomi:true}));
 for(const l of [1,2,3,4])DATA['eigo'+l]=DATA.eigo.filter(it=>it.lv===l);
+if(SUBJ.joshiki)DATA.joshiki=JOSHIKI_RAW.map(r=>({id:'j:'+r[1],w:r[1],k:'',pos:r[0],m:[r[3]],rd:r[2]!==r[1]?r[2]:'',alt:r[5]||'',ex:'',tr:'',note:'',lv:r[6],tags:[],img:r[7],fig:r[8],page:r[4]}));
 const findAny=id=>{for(const s in DATA){const x=DATA[s].find(it=>it.id===id);if(x)return x;}return BOOKREL.find(it=>it.id===id);};
 if(typeof KOBUN_EXS!=='undefined')DATA.kobun.forEach(it=>{const e=KOBUN_EXS[it.w+'|'+(it.k||'')];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
 if(typeof EIGO_EXS!=='undefined')DATA.eigo.forEach(it=>{const e=EIGO_EXS[it.w];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
@@ -309,7 +320,7 @@ function pool(subj,range){let all=DATA[subj];
   if(range==='new')return all.filter(it=>status(it)==='new');
   if(range==='weak')return all.filter(it=>status(it)==='weak');
   if(range==='notok')return all.filter(it=>status(it)!=='ok');
-  if(/^lv\d$/.test(range))return all.filter(it=>it.lv===+range[2]);
+  if(/^lv\d+$/.test(range))return all.filter(it=>it.lv===+range.slice(2));
   if(range.startsWith('tag:')){const t=range.slice(4);return all.filter(it=>it.tags.includes(t));}
   return all.slice();}
 function order(items,mode){
@@ -318,8 +329,9 @@ function order(items,mode){
   const w={weak:0,new:1,learning:2,ok:3};shuffle(items);
   return items.map((it,i)=>({it,k:w[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
 function start(mode,items){const p=prefsOf();
-  if(!items){items=order(pool(S.subj,p.range),p.order);if(p.count!=='all')items=items.slice(0,+p.count);}
-  if(mode.startsWith('cloze'))items=items.filter(it=>findForm(it)||(it.exs&&it.exs.some(e=>findForm(it,e[0]))));
+  const modeOk=it=>mode==='typeY'?(!!it.rd&&/[一-龠々]/.test(it.w)):mode.startsWith('cloze')?!!(findForm(it)||(it.exs&&it.exs.some(e=>findForm(it,e[0])))):true;
+  if(!items){items=order(pool(S.subj,p.range).filter(modeOk),p.order);if(p.count!=='all')items=items.slice(0,+p.count);}
+  items=items.filter(modeOk);
   if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
   S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
 function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mode==='quiz';
@@ -356,10 +368,44 @@ function render(){
 }
 function wordHtml(it,cls){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${it.k?`<div class="kanji">${esc(it.k)}</div>`:''}`;}
 function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
+/* ---- 古文常識の図（本の図を参考に描き直した略図） ---- */
+const FIGS={
+ clock(it){const E=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'],C=160,pt=(a,r)=>[C+r*Math.sin(a*Math.PI/180),C-r*Math.cos(a*Math.PI/180)];
+  const D={'艮':[45,[1,2],'北東'],'巽':[135,[4,5],'南東'],'坤':[225,[7,8],'南西'],'乾':[315,[10,11],'北西']};let hi=[],hd='';
+  if(it.pos==='時刻')hi=[E.indexOf(it.w[0])];else{hd=it.w[0];hi=(D[hd]||[0,[]])[1];}
+  let g='';E.forEach((e,i)=>{const a=i*30,[x1,y1]=pt(a-15,112),[x2,y2]=pt(a+15,112),[x3,y3]=pt(a+15,52),[x4,y4]=pt(a-15,52),on=hi.includes(i),[lx,ly]=pt(a,92),[tx,ty]=pt(a,68);
+   g+=`<path d="M${x1} ${y1}A112 112 0 0 1 ${x2} ${y2}L${x3} ${y3}A52 52 0 0 0 ${x4} ${y4}Z" fill="${on?'var(--accent-soft)':'var(--surface)'}" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?2:1}"/><text x="${lx}" y="${ly+6}" text-anchor="middle" font-size="17" font-weight="700" style="font-family:var(--serif-ja)${on?';fill:var(--accent)':''}">${e}</text><text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${i*2}時</text>`;});
+  [['北',0],['東',90],['南',180],['西',270]].forEach(([n,a])=>{const[x,y]=pt(a,130);g+=`<text x="${x}" y="${y+5}" text-anchor="middle" font-size="13" font-weight="700">${n}</text>`;});
+  for(const k in D){const[x,y]=pt(D[k][0],143),on=k===hd;g+=`<text x="${x}" y="${y+2}" text-anchor="middle" font-size="13" font-weight="700" style="font-family:var(--serif-ja)${on?';fill:var(--accent)':''}">${k}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-size="9" style="fill:var(--muted)">${D[k][2]}</text>`;}
+  return `<svg viewBox="0 0 320 330" role="img" aria-label="十二支の時刻と方角">${g}<text x="160" y="164" text-anchor="middle" font-size="10" style="fill:var(--muted)">一つの支が</text><text x="160" y="177" text-anchor="middle" font-size="10" style="fill:var(--muted)">約2時間</text></svg><div class="cap">子の時は午前0時ごろ（23〜1時）。方角は子＝北、卯＝東、午＝南、酉＝西。</div>`;},
+ moon(it){const M=[[1,'朔日'],[3,'三日月'],[7,'七日'],[10,'十日余り'],[13,'十三夜'],[15,'望月'],[16,'十六夜'],[17,'立ち待ち'],[18,'居待ち'],[19,'寝待ち'],[20,'更け待ち'],[23,'二十日余り'],[29,'晦日']];
+  const key={'朔日':[1],'三日月':[3],'十三夜の月':[13],'望月':[15],'十六夜の月':[16],'立ち待ちの月':[17],'居待ちの月':[18],'寝待ちの月':[19],'更け待ちの月':[20],'二十日余りの月':[23],'晦日':[29],'夕月夜':[3,7,10],'有明の月':[16,17,18,19,20,23]}[it.w]||[];
+  let g='';M.forEach(([d,n],i)=>{const cx=30+(i%7)*46,cy=30+Math.floor(i/7)*74,r=15,th=2*Math.PI*d/29.53,k=(1-Math.cos(th))/2,wax=d<14.77,rx=Math.abs(r*Math.cos(th)).toFixed(1),on=key.includes(d);
+   g+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#3a3f4b" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?3:1}"/>${k>0.02?`<path d="M${cx} ${cy-r}A${r} ${r} 0 0 ${wax?1:0} ${cx} ${cy+r}A${rx} ${r} 0 0 ${(k>0.5)===wax?1:0} ${cx} ${cy-r}Z" fill="#f2d27a"/>`:''}<text x="${cx}" y="${cy+30}" text-anchor="middle" font-size="9.5" ${on?'font-weight="700" style="fill:var(--accent)"':''}>${n}</text><text x="${cx}" y="${cy+41}" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">${d}日</text>`;});
+  return `<svg viewBox="0 0 330 150" role="img" aria-label="月の満ち欠けと呼び名">${g}</svg><div class="cap">旧暦は月の満ち欠けで日付が決まる。十五日が満月。十六日以後、夜明けに残る月が有明の月。</div>`;},
+ kani(it){const R=[['一位','太政大臣','上達部'],['二位','左大臣・右大臣・内大臣','上達部'],['三位','大納言・中納言','上達部'],['四位','参議・弁','参議は上達部、ほかは殿上人'],['五位','弁・蔵人・守（大国）','殿上人（選ばれた人）'],['六位','蔵人・守（小国）','蔵人だけ殿上人、ほかは地下'],['七位以下','','地下']];
+  const m=x=>it.w&&it.w.length>1?x.split(it.w).join('<mark>'+it.w+'</mark>'):x;
+  return `<table><tr><th>位階</th><th>主な官職</th><th>区分</th></tr>${R.map(r=>`<tr><th>${r[0]}</th><td>${m(r[1])}</td><td>${m(r[2])}</td></tr>`).join('')}</table><div class="cap">上達部は国政を審議する。殿上人は清涼殿の殿上の間に昇れる人。守は受領（地方の長官）。</div>`;},
+ kisaki(it){const m=x=>x.split(it.w).join('<mark>'+it.w+'</mark>');
+  return `<table><tr><th>天皇の后妃</th><td>${m('中宮（皇后）＞ 女御 ＞ 更衣')}</td></tr><tr><th>内侍司の女官</th><td>${m('尚侍（ないしのかみ）＞ 典侍（ないしのすけ）＞ 掌侍（ないしのじょう）')}</td></tr><tr><th>その下</th><td>${m('女房')}</td></tr></table><div class="cap">御息所は、天皇の子を産んだ女御・更衣や、春宮・親王の后。</div>`;},
+ kyo(it){const hl=n=>(it.w===n||(it.w==='山'&&n==='比叡山'))?'font-weight="700" style="fill:var(--accent)"':'';
+  return `<svg viewBox="0 0 320 270" role="img" aria-label="平安京付近の略図"><rect x="80" y="70" width="170" height="180" fill="var(--surface)" stroke="var(--fg)"/><line x1="165" y1="120" x2="165" y2="250" stroke="var(--line)" stroke-width="3"/><rect x="135" y="70" width="60" height="50" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="165" y="88" text-anchor="middle" font-size="10">大内裏</text><rect x="158" y="94" width="22" height="18" fill="var(--surface)" stroke="var(--accent)"/><text x="169" y="106" text-anchor="middle" font-size="8">内裏</text>
+  <text x="120" y="190" text-anchor="middle" font-size="13" font-weight="700">右京</text><text x="120" y="204" text-anchor="middle" font-size="9" style="fill:var(--muted)">（西）</text><text x="210" y="190" text-anchor="middle" font-size="13" font-weight="700">左京</text><text x="210" y="204" text-anchor="middle" font-size="9" style="fill:var(--muted)">（東）</text>
+  <text x="165" y="24" text-anchor="middle" font-size="10">上賀茂神社</text><text x="225" y="48" text-anchor="middle" font-size="10">下鴨神社</text><text x="288" y="26" text-anchor="middle" font-size="11" ${hl('比叡山')}>比叡山</text><text x="288" y="150" text-anchor="middle" font-size="11" ${hl('清水寺')}>清水寺</text><text x="288" y="190" text-anchor="middle" font-size="10">鳥辺野</text><text x="36" y="60" text-anchor="middle" font-size="10">化野</text>
+  <text x="30" y="238" text-anchor="middle" font-size="11" font-weight="700">北 ↑</text></svg><div class="cap">天皇が内裏で南を向くと東が左になるので、東半分が左京、西半分が右京。鳥辺野・化野は葬送の地。</div>`;},
+ dairi(it){const B=[['紫宸殿',125,150,70,36,'紫宸殿'],['仁寿殿',135,110,50,26,''],['承香殿',135,74,50,26,'後宮'],['清涼殿',70,116,46,50,'清涼殿'],['弘徽殿',70,70,46,34,'後宮'],['飛香舎',14,80,46,30,'後宮'],['淑景舎',226,26,50,30,'後宮']];
+  const key=it.w==='上の御局'||it.w==='殿上の間'?'清涼殿':it.w;
+  let g=B.map(b=>{const on=b[5]===key;return `<rect x="${b[1]}" y="${b[2]}" width="${b[3]}" height="${b[4]}" rx="2" fill="${on?'var(--accent-soft)':'var(--surface)'}" stroke="${on?'var(--accent)':'var(--fg)'}" stroke-width="${on?2:1}"/><text x="${b[1]+b[3]/2}" y="${b[2]+b[4]/2+4}" text-anchor="middle" font-size="10" ${on?'font-weight="700"':''}>${b[0]}</text>`;}).join('');
+  g+=`<text x="37" y="122" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">（藤壺）</text><text x="251" y="68" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">（桐壺）</text><text x="93" y="112" text-anchor="middle" font-size="7.5" style="fill:var(--muted)">北:上の御局</text><text x="93" y="176" text-anchor="middle" font-size="7.5" style="fill:var(--muted)">南:殿上の間</text><text x="118" y="204" text-anchor="middle" font-size="9">右近の橘</text><text x="204" y="204" text-anchor="middle" font-size="9">左近の桜</text><text x="160" y="16" text-anchor="middle" font-size="10" style="fill:var(--muted)">北側が後宮（天皇の妻たちの殿舎）</text><text x="276" y="214" text-anchor="middle" font-size="11" font-weight="700">北 ↑</text>`;
+  return `<svg viewBox="0 0 300 220" role="img" aria-label="内裏の略図"><rect x="4" y="4" width="292" height="212" fill="none" stroke="var(--line)"/>${g}</svg><div class="cap">位置関係の略図。紫宸殿は正殿、清涼殿は天皇が日常住む所。</div>`;}
+};
 function detailHtml(it){const c=SUBJ[S.subj].cls;
   const per=it.exs&&it.exs.length===it.m.length;
   return `<ol class="means${per?' per':''}">${it.m.map((m,i)=>`<li><span>${esc(m)}${per?`<span class="ex sm"><span class="q ${c}">${esc(it.exs[i][0])}</span><span class="tr">${esc(it.exs[i][1])}</span></span>`:''}</span></li>`).join('')}</ol>
   ${it.ex&&!per?`<div class="ex"><div class="q ${c}">${esc(it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
+  ${it.rd&&!it.yomi?`<div class="der"><b>読み</b>${esc(it.rd)}${it.alt&&it.alt!==it.rd?'（歴史的仮名遣い：'+esc(it.alt)+'）':''}</div>`:''}
+  ${it.fig&&FIGS[it.fig]?`<div class="figbox">${FIGS[it.fig](it)}</div>`:''}
+  ${it.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[it.img]?`<figure class="ill"><img src="${JOSHIKI_IMG[it.img]}" alt="${esc(it.w)}の挿絵"></figure>`:''}
   ${it.note?`<div class="note"><b>${it.yomi?'意味':'注'}</b>${esc(it.note)}</div>`:''}
   ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(x[0])}</span><span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
   ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}`;}
@@ -385,7 +431,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
         <option value="notok"${sel('notok')}>未習得のみ（苦手＋学習中＋未学習）</option>
         <option value="weak"${sel('weak')}>苦手のみ</option>
         <option value="new"${sel('new')}>未学習のみ</option>
-        ${SUBJ[S.subj].fixLv?'':Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${SUBJ[S.subj].book||SUBJ[S.subj].yomi?'':'レベル'+l+': '}${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
+        ${SUBJ[S.subj].fixLv?'':Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${SUBJ[S.subj].book||SUBJ[S.subj].yomi||SUBJ[S.subj].joshiki?'':'レベル'+l+': '}${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
         <option value="all"${sel('all')}>すべて</option>
         ${tagOpts}</select></div>
       <div class="opt"><label for="o-count">問題数</label><select id="o-count" data-pref="count">
@@ -404,8 +450,8 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
   <section class="modes">
     <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">語を見て意味を思い出し、めくって確認。「覚えた／まだ」を自分で判定します。</span></button>
     <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'}</span><span class="d">読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。</span></button>
-    ${SUBJ[S.subj].yomi?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。</span></button>`:''}
-    ${SUBJ[S.subj].yomi?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${isEn()?'例文':'用例'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span></button>
+    ${SUBJ[S.subj].yomi||SUBJ[S.subj].joshiki?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。</span></button>`:''}
+    ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${isEn()?'例文':'用例'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span></button>
     <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span></button>`}
     <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>
   </section>
@@ -456,7 +502,7 @@ function viewTypeY(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const prompt=`<div class="qprompt">この漢字の読みは？（現代仮名遣い。歴史的仮名遣いでも正解）</div>${chipsHtml(it)}${wordHtml(it)}`;
   const body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ひらがなで入力" lang="ja"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;
-  const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.m[0])}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
+  const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.rd||it.m[0])}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
     <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`:'';
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
 
@@ -540,7 +586,7 @@ view.addEventListener('click',e=>{
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
-view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i],nk=x=>String(x).replace(/[\s　]/g,'');const ok=sess.mode==='typeY'?(nk(v)===nk(it_.m[0])||(!!it_.alt&&nk(v)===nk(it_.alt))):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
+view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i],nk=x=>String(x).replace(/[\s　]/g,'');const ok=sess.mode==='typeY'?(nk(v)===nk(it_.rd||it_.m[0])||(!!it_.alt&&nk(v)===nk(it_.alt))):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
 document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
     if(e.key===' '){e.preventDefault();if(!sess.flipped){sess.flipped=true;render();}return;}
@@ -553,7 +599,7 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
   }});
 
 $('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
-{if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
+{if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語'+(DATA.joshiki?'／古文常識 '+DATA.joshiki.length+'語':'')+'／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
 if(!SUBJ[S.subj])S.subj='kobun';
 function boot(d){try{if(d&&d.S){S.subj=d.S.subj||S.subj;S.tab=d.S.tab||S.tab;if(d.S.session)S.session=d.S.session;}}catch(e){}render();}
 try{if(window.claude&&window.claude.hot&&window.claude.hot.snapshot)window.claude.hot.snapshot(()=>({S:{subj:S.subj,tab:S.tab,session:S.session}}));}catch(e){}
