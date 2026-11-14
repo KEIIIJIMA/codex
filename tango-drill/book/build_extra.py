@@ -77,42 +77,22 @@ J=[('る','未然形',1,['自発（自然と〜れる）','可能（〜ことが
 ('ごとし','連体形・体言・助詞「が」「の」',4,['比況（〜のようだ・〜と同じだ）','例示（〜のような）'],'○／ごとく／ごとし／ごとき／○／○','形容詞型','')]
 for w,setsu,lv,m,katsu,kata,nt in J:
     gr.append(item(w,'助動詞',m,lv,k=setsu+'に接続',note=f'活用（未然／連用／終止／連体／已然／命令）: {katsu}。{kata}。'+(nt or '')))
-P=[('が・の','格助詞',['主格（〜が）','連体修飾格（〜の）','同格（〜で）','体言の代用（〜のもの）','比喩（〜のように）※「の」のみ'],'体言・連体形'),
-('より','格助詞',['起点（〜から）','経過点（〜を通って）','比較（〜より）','手段（〜で）','即時（〜するとすぐに）'],'体言・連体形'),
-('にて','格助詞',['場所・時（〜で）','手段・材料（〜で）','原因（〜で）','資格（〜として）'],'体言・連体形'),
-('して','格助詞',['手段（〜で）','使役の対象（〜に命じて）','共同（〜と一緒に）'],'体言'),
-('ば','接続助詞',['未然形＋ば＝順接の仮定条件（もし〜ならば）','已然形＋ば＝順接の確定条件（〜ので・〜と・〜といつも）'],'未然形／已然形'),
-('と・とも','接続助詞',['逆接の仮定条件（たとえ〜ても）'],'終止形'),
-('ど・ども','接続助詞',['逆接の確定条件（〜けれども）'],'已然形'),
-('が・に・を','接続助詞',['単純な接続（〜と・〜ところ）','逆接（〜けれども・〜のに）','順接（〜ので）※「に」「を」'],'連体形'),
-('て・して','接続助詞',['単純な接続（〜て）'],'連用形'),
-('で','接続助詞',['打消の接続（〜ないで・〜ずに）'],'未然形'),
-('つつ','接続助詞',['反復・継続（〜ては・〜し続けて）','二つの動作の並行（〜ながら）'],'連用形'),
-('ながら','接続助詞',['二つの動作の並行（〜ながら）','逆接（〜けれども・〜のに）','そのままの状態（〜のままで）'],'連用形など'),
-('ものの・ものを・ものから・ものゆゑ','接続助詞',['逆接の確定条件（〜けれども・〜のに）'],'連体形'),
-('は','係助詞',['取り立て・強調（〜は）'],'種々の語'),
-('も','係助詞',['同類の暗示・並列・強意（〜も）'],'種々の語'),
-('ぞ・なむ','係助詞',['強意（訳さなくてよい）','文末は連体形で結ぶ（係り結び）'],'種々の語'),
-('や・か','係助詞',['疑問（〜か）','反語（〜か、いや〜ない）','文末は連体形で結ぶ。「やは」「かは」は反語が多い'],'種々の語'),
-('こそ','係助詞',['強意（訳さなくてよい）','文末は已然形で結ぶ。「こそ〜已然形、」で文が続くと逆接'],'種々の語'),
-('だに','副助詞',['類推（〜さえ）','最小限の限定（せめて〜だけでも）'],'種々の語'),
-('すら','副助詞',['類推（〜さえ）'],'種々の語'),
-('さへ','副助詞',['添加（〜までも）'],'種々の語'),
-('のみ','副助詞',['限定（〜だけ）','強意（ひたすら〜）'],'種々の語'),
-('ばかり','副助詞',['程度（〜くらい・〜ほど）','限定（〜だけ）'],'種々の語'),
-('まで','副助詞',['範囲・限度（〜まで）','程度（〜ほど）'],'種々の語'),
-('など','副助詞',['例示（〜など）','婉曲（〜など）','引用（〜などと）'],'種々の語'),
-('し・しも','副助詞',['強意（訳さなくてよい）'],'種々の語'),
-('ばや','終助詞',['自己の希望（〜たい）'],'未然形'),
-('なむ','終助詞',['他への願望（〜てほしい）'],'未然形'),
-('てしがな・にしがな','終助詞',['自己の希望（〜たいものだ）'],'連用形'),
-('もがな・がな','終助詞',['願望（〜があればなあ・〜であればなあ）'],'体言など'),
-('な','終助詞',['禁止（〜するな）※終止形に付く','詠嘆（〜なあ）※文末に付く'],'終止形／文末'),
-('そ','終助詞',['禁止（〜するな）。「な〜そ」の形で使う'],'連用形（カ変・サ変は未然形）'),
-('か・かな','終助詞',['詠嘆（〜だなあ・〜ことよ）'],'体言・連体形'),
-('かし','終助詞',['念押し（〜よ・〜ね）'],'文末'),
-('や・よ・を','間投助詞',['詠嘆（〜なあ）','呼びかけ（〜よ）'],'種々の語')]
-for w,kind,m,setsu in P: gr.append(item(w,kind,m,5,k=setsu+'に接続' if '種々' not in setsu else '',note='助詞の種類: '+kind))
+import sys
+sys.path.insert(0, HERE)
+from tables_data import PART, ROWS, VERBS, PATTERN, IRREG, ADJ, ADJV, CHECKLIST
+_seen = {}
+for kind, setsu, w, uses in PART:
+    key = (kind, w)
+    if key not in _seen:
+        _seen[key] = item(w, kind, [], 5, k=setsu + 'に接続' if '様々' not in setsu else '', note='助詞の種類: ' + kind)
+        gr.append(_seen[key]); _seen[key]['_n'] = 0
+    it = _seen[key]
+    multi = sum(1 for k2, s2, w2, u2 in PART if (k2, w2) == key) > 1
+    if it['_n'] and multi: it['k'] = it['k'].replace('に接続', '') + '／' + setsu + 'に接続'
+    it['_n'] += 1
+    for use, tr in uses:
+        it['m'].append((f'【{setsu}】' if multi else '') + f'{use}（{tr}）')
+for it in _seen.values(): del it['_n']
 K=[('四段活用','動詞',['a・i・u・u・e・e と活用する','例: 書く（か／き／く／く／け／け）']),('上一段活用','動詞',['i・i・iる・iる・iれ・iよ と活用する','着る・似る・煮る・干る・見る・射る・鋳る・居る・率る など（ひいきにみゐる）']),('上二段活用','動詞',['i・i・u・uる・uれ・iよ と活用する','例: 起く・過ぐ・落つ・恥づ・恋ふ・老ゆ・悔ゆ・報ゆ']),('下一段活用','動詞',['e・e・eる・eる・eれ・eよ と活用する','「蹴る」の一語だけ']),('下二段活用','動詞',['e・e・u・uる・uれ・eよ と活用する','例: 受く・捨つ・寝・経・得（う）']),('カ行変格活用','動詞',['こ／き／く／くる／くれ／こ（こよ）','「来（く）」とその複合語']),('サ行変格活用','動詞',['せ／し／す／する／すれ／せよ','「す」「おはす」とその複合語']),('ナ行変格活用','動詞',['な／に／ぬ／ぬる／ぬれ／ね','「死ぬ」「往ぬ（去ぬ）」の二語']),('ラ行変格活用','動詞',['ら／り／り／る／れ／れ','「あり」「をり」「はべり」「いまそかり」。終止形がイ段']),('ク活用','形容詞',['（く）・から／く・かり／し／き・かる／けれ／かれ','例: 高し。「なる」を付けると「〜くなる」']),('シク活用','形容詞',['（しく）・しから／しく・しかり／し／しき・しかる／しけれ／しかれ','例: 悲し。「なる」を付けると「〜しくなる」']),('ナリ活用','形容動詞',['なら／なり・に／なり／なる／なれ／なれ','例: 静かなり']),('タリ活用','形容動詞',['たら／たり・と／たり／たる／たれ／たれ','例: 堂々たり。漢語に付く'])]
 for w,kind,m in K: gr.append(item(w,kind+'の活用',m,6))
 EX=[{'key':'bungaku','meta':{'name':'文学史','lv':{1:'奈良',2:'平安',3:'鎌倉・室町',4:'江戸'},'lvd':{1:'奈良時代（上代）',2:'平安時代（中古）',3:'鎌倉・室町時代（中世）',4:'江戸時代（近世）'}},'items':bun},
@@ -121,19 +101,44 @@ EX=[{'key':'bungaku','meta':{'name':'文学史','lv':{1:'奈良',2:'平安',3:'�
 open(os.path.dirname(HERE[:-1])+'/src/extra_data.js','w',encoding='utf-8').write('const EXTRA_SUBJ='+json.dumps(EX,ensure_ascii=False)+';\n')
 print({e['key']:len(e['items']) for e in EX},'no reading:',[i['w'] for i in bun if not i['rd'] and i['pos'] not in('まとめ',)])
 
-# ---------- 一覧表（そのまま見られる参照用の表） ----------
+# ---------- 一覧表（本の表を打ち直したもの） ----------
 def tbl(head,rows,cls=''):
     return '<table class="ref '+cls+'"><tr>'+''.join(f'<th>{h}</th>' for h in head)+'</tr>'+''.join('<tr>'+''.join(f'<{"th" if i==0 else "td"}>{c}</{"th" if i==0 else "td"}>' for i,c in enumerate(r))+'</tr>' for r in rows)+'</table>'
-F=['未然','連用','終止','連体','已然','命令']
+F=['未然形','連用形','終止形','連体形','已然形','命令形']
 jrows=[[setsu,f'<b>{w}</b>','<br>'.join(m)]+katsu.split('／')+[kata,nt] for w,setsu,lv,m,katsu,kata,nt in J]
-prows=[[kind,f'<b>{w}</b>','<br>'.join(m),setsu] for w,kind,m,setsu in P]
-V=[('四段','書く','か／き／く／く／け／け'),('上一段','見る','み／み／みる／みる／みれ／みよ'),('上二段','起く','き／き／く／くる／くれ／きよ'),('下一段','蹴る','け／け／ける／ける／けれ／けよ'),('下二段','受く','け／け／く／くる／くれ／けよ'),('カ変','来','こ／き／く／くる／くれ／こ（こよ）'),('サ変','す','せ／し／す／する／すれ／せよ'),('ナ変','死ぬ','な／に／ぬ／ぬる／ぬれ／ね'),('ラ変','あり','ら／り／り／る／れ／れ')]
-A=[('ク活用','高し','（く）・から／く・かり／し／き・かる／けれ／かれ'),('シク活用','悲し','（しく）・しから／しく・しかり／し／しき・しかる／しけれ／しかれ'),('ナリ活用','静かなり','なら／なり・に／なり／なる／なれ／なれ'),('タリ活用','堂々たり','たら／たり・と／たり／たる／たれ／たれ')]
+def part_table(kind):
+    h='<table class="ref wrap"><tr><th>接続</th><th>助詞</th><th>意味・用法</th><th>訳</th></tr>'
+    for k,setsu,w,uses in PART:
+        if k!=kind: continue
+        for i,(use,tr) in enumerate(uses):
+            h+='<tr>'+(f'<th rowspan="{len(uses)}">{setsu}</th><td rowspan="{len(uses)}"><b>{w.replace('・','・<wbr>')}</b></td>' if i==0 else '')+f'<td>{use}</td><td class="tr">{tr}</td></tr>'
+    return h+'</table>'
+def endings(kind,row):
+    k=ROWS[row]; v=dict(zip('aiueo',k))
+    return [''.join(v.get(ch,ch) for ch in part) for part in PATTERN[kind].split()]
+vrows=[]
+for kind,lst in VERBS:
+    for i,(row,ex,stem) in enumerate(lst):
+        vrows.append((kind if i==0 else '',len(lst) if i==0 else 0,row+'行',ex,stem,endings(kind,row)))
+for kind,row,ex,stem,katsu in IRREG:
+    first=not any(r[0]==kind for r in vrows); n=sum(1 for x in IRREG if x[0]==kind)
+    vrows.append((kind if first else '',n if first else 0,row+'行',ex,stem,katsu.split('／')))
+vh='<table class="ref"><tr><th>種類</th><th>行</th><th>例語</th><th>語幹</th>'+''.join(f'<th>{f}</th>' for f in F)+'</tr>'
+for kind,span,row,ex,stem,e in vrows:
+    vh+='<tr>'+(f'<th rowspan="{span}">{kind}</th>' if span else '')+f'<td>{row}</td><td><b>{ex}</b></td><td>{stem}</td>'+''.join(f'<td>{x}</td>' for x in e)+'</tr>'
+vh+='</table><p class="cap">（ ）の語幹は、語幹と活用語尾の区別がないもの。下一段は「蹴る」だけ。サ変は「す」「おはす」、ナ変は「死ぬ」「往ぬ」、ラ変は「あり」「居り」「侍り」「いまそかり」。</p>'
+def adj_table(data): return tbl(['種類','基本形','語幹']+F,[[a,f'<b>{b}</b>',c]+d.split('／') for a,b,c,d in data])
 EX[2]['meta']['tables']=[
- {'title':'助動詞の種類・接続・活用・主な意味','html':tbl(['接続','助動詞','主な意味（訳）']+F+['活用型','注意'],jrows),'img':'tbl_jodoshi'},
- {'title':'助詞の主な意味・用法・接続','html':tbl(['種類','助詞','意味・用法','接続'],prows),'img':'tbl_joshi'},
- {'title':'動詞活用表','html':tbl(['種類','例']+F,[[a,b]+c.split('／') for a,b,c in V])+'<p class="cap">上一段は「ひいきにみゐる」（干る・射る・着る・似る・見る・居る など）。下一段は「蹴る」だけ。カ変は「来」、サ変は「す・おはす」、ナ変は「死ぬ・往ぬ」、ラ変は「あり・をり・はべり・いまそかり」。</p>','img':''},
- {'title':'形容詞・形容動詞活用表','html':tbl(['種類','例']+F,[[a,b]+c.split('／') for a,b,c in A]),'img':''}]
+ {'title':'助動詞の種類・接続・活用・主な意味','html':tbl(['接続','助動詞','主な意味（訳）']+F+['活用型','注意すべき接続など'],jrows),'img':''},
+ {'title':'格助詞','html':part_table('格助詞'),'img':''},
+ {'title':'接続助詞','html':part_table('接続助詞'),'img':''},
+ {'title':'係助詞','html':part_table('係助詞'),'img':''},
+ {'title':'副助詞','html':part_table('副助詞'),'img':''},
+ {'title':'終助詞','html':part_table('終助詞'),'img':''},
+ {'title':'間投助詞','html':part_table('間投助詞'),'img':''},
+ {'title':'動詞活用表','html':vh,'img':''},
+ {'title':'形容詞活用表','html':adj_table(ADJ),'img':''},
+ {'title':'形容動詞活用表','html':adj_table(ADJV),'img':''}]
 # 文学史年表
 COL={'詩歌':['和歌集','勅撰集','私家集','漢詩集','漢詩文集','歌謡集','連歌集','俳諧集','俳文集','歌文集'],'随筆・日記・評論など':['随筆','日記','評論','紀行','注釈書']}
 def col(g):
@@ -147,8 +152,15 @@ for l in open(HERE+'bungakushi.tsv',encoding='utf-8'):
     cell=(f'<mark>{w}</mark>' if mk else w)+f'<small>〔{g}〕{au}{(" "+yr) if yr else ""}</small>'
     rows.setdefault((era,c),{}).setdefault(col(g),[]).append(cell)
 cols=['詩歌','物語・説話・戯曲など','随筆・日記・評論など']
+ch='<table class="ref wide"><tr><th>区分</th><th>項目</th><th>覚えておきたいポイント</th></tr>'
+for i,(sec,w,rd,pts) in enumerate(CHECKLIST):
+    n=sum(1 for x in CHECKLIST if x[0]==sec); first=i==0 or CHECKLIST[i-1][0]!=sec
+    ch+='<tr>'+(f'<th rowspan="{n}">{sec}</th>' if first else '')+f'<td><b>{w}</b>'+(f'<small>{rd}</small>' if rd else '')+'</td><td>'+'<br>'.join(pts)+'</td></tr>'
+ch+='</table>'
 EX[0]['meta']['tables']=[{'title':'文学史年表（マーカーは色付き）','html':tbl(['時代・世紀']+cols,[[f'{e}<br>{c}世紀']+['<br>'.join(v.get(k,[])) for k in cols] for (e,c),v in rows.items()],'wide'),'img':''},
- {'title':'文学史チェックリスト（元のページ）','html':'','img':'tbl_check'}]
-EX[1]['meta']['tables']=[{'title':'暗記したい枕詞','html':tbl(['枕詞','導く語'],[[a,b] for a,b in MAKURA]),'img':''},{'title':'暗記したい掛詞','html':tbl(['掛詞','掛けられる意味'],[[a,b] for a,b in KAKE]),'img':''}]
+ {'title':'文学史チェックリスト','html':ch,'img':''}]
+EX[1]['meta']['tables']=[{'title':'暗記したい枕詞','html':tbl(['枕詞','導く語'],[[a,b] for a,b in MAKURA]),'img':''},{'title':'暗記したい掛詞','html':tbl(['掛詞','掛けられる意味'],[[a,b] for a,b in KAKE]),'img':''},
+ {'title':'よく用いられる縁語','html':tbl(['語','縁語'],[[i['w'],i['m'][0]] for i in wa if i['pos']=='縁語']),'img':''},
+ {'title':'よく用いられる歌枕','html':tbl(['歌枕','場所・詠まれ方'],[[i['w']+f"<small>{i['rd']}</small>",i['m'][0]] for i in wa if i['pos']=='歌枕']),'img':''}]
 open(os.path.dirname(HERE[:-1])+'/src/extra_data.js','w',encoding='utf-8').write('const EXTRA_SUBJ='+json.dumps(EX,ensure_ascii=False)+';\n')
-print('tables',{e['key']:len(e['meta'].get('tables',[])) for e in EX})
+print('tables',{e['key']:len(e['meta'].get('tables',[])) for e in EX},'items',{e['key']:len(e['items']) for e in EX})
