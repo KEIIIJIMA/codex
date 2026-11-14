@@ -173,6 +173,22 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .typeform{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:16px}
 @media (max-width:480px){.typeform{grid-template-columns:1fr}}
 .typeform input{font-size:1.1rem;padding:12px 14px}
+/* reference tables */
+.refd{border-top:1px solid var(--line);padding:10px 0}
+.refd:first-of-type{border-top:0;padding-top:0}
+.refd summary{cursor:pointer;font-weight:700;font-size:.92rem;padding:4px 0}
+.tblwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.ref{border-collapse:collapse;font-size:.8rem;min-width:100%;white-space:nowrap}
+table.ref.wide{white-space:normal;min-width:760px}
+table.ref th,table.ref td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+table.ref tr:first-child th{background:var(--surface2);color:var(--muted);font-weight:500;position:sticky;top:0}
+table.ref th{background:var(--surface2);font-weight:500}
+table.ref b{font-family:var(--serif-ja);font-size:1rem}
+table.ref tr>*:first-child{white-space:normal;min-width:4.2em;max-width:6.5em}
+table.ref small{display:block;color:var(--muted);font-size:.72rem;margin-bottom:4px}
+table.ref mark{background:var(--accent-soft);color:var(--accent);font-weight:700;padding:0 2px;border-radius:3px}
+.refimg{display:block;width:1100px;max-width:none}
+.refd .cap{font-size:.75rem;color:var(--muted);margin:6px 0 0}
 /* quiz */
 .qprompt{font-size:.8rem;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}
 .choices{display:grid;gap:10px;margin-top:16px}
@@ -457,6 +473,8 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
     <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span></button>`}
     <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>
   </section>
+  ${SUBJ[S.subj].tables?`<section class="panel"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${SUBJ[S.subj].tables.map((t,i)=>{const im=t.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[t.img];if(!t.html&&!im)return'';
+    return `<details class="refd"><summary>${esc(t.title)}</summary>${t.html?`<div class="tblwrap">${t.html}</div>`:''}${im?`<div class="tblwrap"><img class="refimg" src="${im}" alt="${esc(t.title)}（本の表）"></div><p class="cap">本の表の写真。横にスクロールして見られます。</p>`:''}</details>`;}).join('')}</section>`:''}
   <p class="hint">キーボード操作: Space で裏返す、← まだ ／ → 覚えた、1〜4 で選択、Enter で答え合わせ・次へ。</p>
   <div class="share"><b>${SUBJ.book?'このページについて':'共有について'}</b>${SUBJ.book?'このページは個人用です。URLを他の人に渡さないでください。':'このページのURLをそのまま友人や生徒に渡せます。'}学習記録（習得・苦手）は開いた端末のブラウザごとに保存され、他の人には見えません。別の端末へ移すときは「成績」タブのバックアップを使ってください。</div>`;}
 

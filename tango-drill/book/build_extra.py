@@ -120,3 +120,35 @@ EX=[{'key':'bungaku','meta':{'name':'文学史','lv':{1:'奈良',2:'平安',3:'�
  {'key':'bunpo','meta':{'name':'文法','lv':{1:'未然形接続',2:'連用形接続',3:'終止形接続',4:'その他の接続',5:'助詞',6:'活用'},'lvd':{1:'助動詞（未然形接続）',2:'助動詞（連用形接続）',3:'助動詞（終止形接続）',4:'助動詞（連体形・体言・已然形など）',5:'助詞',6:'動詞・形容詞・形容動詞の活用'}},'items':gr}]
 open(os.path.dirname(HERE[:-1])+'/src/extra_data.js','w',encoding='utf-8').write('const EXTRA_SUBJ='+json.dumps(EX,ensure_ascii=False)+';\n')
 print({e['key']:len(e['items']) for e in EX},'no reading:',[i['w'] for i in bun if not i['rd'] and i['pos'] not in('まとめ',)])
+
+# ---------- 一覧表（そのまま見られる参照用の表） ----------
+def tbl(head,rows,cls=''):
+    return '<table class="ref '+cls+'"><tr>'+''.join(f'<th>{h}</th>' for h in head)+'</tr>'+''.join('<tr>'+''.join(f'<{"th" if i==0 else "td"}>{c}</{"th" if i==0 else "td"}>' for i,c in enumerate(r))+'</tr>' for r in rows)+'</table>'
+F=['未然','連用','終止','連体','已然','命令']
+jrows=[[setsu,f'<b>{w}</b>','<br>'.join(m)]+katsu.split('／')+[kata,nt] for w,setsu,lv,m,katsu,kata,nt in J]
+prows=[[kind,f'<b>{w}</b>','<br>'.join(m),setsu] for w,kind,m,setsu in P]
+V=[('四段','書く','か／き／く／く／け／け'),('上一段','見る','み／み／みる／みる／みれ／みよ'),('上二段','起く','き／き／く／くる／くれ／きよ'),('下一段','蹴る','け／け／ける／ける／けれ／けよ'),('下二段','受く','け／け／く／くる／くれ／けよ'),('カ変','来','こ／き／く／くる／くれ／こ（こよ）'),('サ変','す','せ／し／す／する／すれ／せよ'),('ナ変','死ぬ','な／に／ぬ／ぬる／ぬれ／ね'),('ラ変','あり','ら／り／り／る／れ／れ')]
+A=[('ク活用','高し','（く）・から／く・かり／し／き・かる／けれ／かれ'),('シク活用','悲し','（しく）・しから／しく・しかり／し／しき・しかる／しけれ／しかれ'),('ナリ活用','静かなり','なら／なり・に／なり／なる／なれ／なれ'),('タリ活用','堂々たり','たら／たり・と／たり／たる／たれ／たれ')]
+EX[2]['meta']['tables']=[
+ {'title':'助動詞の種類・接続・活用・主な意味','html':tbl(['接続','助動詞','主な意味（訳）']+F+['活用型','注意'],jrows),'img':'tbl_jodoshi'},
+ {'title':'助詞の主な意味・用法・接続','html':tbl(['種類','助詞','意味・用法','接続'],prows),'img':'tbl_joshi'},
+ {'title':'動詞活用表','html':tbl(['種類','例']+F,[[a,b]+c.split('／') for a,b,c in V])+'<p class="cap">上一段は「ひいきにみゐる」（干る・射る・着る・似る・見る・居る など）。下一段は「蹴る」だけ。カ変は「来」、サ変は「す・おはす」、ナ変は「死ぬ・往ぬ」、ラ変は「あり・をり・はべり・いまそかり」。</p>','img':''},
+ {'title':'形容詞・形容動詞活用表','html':tbl(['種類','例']+F,[[a,b]+c.split('／') for a,b,c in A]),'img':''}]
+# 文学史年表
+COL={'詩歌':['和歌集','勅撰集','私家集','漢詩集','漢詩文集','歌謡集','連歌集','俳諧集','俳文集','歌文集'],'随筆・日記・評論など':['随筆','日記','評論','紀行','注釈書']}
+def col(g):
+    for k,v in COL.items():
+        if g in v: return k
+    return '物語・説話・戯曲など'
+rows={}
+for l in open(HERE+'bungakushi.tsv',encoding='utf-8'):
+    if l.startswith('#') or not l.strip(): continue
+    p=(l.rstrip('\n').split('\t')+['']*8)[:8]; era,c,w,g,au,yr,mk,note=p; g=FIX.get(w) or g
+    cell=(f'<mark>{w}</mark>' if mk else w)+f'<small>〔{g}〕{au}{(" "+yr) if yr else ""}</small>'
+    rows.setdefault((era,c),{}).setdefault(col(g),[]).append(cell)
+cols=['詩歌','物語・説話・戯曲など','随筆・日記・評論など']
+EX[0]['meta']['tables']=[{'title':'文学史年表（マーカーは色付き）','html':tbl(['時代・世紀']+cols,[[f'{e}<br>{c}世紀']+['<br>'.join(v.get(k,[])) for k in cols] for (e,c),v in rows.items()],'wide'),'img':''},
+ {'title':'文学史チェックリスト（元のページ）','html':'','img':'tbl_check'}]
+EX[1]['meta']['tables']=[{'title':'暗記したい枕詞','html':tbl(['枕詞','導く語'],[[a,b] for a,b in MAKURA]),'img':''},{'title':'暗記したい掛詞','html':tbl(['掛詞','掛けられる意味'],[[a,b] for a,b in KAKE]),'img':''}]
+open(os.path.dirname(HERE[:-1])+'/src/extra_data.js','w',encoding='utf-8').write('const EXTRA_SUBJ='+json.dumps(EX,ensure_ascii=False)+';\n')
+print('tables',{e['key']:len(e['meta'].get('tables',[])) for e in EX})
