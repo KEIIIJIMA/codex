@@ -285,6 +285,8 @@ if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],po
 if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],rd:r[2],alt:r[4]||'',ex:'',tr:'',note:r[3]+(r[4]&&r[4]!==r[2]?'（歴史的仮名遣い：'+r[4]+'）':''),lv:1,tags:[],yomi:true}));
 for(const l of [1,2,3,4])DATA['eigo'+l]=DATA.eigo.filter(it=>it.lv===l);
 if(SUBJ.joshiki)DATA.joshiki=JOSHIKI_RAW.map(r=>({id:'j:'+r[1],w:r[1],k:'',pos:r[0],m:[r[3]],rd:r[2]!==r[1]?r[2]:'',alt:r[5]||'',ex:'',tr:'',note:'',lv:r[6],tags:[],img:r[7],fig:r[8],page:r[4]}));
+if(typeof EXTRA_SUBJ!=='undefined')for(const e of EXTRA_SUBJ){SUBJ[e.key]=Object.assign({cls:'ja',qw:'語',joshiki:true,noCloze:true},e.meta);GROUPS[0].subs.push(e.key);
+  DATA[e.key]=e.items.map(r=>Object.assign({},r,{id:e.key+':'+r.w+'|'+(r.k||'')+'|'+r.pos}));}
 const findAny=id=>{for(const s in DATA){const x=DATA[s].find(it=>it.id===id);if(x)return x;}return BOOKREL.find(it=>it.id===id);};
 if(typeof KOBUN_EXS!=='undefined')DATA.kobun.forEach(it=>{const e=KOBUN_EXS[it.w+'|'+(it.k||'')];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
 if(typeof EIGO_EXS!=='undefined')DATA.eigo.forEach(it=>{const e=EIGO_EXS[it.w];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
@@ -336,7 +338,7 @@ function start(mode,items){const p=prefsOf();
   S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
 function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mode==='quiz';
   const key=x=>toM?x.m[0]:x.w.toLowerCase();const seen=new Set([key(it)]);if(!toM)seen.add(it.w);
-  const cand=shuffle(all.filter(x=>x.id!==it.id&&x.w!==it.w));cand.sort((a,b)=>Math.abs(a.lv-it.lv)-Math.abs(b.lv-it.lv));
+  const cand=shuffle(all.filter(x=>x.id!==it.id&&x.w!==it.w&&x.m[0]!==it.m[0]));cand.sort((a,b)=>Math.abs(a.lv-it.lv)-Math.abs(b.lv-it.lv));
   const picks=[];for(const x of cand){if(seen.has(key(x)))continue;seen.add(key(x));picks.push(x);if(picks.length===3)break;}
   return shuffle([it,...picks]);}
 function findForm(it,sent){const ex=(sent!==undefined?sent:it.ex)||'';if(!ex||/[〜・]/.test(it.w))return null;const w=it.w;
@@ -450,7 +452,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
   <section class="modes">
     <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">語を見て意味を思い出し、めくって確認。「覚えた／まだ」を自分で判定します。</span></button>
     <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'}</span><span class="d">読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。</span></button>
-    ${SUBJ[S.subj].yomi||SUBJ[S.subj].joshiki?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。</span></button>`:''}
+    ${SUBJ[S.subj].yomi||(SUBJ[S.subj].joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)))?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。</span></button>`:''}
     ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${isEn()?'例文':'用例'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span></button>
     <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span></button>`}
     <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>

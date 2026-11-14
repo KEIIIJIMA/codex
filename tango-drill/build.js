@@ -25,6 +25,8 @@ const bookData = path.join(root, 'src/book_data.js');
 if (fs.existsSync(bookData)) extra += '\n' + fs.readFileSync(bookData, 'utf8');
 const joshikiData = path.join(root, 'src/joshiki_data.js');
 if (fs.existsSync(joshikiData)) extra += '\n' + fs.readFileSync(joshikiData, 'utf8');
+const extraData = path.join(root, 'src/extra_data.js');
+if (fs.existsSync(extraData)) extra += '\n' + fs.readFileSync(extraData, 'utf8');
 // 任意: node build.js --extra <data.js> [--extra ...] --out <file.html>
 // 個人用データ（公開リポジトリに入れないもの）を追加し、Artifact 形式で --out にだけ書き出す。
 const args = process.argv.slice(2), extras = [], outIdx = args.indexOf('--out');
