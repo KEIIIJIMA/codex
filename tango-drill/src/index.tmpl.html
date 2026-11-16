@@ -522,12 +522,14 @@ function choiceText(x,toM){return toM?choiceM(x).t:x.w;}
 // 語→意味の設問に出す漢字表記（出さないときは空）
 const qKanji=it=>it.k&&!choiceM(it).bare?it.k:'';
 // 品詞の大分類の一覧（1つ目が主な品詞）。古文は「動カ四・下二」→動、「副・形動ナリ」→副・形動。英語は品詞表記を「・」で分ける。
-// 文法は「格助詞」「係助詞」などをまとめて助詞とし、助動詞・動詞の活用などはそのまま。古文常識・文学史・和歌は分類（時刻・方角、作品・作者、枕詞・掛詞 など）をそのまま使う
+// 文法は「格助詞」「係助詞」などをまとめて助詞とし、助動詞・動詞の活用などはそのまま。古文常識・文学史・和歌は分類（時刻・方角、作品・作者、枕詞・掛詞 など）をそのまま使う。
+// 文学史の作品は、ジャンルの系統が同じ作品を先にする。系統は、説明の「〜時代（n世紀）の歌物語」のジャンル名の末尾の字（歌物語・軍記物語は「語」、勅撰集・俳諧集は「集」、日記は「記」）。
+// 書名の「物語」「日記」「集」だけで正答が決まらないようにするため
 const PC=new WeakMap();
 function posCls(it){let c=PC.get(it);if(c)return c;const pos=String(it.pos);
   if(/^(k|b|br):/.test(it.id)){c=[];let cur='';for(const t of pos.split('・')){const m=/^(形動|動|形|名|副|連語|連体|感動|接)/.exec(t);if(m)cur=m[1];if(cur&&!c.includes(cur))c.push(cur);}if(!c.length)c=[pos];}
   else if(it.id.startsWith('e:'))c=pos.split('・');
-  else c=[/助詞$/.test(pos)?'助詞':pos];
+  else{c=[/助詞$/.test(pos)?'助詞':pos];const g=pos==='作品'&&/時代（[^）]*）の([^。]+)/.exec(it.m[0]||'');if(g)c.unshift(pos+'／'+g[1].slice(-1));}
   PC.set(it,c);return c;}
 // 説明の文の集合: 意味を「。」で区切る（かっこ書きはそのまま比べる。文学史の「平安時代（11世紀）の物語。紫式部」→ 2文）
 const SENT=new WeakMap(),sentSet=ms=>{const o=new Set();for(const m of ms)for(const t of m.split('。')){const g=t.replace(/\s/g,'');if(g)o.add(g);}return o;};
@@ -539,13 +541,16 @@ const sentAll=it=>{let s=SENT.get(it);if(!s)SENT.set(it,s=sentSet(it.m));return 
 //   ・説明がまるごと当てはまる語。語→意味は、選択肢の文がすべて正解の語の説明にもある語（源氏物語に対する「平安時代（11世紀）の物語」）。
 //     それ以外は、設問文（正解の語の説明）がすべてその語の説明にもある語（「平安時代（11世紀）の物語」に対する源氏物語）
 //   ・語→意味で、選択肢の文に正解の見出し語が出る語。選択肢の表示がほかと同じになる語、訳がほかの誤答とまったく同じ語（む と むず を両方は出さない）
-// 誤答の順: 正解と同じ品詞の大分類（主な品詞が同じ → 品詞が1つでも同じ → ほか）を先に、その中ではレベル・章・区分が近い語を先に選ぶ。同じ品詞で足りないときだけ、次の語で補う
+// 誤答の順: 正解と同じ品詞の大分類（主な品詞が同じ → 品詞が1つでも同じ → ほか）を先に、その中ではレベル・章・区分が近い語を先に選ぶ。同じ品詞で足りないときだけ、次の語で補う。
+// 古文の動詞は、主な品詞が同じ語の中でも、語尾の字（＝活用の行）が同じ語を先にする。意味→語と空所補充は設問に「動カ四」のように行を出すので、
+// 語尾が正答だけ違うと、意味を知らなくても選べるため
 const ALT=new WeakMap(),wordAlts=it=>{let a=ALT.get(it);if(!a)ALT.set(it,a=wordForms(String(it.w).toLowerCase(),'・'));return a;};
-function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=sentAll(it),wi=wordAlts(it),pi=posCls(it);
+const verbEnd=x=>/^(k|b|br):/.test(x.id)&&posCls(x)[0]==='動'?String(x.w).slice(-1):'';
+function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=sentAll(it),wi=wordAlts(it),pi=posCls(it),ei=verbEnd(it);
   const gOf=x=>toM?choiceM(x).g:glossAll(x),txt=x=>toM?choiceM(x).t:x.w.toLowerCase(),gkey=x=>'\n'+[...gOf(x)].sort().join('\n');
   const any=(a,b)=>{for(const x of a)if(b.has(x))return true;return false;},within=(a,b)=>{if(!a.size)return false;for(const x of a)if(!b.has(x))return false;return true;};
   const ok=x=>!isMulti(x)&&!wordAlts(x).some(w=>wi.includes(w))&&!any(gOf(x),gi)&&!(toM?within(sentSet(choiceM(x).ms),si)||mentions(it,choiceM(x).t):within(si,sentAll(x)));
-  const rank=x=>{const px=posCls(x);return (px[0]===pi[0]?0:px.some(p=>pi.includes(p))?1:2)*100+(Math.abs(x.lv-it.lv)||0);};
+  const rank=x=>{const px=posCls(x);return (px[0]===pi[0]?(ei&&verbEnd(x)!==ei?1:0):px.some(p=>pi.includes(p))?2:3)*100+(Math.abs(x.lv-it.lv)||0);};
   const by=new Map();for(const x of DATA[subj]){if(x.id===it.id)continue;const r=rank(x);if(!by.has(r))by.set(r,[]);by.get(r).push(x);}
   // 順位の高い組から、組の中は無作為の順に、誤答にできる語を3つ選ぶ（できるかどうかは、選ぶ段になってから確かめる）
   const picks=[],seen=new Set([txt(it)]);
@@ -765,7 +770,7 @@ function viewStats(){const c=SUBJ[S.subj].cls;
     <svg class="act" viewBox="0 0 ${W} ${H}" role="img" aria-label="直近14日間の回答数"><line x1="${pad}" y1="${H-24}" x2="${W-pad}" y2="${H-24}" stroke="var(--line)"/>${bars}</svg></section>
   <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15${SUBJ[S.subj].book?`（見出し語 ${wHead.length}語・関連語 ${wRel.length}語）`:''}</span></h2>
     ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}">${esc(it.w)}</span>${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${esc(it.m.join('／'))}</span><span class="num" style="color:var(--bad);font-size:.8rem">✕${r.x}　◯${r.c}</span></li>`).join('')}</ul>
-    <div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
+    ${wHead.concat(wRel).some(it=>askable(it,'quiz'))?'<div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>':''}`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
   <section class="panel"><h2>バックアップ <span class="sub">別の端末へ記録を移す</span></h2>
     <div class="row"><button class="btn" data-export>記録をコピー</button></div>
     <p class="hint" style="margin:10px 0 6px">コピーした文字列を別の端末の下の欄に貼り付けて「復元」を押すと、記録が引き継がれます。</p>

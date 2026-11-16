@@ -906,18 +906,13 @@ function order(items,mode){
   const w={weak:0,new:1,learning:2,ok:3};shuffle(items);
   return items.map((it,i)=>({it,k:w[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
 function start(mode,items){const p=prefsOf();
-  const modeOk=it=>mode==='typeY'?(!!it.rd&&/[一-龠々]/.test(it.w)):mode.startsWith('cloze')?canCloze(it):true;
+  const modeOk=it=>askable(it,mode);
   if(!items){items=order(pool(S.subj,p.range).filter(modeOk),p.order);if(p.count!=='all')items=items.slice(0,+p.count);}
   items=items.filter(modeOk);
   if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
   S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
 // 学習ホームの空所補充モードに出す対象語数。いまの出題設定の範囲のうち、用例から空所を作れる語の数
-function clozeNote(){const all=pool(S.subj,prefsOf().range),n=all.filter(canCloze).length;return '対象 '+n+'語'+(n<all.length?'（範囲 '+all.length+'語のうち）':'');}
-function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mode==='quiz';
-  const key=x=>toM?x.m[0]:x.w.toLowerCase();const seen=new Set([key(it)]);if(!toM)seen.add(it.w);
-  const cand=shuffle(all.filter(x=>x.id!==it.id&&x.w!==it.w&&x.m[0]!==it.m[0]));cand.sort((a,b)=>Math.abs(a.lv-it.lv)-Math.abs(b.lv-it.lv));
-  const picks=[];for(const x of cand){if(seen.has(key(x)))continue;seen.add(key(x));picks.push(x);if(picks.length===3)break;}
-  return shuffle([it,...picks]);}
+function clozeNote(){const all=pool(S.subj,prefsOf().range),n=all.filter(it=>askable(it,'cloze')).length;return '対象 '+n+'語'+(n<all.length?'（範囲 '+all.length+'語のうち）':'');}
 /* ---- 空所補充の照合 ---- */
 // 用例の中の見出し語を探して {pre,hit,post} に分ける（hit が空所）。見つからなければ null。
 //   mpre・mpost … 空所のほかにも同じ語が出ていれば「＿＿」で伏せた前後（答える前の表示に使う）
@@ -988,8 +983,100 @@ function findJa(it,ex){const fs=formsOf(it);let best=null;
   return{pre,hit,post,mpre:mask(pre),mpost:mask(post),base:best.f.b,ys:[...new Set(fs.filter(f=>f.s===hit).map(f=>f.y))]};}
 function clozeOk(it,ans,f){f=f||findForm(it);ans=String(ans||'').trim().toLowerCase();if(!ans)return false;
   return ans===it.w.toLowerCase()||(!!f&&[f.hit,f.base].concat(f.ys||[]).some(x=>!!x&&ans===x.toLowerCase()));}
-function hideWord(it){const re=new RegExp(it.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig');return it.m.map(m=>m.replace(/[（(][^）)]*[A-Za-z][^）)]*[）)]/g,'').replace(re,'＿＿').replace(/^[・\s]+|[・\s]+$/g,'')).filter(Boolean);}
-function choiceText(x,toM){return toM?x.m.slice(0,2).join('／'):x.w;}
+/* ---- 4択の選択肢と設問文 ---- */
+// 1枚に複数の語と意味が並ぶ項目（「よし＝良い／よろし＝…」「［行幸］…／［行啓］…」）。見出し語ごとに意味を分けて書いてあり、4択では答えが見えるので、
+// 4択（両方向）と空所補充には出さない（フラッシュカードと単語帳には出す）
+const isMulti=it=>{const ws=String(it.w).split('・'),ks=String(it.k||'').split('・').filter(Boolean);
+  return ws.length>1&&it.m.length>1&&it.m.every(m=>ws.some(w=>m.startsWith(w+'＝'))||ks.some(k=>m.startsWith('［'+k+'］')));};
+// その出題モードに出せる語か
+function askable(it,mode){if(mode==='flash')return true;if(mode==='typeY')return !!it.rd&&/[一-龠々]/.test(it.w);
+  return !isMulti(it)&&(!mode.startsWith('cloze')||canCloze(it));}
+// 見出し語の表記を語に分ける。全角かっこの添え書き（む（ん）、こころ（を）やる）は、外した形・入れた形・中身（末尾のとき）のどれも語として扱う
+const PAR=/[（(][^（）()]*[）)]/g;
+function wordForms(w,sep){const o=[],add=x=>{if(x&&!o.includes(x))o.push(x);};
+  for(const p of String(w).split(sep)){add(p.replace(PAR,''));add(p.replace(/[（()）]/g,''));(p.match(PAR)||[]).forEach(x=>{if(p.endsWith(x))add(x.slice(1,-1));});}
+  return o;}
+// 意味の文の中の見出し語を伏せる道具。
+//   語 … 見出し語を「・」「〜」で分けた各語。   漢字表記 … 古文単語・古文330（関連語を含む）の k 欄（文法の k 欄は接続の説明なので使わない）
+// 2字以上の形は、どこに出ていても伏せる。かな1字の語（る・な・を）は、語として出ている箇所（前後が文字でない）だけを伏せ、訳語の中の字（〜れる、〜なあ）は消さない。
+// 「な〜そ」のような呼応の形の見出し語は、かな1字の部分を伏せない（訳語の「〜するな」に当たるため）。漢字1字の見出し語（梅）は、どこに出ていても伏せる（白梅）。
+// 漢字表記が1字（例・世）のときは、語として出ている箇所だけ（先例・世の中は消さない）
+const LET='ぁ-ゖァ-ヺー一-龠々A-Za-z0-9',HIDE=new WeakMap();
+function masker(forms,any1){const long=forms.filter(x=>x.length>1).sort((a,b)=>b.length-a.length),re=long.length?new RegExp(long.map(reEsc).join('|'),'g'):null;
+  const one=forms.filter(x=>x.length===1).map(c=>any1&&!KANA_RE.test(c)?[new RegExp(reEsc(c),'g'),'＿＿']:[new RegExp('(^|[^'+LET+'])'+reEsc(c)+'(?!['+LET+'])','g'),'$1＿＿']);
+  return s=>{if(re)s=s.replace(re,'＿＿');for(const [r,to] of one)s=s.replace(r,to);return s;};}
+function hideForms(it){let h=HIDE.get(it);if(h)return h;
+  if(it.id.startsWith('e:')){const re=new RegExp('\\b'+reEsc(it.w)+'\\w*','ig');h={en:true,w:s=>s.replace(re,'＿＿'),k:s=>s};}
+  else{let ws=wordForms(it.w,/[・〜]/);if(String(it.w).includes('〜'))ws=ws.filter(x=>x.length>1||!KANA_RE.test(x));
+    const jk=/^(k|b|br):/.test(it.id),ks=jk?String(it.k||'').replace(/[〔〕]/g,'').split('・').filter(x=>x&&!ws.includes(x)):[];
+    // かっこ書きの中だけは、活用形（あいなく、なのめなら）も伏せる。地の文は訳語（聞こえる、申し上げる）まで消えるので、活用形では伏せない
+    const infl=jk?[...new Set(formsOf(it).map(f=>f.s))].filter(x=>x.length>1&&!ws.includes(x)&&!ks.includes(x)):[];
+    h={en:false,w:masker(ws,true),k:masker(ks,false),kp:masker(ks.concat(infl),false)};}
+  HIDE.set(it,h);return h;}
+// 意味の文 m の中の、項目 it の見出し語を「＿＿」にする。withK: 地の文の漢字表記も伏せる（語→意味の選択肢。設問に漢字表記が出ているため）。
+// 英語は、英字を含むかっこ書き（(be absorbed in)）を取り除く。古文は、かっこ書きの中の漢字表記と活用形も伏せ、中身が伏せ字だけになったかっこ書き（(異なり)）は取り除く
+function maskM(it,m,withK){const h=hideForms(it);
+  if(h.en)m=h.w(m.replace(/[（(][^）)]*[A-Za-z][^）)]*[）)]/g,''));
+  else{m=h.w(m.replace(PAR,p=>h.kp(h.w(p))).replace(/[（(]＿＿[）)]/g,''));if(withK)m=h.k(m);}
+  return m.replace(/(?:＿＿)+/g,'＿＿').replace(/^[・\s]+|[・\s]+$/g,'');}
+// 文 t に、項目 it の見出し語（と漢字表記）が出ているか
+const mentions=(it,t)=>{const h=hideForms(it);return h.w(t)!==t||h.k(t)!==t;};
+// 伏せたあとに何も残らない文か
+const blankM=s=>!s.replace(/＿＿/g,'').replace(/[\s・／〜～~。、（）()「」]/g,'');
+// 意味→語の設問文（意味ごと）。選択肢がかなの語なので、地の文の漢字表記（徒歩、難しい）は伏せない
+function hideWord(it){const r=it.m.map(m=>maskM(it,m,false)).filter(s=>!blankM(s));return r.length?r:it.m.slice();}
+// 意味の重なりの判定に使う訳語の集合: かっこ書きを除き、「・」「／」で区切る。「〜を」「〜に」などの前置きと「〜」は外して比べる（「〜を非難する」と「非難する」は同じ）
+const GPAR=/[（(［【〔][^（）()［］【】〔〕]*[）)］】〕]/g,GL=new WeakMap();
+function glossSet(ms){const o=new Set();
+  for(let m of ms){let p;do{p=m;m=m.replace(GPAR,'');}while(m!==p);
+    for(const t of m.split(/[・／\/]/)){const g=t.replace(/※.*$/,'').replace(/^[〜～~]+(?:から|[をにがとへでの])?/,'').replace(/[〜～~\s]/g,'');if(g)o.add(g);}}
+  return o;}
+const glossAll=it=>{let g=GL.get(it);if(!g)GL.set(it,g=glossSet(it.m));return g;};
+// 語→意味の選択肢に出す意味: 先頭から2つ（ms＝元の文、t＝見出し語を伏せた表示、g＝重なりの判定用）。伏せると何も残らない意味（あした＝朝 の「朝」）は飛ばす。
+// どの意味も残らない語（かち＝徒歩。意味が漢字表記そのもの）は bare。元の意味のまま出し、代わりに設問の漢字表記を回答まで出さない（qKanji）
+const CM=new WeakMap();
+function choiceM(x){let c=CM.get(x);if(c)return c;
+  const on=x.m.map(m=>({m,t:maskM(x,m,true)})).filter(o=>!blankM(o.t)).slice(0,2),bare=!on.length,ms=bare?x.m.slice(0,2):on.map(o=>o.m);
+  let t=(bare?ms.map(m=>maskM(x,m,false)).filter(s=>!blankM(s)):on.map(o=>o.t)).join('／');if(!t)t=ms.join('／');
+  CM.set(x,c={ms,t,bare,g:glossSet(ms)});return c;}
+function choiceText(x,toM){return toM?choiceM(x).t:x.w;}
+// 語→意味の設問に出す漢字表記（出さないときは空）
+const qKanji=it=>it.k&&!choiceM(it).bare?it.k:'';
+// 品詞の大分類の一覧（1つ目が主な品詞）。古文は「動カ四・下二」→動、「副・形動ナリ」→副・形動。英語は品詞表記を「・」で分ける。
+// 文法は「格助詞」「係助詞」などをまとめて助詞とし、助動詞・動詞の活用などはそのまま。古文常識・文学史・和歌は分類（時刻・方角、作品・作者、枕詞・掛詞 など）をそのまま使う。
+// 文学史の作品は、ジャンルの系統が同じ作品を先にする。系統は、説明の「〜時代（n世紀）の歌物語」のジャンル名の末尾の字（歌物語・軍記物語は「語」、勅撰集・俳諧集は「集」、日記は「記」）。
+// 書名の「物語」「日記」「集」だけで正答が決まらないようにするため
+const PC=new WeakMap();
+function posCls(it){let c=PC.get(it);if(c)return c;const pos=String(it.pos);
+  if(/^(k|b|br):/.test(it.id)){c=[];let cur='';for(const t of pos.split('・')){const m=/^(形動|動|形|名|副|連語|連体|感動|接)/.exec(t);if(m)cur=m[1];if(cur&&!c.includes(cur))c.push(cur);}if(!c.length)c=[pos];}
+  else if(it.id.startsWith('e:'))c=pos.split('・');
+  else{c=[/助詞$/.test(pos)?'助詞':pos];const g=pos==='作品'&&/時代（[^）]*）の([^。]+)/.exec(it.m[0]||'');if(g)c.unshift(pos+'／'+g[1].slice(-1));}
+  PC.set(it,c);return c;}
+// 説明の文の集合: 意味を「。」で区切る（かっこ書きはそのまま比べる。文学史の「平安時代（11世紀）の物語。紫式部」→ 2文）
+const SENT=new WeakMap(),sentSet=ms=>{const o=new Set();for(const m of ms)for(const t of m.split('。')){const g=t.replace(/\s/g,'');if(g)o.add(g);}return o;};
+const sentAll=it=>{let s=SENT.get(it);if(!s)SENT.set(it,s=sentSet(it.m));return s;};
+// 4択の選択肢（正解＋誤答3つ）を作る。mode が quiz（語→意味）なら選択肢は意味、それ以外（意味→語・空所補充）は語。
+// 誤答にしない語:
+//   ・正解と同じ語（併記のどれかが同じ。が と が・の、同じ語形の たまふ）、1枚に複数の語が並ぶ項目
+//   ・正解と意味が重なる語（訳語が1つでも同じ）。語→意味は選択肢に出す意味を、それ以外はすべての意味を、正解のすべての意味と比べる
+//   ・説明がまるごと当てはまる語。語→意味は、選択肢の文がすべて正解の語の説明にもある語（源氏物語に対する「平安時代（11世紀）の物語」）。
+//     それ以外は、設問文（正解の語の説明）がすべてその語の説明にもある語（「平安時代（11世紀）の物語」に対する源氏物語）
+//   ・語→意味で、選択肢の文に正解の見出し語が出る語。選択肢の表示がほかと同じになる語、訳がほかの誤答とまったく同じ語（む と むず を両方は出さない）
+// 誤答の順: 正解と同じ品詞の大分類（主な品詞が同じ → 品詞が1つでも同じ → ほか）を先に、その中ではレベル・章・区分が近い語を先に選ぶ。同じ品詞で足りないときだけ、次の語で補う。
+// 古文の動詞は、主な品詞が同じ語の中でも、語尾の字（＝活用の行）が同じ語を先にする。意味→語と空所補充は設問に「動カ四」のように行を出すので、
+// 語尾が正答だけ違うと、意味を知らなくても選べるため
+const ALT=new WeakMap(),wordAlts=it=>{let a=ALT.get(it);if(!a)ALT.set(it,a=wordForms(String(it.w).toLowerCase(),'・'));return a;};
+const verbEnd=x=>/^(k|b|br):/.test(x.id)&&posCls(x)[0]==='動'?String(x.w).slice(-1):'';
+function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=sentAll(it),wi=wordAlts(it),pi=posCls(it),ei=verbEnd(it);
+  const gOf=x=>toM?choiceM(x).g:glossAll(x),txt=x=>toM?choiceM(x).t:x.w.toLowerCase(),gkey=x=>'\n'+[...gOf(x)].sort().join('\n');
+  const any=(a,b)=>{for(const x of a)if(b.has(x))return true;return false;},within=(a,b)=>{if(!a.size)return false;for(const x of a)if(!b.has(x))return false;return true;};
+  const ok=x=>!isMulti(x)&&!wordAlts(x).some(w=>wi.includes(w))&&!any(gOf(x),gi)&&!(toM?within(sentSet(choiceM(x).ms),si)||mentions(it,choiceM(x).t):within(si,sentAll(x)));
+  const rank=x=>{const px=posCls(x);return (px[0]===pi[0]?(ei&&verbEnd(x)!==ei?1:0):px.some(p=>pi.includes(p))?2:3)*100+(Math.abs(x.lv-it.lv)||0);};
+  const by=new Map();for(const x of DATA[subj]){if(x.id===it.id)continue;const r=rank(x);if(!by.has(r))by.set(r,[]);by.get(r).push(x);}
+  // 順位の高い組から、組の中は無作為の順に、誤答にできる語を3つ選ぶ（できるかどうかは、選ぶ段になってから確かめる）
+  const picks=[],seen=new Set([txt(it)]);
+  for(const r of [...by.keys()].sort((a,b)=>a-b)){for(const x of shuffle(by.get(r))){if(!ok(x)||seen.has(txt(x))||seen.has(gkey(x)))continue;seen.add(txt(x));seen.add(gkey(x));picks.push(x);if(picks.length===3)break;}if(picks.length===3)break;}
+  return shuffle([it,...picks]);}
 function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});}
 function next(){const sess=S.session;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';render();const a=$('#ans');if(a)a.focus();}
 
@@ -1010,7 +1097,7 @@ function render(){
   if(vk!==render.vk){render.vk=vk;try{window.scrollTo({top:0});}catch(e){}}
   const a=$('#ans');if(a&&S.session&&S.session.picked===null)a.focus();
 }
-function wordHtml(it,cls){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${it.k?`<div class="kanji">${esc(it.k)}</div>`:''}`;}
+function wordHtml(it,cls,k=it.k){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${k?`<div class="kanji">${esc(k)}</div>`:''}`;}
 function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 /* ---- 古文常識の図（本の図を参考に描き直した略図） ---- */
 const FIGS={
@@ -1123,9 +1210,9 @@ function viewFlash(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
     <div class="actions"><button class="btn bad" data-ans="0">まだ<small>← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small>→ / 2</small></button></div>`;}
 
 function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,toM=sess.mode==='quiz',c=SUBJ[S.subj].cls;
-  if(!sess.choices)sess.choices=makeChoices(it);
+  if(!sess.choices)sess.choices=makeChoices(it,sess.mode,S.subj);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
-  const prompt=toM?`<div class="qprompt">${SUBJ[S.subj].yomi?'この漢字の読みは？':isEn()?'この単語の意味は？':'この語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it)}`
+  const prompt=toM?`<div class="qprompt">${SUBJ[S.subj].yomi?'この漢字の読みは？':isEn()?'この単語の意味は？':'この語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it,'',qKanji(it))}`
     :`<div class="qprompt">${SUBJ[S.subj].yomi?'この読みの漢字は？':'この意味を表す'+SUBJ[S.subj].qw+'は？'}</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(hideWord(it).join('　／　'))}</p>`;
   const picked=sess.picked;
   const choices=sess.choices.map((x,i)=>{let cls='choice';if(picked!==null){if(x.id===it.id)cls+=' correct';else if(i===picked)cls+=' wrong';else cls+=' dim';}
@@ -1141,7 +1228,7 @@ function curCloze(sess){const it=sess.items[sess.i];sess.cz=sess.cz||{};
     const j=sess.cz[sess.i];if(j>=0)return{f:findForm(it,it.exs[j][0]),tr:it.exs[j][1],mi:j};}
   return{f:findForm(it),tr:it.tr,mi:-1};}
 function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,typed=sess.mode==='clozeT',c=SUBJ[S.subj].cls,cz=curCloze(sess),f=cz.f;
-  if(!typed&&!sess.choices)sess.choices=makeChoices(it);
+  if(!typed&&!sess.choices)sess.choices=makeChoices(it,sess.mode,S.subj);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const done=sess.picked!==null;const ok=done&&(typed?sess.picked===true:sess.choices[sess.picked].id===it.id);
   const bw=f.base||it.w; // 空所に入る語の終止形（併記の見出し語なら、用例に入っている1語）
@@ -1204,7 +1291,7 @@ function viewStats(){const c=SUBJ[S.subj].cls;
     <svg class="act" viewBox="0 0 ${W} ${H}" role="img" aria-label="直近14日間の回答数"><line x1="${pad}" y1="${H-24}" x2="${W-pad}" y2="${H-24}" stroke="var(--line)"/>${bars}</svg></section>
   <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15${SUBJ[S.subj].book?`（見出し語 ${wHead.length}語・関連語 ${wRel.length}語）`:''}</span></h2>
     ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}">${esc(it.w)}</span>${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${esc(it.m.join('／'))}</span><span class="num" style="color:var(--bad);font-size:.8rem">✕${r.x}　◯${r.c}</span></li>`).join('')}</ul>
-    <div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
+    ${wHead.concat(wRel).some(it=>askable(it,'quiz'))?'<div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>':''}`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
   <section class="panel"><h2>バックアップ <span class="sub">別の端末へ記録を移す</span></h2>
     <div class="row"><button class="btn" data-export>記録をコピー</button></div>
     <p class="hint" style="margin:10px 0 6px">コピーした文字列を別の端末の下の欄に貼り付けて「復元」を押すと、記録が引き継がれます。</p>
@@ -1259,7 +1346,7 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
   }});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
-window.__tangoTest={DATA,BOOKREL,findForm};
+window.__tangoTest={DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji};
 $('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
 {if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語'+(DATA.joshiki?'／古文常識 '+DATA.joshiki.length+'語':'')+'／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
 if(!SUBJ[S.subj])S.subj='kobun';

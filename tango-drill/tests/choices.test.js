@@ -1,6 +1,7 @@
 // 4択の選択肢と設問文のテスト。
 //  - 全科目・全項目で選択肢を繰り返し作り、選択肢が4つ・正解が1つだけ（意味が重なる誤答が無い）・
 //    語→意味の選択肢に見出し語が出ない・誤答が正解と同じ品詞（分類）にそろうことを確かめる。
+//  - 品詞の表示や書名から正答が決まらないこと（古文の動詞の語尾、文学史のジャンル）を、出題を繰り返して数える。
 //  - 意味→語の設問文の伏せ字、1枚に複数の語が並ぶ項目の除外、設問に出す漢字表記と分野タグを画面で確かめる。
 // 実行: node tests/choices.test.js
 // 選択肢を作る関数は、ページのテスト用の窓口 window.__tangoTest から呼ぶ。判定（重なり・見出し語・品詞）は、アプリの実装とは別にこのファイルで書く。
@@ -190,12 +191,65 @@ for (const [subj, name, reps, hasCloze] of SUBJECTS) {
 }
 
 test('同じ品詞の語が十分ある科目では、誤答が正解と同じ品詞の大分類になる割合が9割以上', () => {
-  for (const subj of ['kobun', 'book', 'eigo', 'eigo1', 'eigo2', 'eigo3', 'eigo4', 'bunpo']) {
-    assert.ok(RATES[subj], subj + ' の集計が無い（上のテストが先に動く）');
+  // 古文常識は分類が細かく、同じ分類の語が3語に満たないものがある（一日・夏の行事・秋の行事・冬の行事。足りない分だけ近い区分の語で補う）が、全体では9割を超える
+  for (const [subj, , , hasCloze] of SUBJECTS) {
+    // 上の科目ごとのテストが集計する。そちらが途中で失敗していれば、ここも失敗にする
+    assert.deepEqual(Object.keys(RATES[subj] || {}), ['quiz', 'quizR'].concat(hasCloze ? ['cloze'] : []), subj + ' の集計がそろっていない（科目ごとのテストが先に動く）');
     for (const [mode, r] of Object.entries(RATES[subj])) assert.ok(r >= 0.9, `${subj} ${mode}: ${(r * 100).toFixed(1)}%`);
   }
-  // 古文常識・文学史・和歌は分類が細かく、同じ分類の語が3語に満たないものがある（足りない分だけ、近い区分の語で補う）
-  for (const [subj, min] of [['joshiki', 0.8], ['bungaku', 0.8], ['waka', 0.8]]) for (const [mode, r] of Object.entries(RATES[subj])) assert.ok(r >= min, `${subj} ${mode}: ${(r * 100).toFixed(1)}%`);
+});
+
+test('古文の動詞: 設問の品詞の表示（動カ四 など）と語尾の字だけで正答が決まる出題が少ない（語尾が同じ動詞を誤答に優先する）', async t => {
+  // 意味→語と空所補充（4択）は、設問に「動カ四」のように活用の行を出す。選択肢の語尾（く・す・る…）が正答だけ違うと、意味を知らなくても選べる
+  for (const [subj, name] of [['kobun', '古文単語'], ['book', '古文330']]) {
+    const page = await openAt(subj);
+    const byId = new Map(D[subj].map(it => [it.id, it])), last = it => it.w.slice(-1);
+    const verbs = D[subj].filter(it => /^動[ア-ワ]/.test(it.pos) && !it.w.includes('・'));
+    assert.ok(verbs.length >= 80, name + ' の動詞 ' + verbs.length);
+    // 語尾が同じ動詞がほかに3語以上ある語（それより少ない語は、語尾の違う動詞で補うしかない）
+    const enough = new Set(verbs.filter(it => verbs.filter(x => x.id !== it.id && x.w !== it.w && last(x) === last(it)).length >= 3).map(it => it.id));
+    for (const mode of ['quizR', 'cloze']) {
+      const { out } = await generate(page, subj, mode, 10, false);
+      let n = 0, only = 0, nE = 0, onlyE = 0;
+      for (const o of out) {
+        const it = byId.get(o.id);
+        if (o.skip || !verbs.includes(it)) continue;
+        for (const ids of o.sets) {
+          const alone = ids.filter(id => last(byId.get(id)) === last(it)).length === 1;
+          n++; if (alone) only++;
+          if (enough.has(it.id)) { nE++; if (alone) onlyE++; }
+        }
+      }
+      t.diagnostic(`${name} ${mode}: 動詞の出題 ${n} 回のうち、語尾の字が正答だけ違う出題 ${(only / n * 100).toFixed(1)}%（語尾が同じ動詞が3語以上ある語では ${(onlyE / nE * 100).toFixed(1)}%）`);
+      assert.ok(only / n <= 0.15, `${name} ${mode}: ${(only / n * 100).toFixed(1)}%`);
+      assert.ok(onlyE / nE <= 0.02, `${name} ${mode}（語尾が同じ動詞が3語以上ある語）: ${(onlyE / nE * 100).toFixed(1)}%`);
+    }
+    await done(page);
+  }
+});
+
+test('文学史: 書名の「物語」「日記」「集」だけで正答が決まる出題が少ない（同じジャンルの作品を誤答に優先する）', async t => {
+  // 書名に物語・日記・集を含む作品について、語→意味は「その語を含む選択肢が正答だけ」、
+  // 意味→語は「設問文にその語があり、書名にその語を含む選択肢が正答だけ」の出題を数える
+  const page = await openAt('bungaku');
+  const works = D.bungaku.filter(it => it.pos === '作品' && /物語|日記|集/.test(it.w)), byId = new Map(D.bungaku.map(it => [it.id, it]));
+  assert.ok(works.length >= 50, '書名に物語・日記・集を含む作品 ' + works.length);
+  for (const mode of ['quiz', 'quizR']) {
+    const { info, out } = await generate(page, 'bungaku', mode, 30, false);
+    let n = 0, only = 0;
+    for (const o of out) {
+      const it = byId.get(o.id), kw = it.pos === '作品' && (/物語|日記|集/.exec(it.w) || [])[0];
+      if (!kw) continue;
+      for (const ids of o.sets) {
+        n++;
+        const has = mode === 'quiz' ? ids.filter(id => info[id].t.includes(kw)) : o.q.join('／').includes(kw) ? ids.filter(id => byId.get(id).w.includes(kw)) : ids;
+        if (has.length === 1 && has[0] === it.id) only++;
+      }
+    }
+    t.diagnostic(`文学史 ${mode}: 書名の語だけで正答が決まる出題 ${(only / n * 100).toFixed(1)}%（${only} / ${n}）`);
+    assert.ok(only / n <= 0.1, `${mode}: ${(only / n * 100).toFixed(1)}%`);
+  }
+  await done(page);
 });
 
 /* ---- 画面で確かめる ---- */
@@ -302,10 +356,10 @@ test('1枚に複数の語と意味が並ぶ項目は、4択（両方向）と空
       assert.match(await page.textContent('#view'), /この条件に当てはまる語がありません/, `${subj} ${mode}`);
       assert.equal(await count(page, '.prog'), 0, `${subj} ${mode}: 出題が始まった`);
     }
-    // 成績の「苦手ワードだけ4択で復習」でも出ない
+    // 成績: 苦手ワードの一覧には出る。4択に出せる語が無いので「苦手ワードだけ4択で復習」のボタンは出さない
     await page.click('.tabs [data-tab="stats"]');
-    await page.click('[data-start-weak]');
-    assert.equal(await count(page, '.prog'), 0, subj + ': 苦手の復習で出題が始まった');
+    assert.ok((await texts(page, '.wlist .w')).includes(w), subj + ': 苦手ワードの一覧に無い');
+    assert.equal(await count(page, '[data-start-weak]'), 0, subj + ': 出せる語が無いのに復習のボタンがある');
     // フラッシュカードには出る
     await page.click('.tabs [data-tab="home"]');
     await page.click('[data-start="flash"]');
@@ -316,6 +370,14 @@ test('1枚に複数の語と意味が並ぶ項目は、4択（両方向）と空
     await page.click('.tabs [data-tab="list"]');
     await page.fill('#q', search);
     assert.ok((await texts(page, '.vrow .vw')).some(s => s.includes(w)), subj + ': 単語帳に無い');
+    await done(page);
+    // ほかの語も苦手なら、苦手の復習はその語だけを出す
+    const other = D[subj].find(it => it.id !== id && !isMulti(it));
+    page = await openWeak(subj, [id, other.id], prefs);
+    await page.click('.tabs [data-tab="stats"]');
+    await page.click('[data-start-weak]');
+    assert.equal(await num(page), '1 / 1', subj + ': 苦手の復習');
+    assert.equal(await page.textContent('.card .word'), other.w);
     await done(page);
     // 全範囲では、4択はその1語だけ少なく、フラッシュカードは全語。空所補充の「対象 ○語」も実際の出題数と同じ
     page = await openAt(subj);
