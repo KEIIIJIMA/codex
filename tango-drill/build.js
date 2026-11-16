@@ -45,7 +45,8 @@ if (!Array.isArray(migrations)) fail('src/migrations.json: 配列（[{"v":1,"map
 migrations.forEach((m, i) => {
   if (!m || m.v !== i + 1) fail(`src/migrations.json: ${i + 1}番目の v が ${i + 1} ではありません（v は1からの連番）`);
   if (!m.map || typeof m.map !== 'object' || Array.isArray(m.map)) fail(`src/migrations.json: v:${m.v} に map（{"旧ID":"新ID"}）がありません`);
-  for (const [from, to] of Object.entries(m.map)) if (typeof to !== 'string' || !to || to === from) fail(`src/migrations.json: v:${m.v} の「${from}」の付け替え先が正しくありません`);
+  // 付け替え先は新IDの文字列。null は「削除」（その項目が無くなった）
+  for (const [from, to] of Object.entries(m.map)) if (to !== null && (typeof to !== 'string' || !to || to === from)) fail(`src/migrations.json: v:${m.v} の「${from}」の付け替え先が正しくありません`);
 });
 migrations = migrations.map(m => ({ v: m.v, map: m.map })); // note などの覚え書きは埋め込まない
 // <script> の中に入るので、HTML の区切りに見える「<」などは \u 形式にする
