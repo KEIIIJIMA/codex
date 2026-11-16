@@ -9,7 +9,8 @@ const { idsFromHtml, migrationsFromHtml, latest } = require('./ids.js');
 
 const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 // id に、版 from より新しい移行を番号順に当てた行き先（1つの移行の中では1回だけ付け替える）
-const follow = (migrations, id, from) => migrations.reduce((x, m) => (m.v > from && has(m.map, x) ? m.map[x] : x), id);
+// 対応の値が null のものは「削除」（その項目が無くなった）を表し、行き先なしとして扱う
+const follow = (migrations, id, from) => migrations.reduce((x, m) => (x !== null && m.v > from && has(m.map, x) ? m.map[x] : x), id);
 
 // baseline: {v, ids}、ids: 新しい完成版のID、migrations: [{v, map}]
 // 戻り値: { ok, missing: [{id, to}], dangling: [{v, from, to}] }
@@ -18,10 +19,10 @@ const follow = (migrations, id, from) => migrations.reduce((x, m) => (m.v > from
 function checkIds({ baseline, ids, migrations }) {
   const live = new Set(ids), migs = migrations.slice().sort((a, b) => a.v - b.v);
   const missing = [], dangling = [];
-  for (const id of baseline.ids) { const to = follow(migs, id, baseline.v); if (!live.has(to)) missing.push({ id, to }); }
+  for (const id of baseline.ids) { const to = follow(migs, id, baseline.v); if (to !== null && !live.has(to)) missing.push({ id, to }); }
   for (const m of migs) {
     if (m.v <= baseline.v) continue;
-    for (const from of Object.keys(m.map)) { const to = follow(migs, m.map[from], m.v); if (!live.has(to)) dangling.push({ v: m.v, from, to }); }
+    for (const from of Object.keys(m.map)) { const to = follow(migs, m.map[from], m.v); if (to !== null && !live.has(to)) dangling.push({ v: m.v, from, to }); }
   }
   return { ok: !missing.length && !dangling.length, missing, dangling };
 }

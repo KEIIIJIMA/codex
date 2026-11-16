@@ -334,7 +334,7 @@ const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
 // 対応表に無いIDはそのまま。付け替え先が重なったら回答数（c＋x）の多いほうを残す。
 function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),n=r=>r?(r.c||0)+(r.x||0):-1;let prog=j.prog||{};
   for(const m of MIGRATIONS){if(m.v<=from)continue;const np={};
-    for(const id in prog){const to=has(m.map,id)?m.map[id]:id;if(!has(np,to)||n(prog[id])>n(np[to]))np[to]=prog[id];}
+    for(const id in prog){const to=has(m.map,id)?m.map[id]:id;if(to===null)continue;if(!has(np,to)||n(prog[id])>n(np[to]))np[to]=prog[id];}
     prog=np;}
   j.prog=prog;j.v=VER;return j;}
 let store=load();

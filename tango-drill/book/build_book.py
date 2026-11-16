@@ -26,12 +26,15 @@ p1={'おどろく':(['はっと気づく','目を覚ます'],'物音などで「
  'しのぶ(忍ぶ)':(['がまんする','人目を避ける'],'「忍ぶ」は恋心などを人に気づかれないように①がまんする②人目を避ける。本来は上二段だが、四段の「偲ぶ（思い慕う）」と混同された。'),
  'おぼゆ':(['自然に思われる','似る','思い出される','人から思われる'],'「思ふ」＋自発・受身の「ゆ」から。「自然に思われる」が基本で③④の意も生じた。名詞「おぼえ」は人から思われること＝評判・寵愛。'),
  'ながむ(眺む)':(['もの思いに沈む','ぼんやり見る'],'「長目」＝長い間ぼんやり見ていること。多くはもの思いにふけっている。「詠む（詩歌を詠む）」と区別する。')}
+bare=lambda w: re.sub(r'[（(].*?[)）]','',w)
+p1b={bare(k):v for k,v in p1.items()}
 exs={}
 for i in (1,2,3):
     try:
         for r in json.load(open(SP+f'exs_out_{i}.json',encoding='utf-8')): exs[r['num']]=r['exs']
     except FileNotFoundError: pass
 def splitm(t):
+    if '｜' in t: return [x for x in t.split('｜') if x]  # 「・」を含む意味があるときは「｜」で区切る
     out,cur,d=[],'',0
     for c in t:
         if c in '(（': d+=1
@@ -57,7 +60,7 @@ for l in open(SP+'mm_numbered.tsv',encoding='utf-8'):
     if not src: missing.append(w); src=[w,'',pos,m,'','','',1,['名詞']]
     k=src[1] or (re.search(r'[（(](.+?)[)）]',w).group(1) if re.search(r'[（(](.+?)[)）]',w) else '')
     note=src[6]
-    if w in p1: m,note=p1[w]
+    if bare(w) in p1b: m,note=p1b[bare(w)]
     hon=[re.search(r'[(（](尊敬|謙譲|丁寧|謙譲・丁寧)[)）]$',x) for x in m]
     tag=next((h.group(1) for h in hon if h),None)
     m=[re.sub(r'[(（](尊敬|謙譲|丁寧|謙譲・丁寧)[)）]$','',x) for x in m]
