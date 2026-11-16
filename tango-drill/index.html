@@ -840,9 +840,16 @@ const DATA={
   eigo:EIGO_RAW.map(r=>({id:'e:'+r[0],w:r[0],k:'',pos:r[1],m:r[2],ex:r[3],tr:r[4],der:r[5],lv:r[6],tags:r[7]}))
 };
 let BOOKREL=[];
-if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:r[1],k:r[2],pos:r[3],m:r[4],ex:r[5],tr:r[6],note:r[7],lv:r[8],tags:r[9],rel:r[10]||[],exs:r[11]||null}));
+// 古文330の見出し語・関連語の添え書き（「けしき(気色)」の漢字、「かたちをかふ〔やつす〕」の言い換え、「たまふ(四段)」の区別）は
+// 語そのものに含めない。語の表示・選択肢・字数のヒント・照合には添え書きを外した形（bareW）を使い、添え書きは漢字表記の欄（k）に出す。
+// 元のデータ（BOOK_RAW）は変えない。IDは番号で決まるので、ここを変えても学習記録には響かない
+const NOTE_RE=/\([^)]*\)|〔[^〕]*〕/g;
+const bareW=s=>String(s).replace(NOTE_RE,''),noteW=s=>(String(s).match(NOTE_RE)||[]).map(x=>x[0]==='('?x.slice(1,-1):x).join('・');
+if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:bareW(r[1]),k:r[2]||noteW(r[1]),pos:r[3],m:r[4],ex:r[5],tr:r[6],note:r[7],lv:r[8],tags:r[9],rel:r[10]||[],exs:r[11]||null}));
   DATA.book.forEach(it=>{if(it.exs&&it.exs[0]){it.ex=it.exs[0][0];it.tr=it.exs[0][1];}});
-  DATA.book.forEach(it=>it.rel.forEach((x,i)=>BOOKREL.push({id:'br:'+it.num+':'+i,num:it.num,w:x[0],k:'',pos:x[1],m:x[2].split('・'),ex:'',tr:'',note:'「'+it.w+'」（No.'+it.num+'）の関連語',lv:it.lv,tags:['関連語'],rel:[],isRel:true,parent:it})));}
+  DATA.book.forEach(it=>it.rel.forEach((x,i)=>BOOKREL.push({id:'br:'+it.num+':'+i,num:it.num,w:bareW(x[0]),k:noteW(x[0]),pos:x[1],m:x[2].split('・'),ex:'',tr:'',note:'「'+it.w+'」（No.'+it.num+'）の関連語',lv:it.lv,tags:['関連語'],rel:[],isRel:true,parent:it})));}
+// 古文330は、関連語の記録も集計・苦手の復習・リセットの対象にする（数は見出し語と分けて出す）
+const relOf=subj=>SUBJ[subj].book?BOOKREL:[];
 if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],rd:r[2],alt:r[4]||'',ex:'',tr:'',note:r[3]+(r[4]&&r[4]!==r[2]?'（歴史的仮名遣い：'+r[4]+'）':''),lv:1,tags:[],yomi:true}));
 for(const l of [1,2,3,4])DATA['eigo'+l]=DATA.eigo.filter(it=>it.lv===l);
 if(SUBJ.joshiki)DATA.joshiki=JOSHIKI_RAW.map(r=>({id:'j:'+r[1],w:r[1],k:'',pos:r[0],m:[r[3]],rd:r[2]!==r[1]?r[2]:'',alt:r[5]||'',ex:'',tr:'',note:'',lv:r[6],tags:[],img:r[7],fig:r[8],page:r[4]}));
@@ -879,7 +886,8 @@ function record(it,ok){const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};if(ok){r.c++
 function setStatus(it,st){if(st==='weak'){store.prog[it.id]={c:(store.prog[it.id]||{}).c||0,x:Math.max(1,(store.prog[it.id]||{}).x||0),s:0,t:Date.now()};}
   else if(st==='ok'){const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};r.s=2;r.c++;r.t=Date.now();store.prog[it.id]=r;}
   else if(st==='new'){delete store.prog[it.id];}save();}
-function counts(subj){const c={new:0,learning:0,weak:0,ok:0,total:0};DATA[subj].forEach(it=>{c[status(it)]++;c.total++;});return c;}
+function countOf(list){const c={new:0,learning:0,weak:0,ok:0,total:0};list.forEach(it=>{c[status(it)]++;c.total++;});return c;}
+function counts(subj){return countOf(DATA[subj]);}
 function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(d.getDate()-1);while(store.days[today(d)]){n++;d.setDate(d.getDate()-1);}return n;}
 
 /* ---- state ---- */
@@ -905,22 +913,88 @@ function order(items,mode){
   const w={weak:0,new:1,learning:2,ok:3};shuffle(items);
   return items.map((it,i)=>({it,k:w[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
 function start(mode,items){const p=prefsOf();
-  const modeOk=it=>mode==='typeY'?(!!it.rd&&/[一-龠々]/.test(it.w)):mode.startsWith('cloze')?!!(findForm(it)||(it.exs&&it.exs.some(e=>findForm(it,e[0])))):true;
+  const modeOk=it=>mode==='typeY'?(!!it.rd&&/[一-龠々]/.test(it.w)):mode.startsWith('cloze')?canCloze(it):true;
   if(!items){items=order(pool(S.subj,p.range).filter(modeOk),p.order);if(p.count!=='all')items=items.slice(0,+p.count);}
   items=items.filter(modeOk);
   if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
   S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
+// 学習ホームの空所補充モードに出す対象語数。いまの出題設定の範囲のうち、用例から空所を作れる語の数
+function clozeNote(){const all=pool(S.subj,prefsOf().range),n=all.filter(canCloze).length;return '対象 '+n+'語'+(n<all.length?'（範囲 '+all.length+'語のうち）':'');}
 function makeChoices(it){const sess=S.session,all=DATA[S.subj];const toM=sess.mode==='quiz';
   const key=x=>toM?x.m[0]:x.w.toLowerCase();const seen=new Set([key(it)]);if(!toM)seen.add(it.w);
   const cand=shuffle(all.filter(x=>x.id!==it.id&&x.w!==it.w&&x.m[0]!==it.m[0]));cand.sort((a,b)=>Math.abs(a.lv-it.lv)-Math.abs(b.lv-it.lv));
   const picks=[];for(const x of cand){if(seen.has(key(x)))continue;seen.add(key(x));picks.push(x);if(picks.length===3)break;}
   return shuffle([it,...picks]);}
-function findForm(it,sent){const ex=(sent!==undefined?sent:it.ex)||'';if(!ex||/[〜・]/.test(it.w))return null;const w=it.w;
-  if(isEn()){const esc_=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const b=esc_(w),e=w.endsWith('e')?esc_(w.slice(0,-1)):null,y=w.endsWith('y')?esc_(w.slice(0,-1)):null,last=esc_(w.slice(-1));
-    const pats=[b,b+'(?:s|es|ed|d|ing|ly|er|est|ness|ment|al|ity|ive|ion|ions|ally)',e&&e+'(?:ing|ed|es|er|ion|ation|ive|ity|ure|al|ly)',y&&y+'(?:ies|ied|ier|ily|iness)',b+last+'(?:ing|ed|er)',w.length>=6&&esc_(w.slice(0,-2))+'\\w{0,6}'].filter(Boolean);
-    for(const p of pats){const m=new RegExp('\\b'+p+'\\b','i').exec(ex);if(m)return{pre:ex.slice(0,m.index),hit:m[0],post:ex.slice(m.index+m[0].length)};}return null;}
-  for(const st of [w,w.length>=3?w.slice(0,-1):null,w.length>=4?w.slice(0,-2):null].filter(Boolean)){const i=ex.indexOf(st);if(i>=0){let j=i+st.length;return{pre:ex.slice(0,i),hit:ex.slice(i,j),post:ex.slice(j)};}}return null;}
-function clozeOk(it,ans,f){f=f||findForm(it);ans=String(ans||'').trim().toLowerCase();return !!ans&&(ans===it.w.toLowerCase()||(f&&ans===f.hit.toLowerCase()));}
+/* ---- 空所補充の照合 ---- */
+// 用例の中の見出し語を探して {pre,hit,post} に分ける（hit が空所）。見つからなければ null。
+//   mpre・mpost … 空所のほかにも同じ語が出ていれば「＿＿」で伏せた前後（答える前の表示に使う）
+//   base … 空所に入っている語の終止形（併記の見出し語なら、そのうちの1語）   ys … 空所の読み（かな）   base と ys は古文だけ
+const CZ=new WeakMap(),reEsc=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function findForm(it,sent){const ex=(sent!==undefined?sent:it.ex)||'';if(!ex)return null;
+  let c=CZ.get(it);if(!c)CZ.set(it,c=new Map());
+  if(!c.has(ex))c.set(ex,it.id.startsWith('e:')?findEn(it.w,ex):findJa(it,ex));
+  return c.get(ex);}
+// 空所補充の対象になる語（どれかの用例に見出し語の形が見つかる語）
+const canCloze=it=>!!(findForm(it)||(it.exs&&it.exs.some(e=>findForm(it,e[0]))));
+function findEn(w,ex){const b=reEsc(w),e=w.endsWith('e')?reEsc(w.slice(0,-1)):null,y=w.endsWith('y')?reEsc(w.slice(0,-1)):null,last=reEsc(w.slice(-1));
+  const infl=[b,b+'(?:s|es|ed|d|ing|ly|er|est|ness|ment|al|ity|ive|ion|ions|ally)',e&&e+'(?:ing|ed|es|er|ion|ation|ive|ity|ure|al|ly)',y&&y+'(?:ies|ied|ier|ily|iness)',b+last+'(?:ing|ed|er)'].filter(Boolean);
+  for(const p of infl.concat(w.length>=6?[reEsc(w.slice(0,-2))+'\\w{0,6}']:[])){const m=new RegExp('\\b'+p+'\\b','i').exec(ex);if(!m)continue;
+    // 空所のほかに同じ語（見出し語とその変化形、空所と同じ形）が出ていれば伏せる
+    const again=new RegExp('\\b(?:'+infl.concat(reEsc(m[0])).join('|')+')\\b','ig'),mask=s=>s.replace(again,'＿＿');
+    const pre=ex.slice(0,m.index),post=ex.slice(m.index+m[0].length);return{pre,hit:m[0],post,mpre:mask(pre),mpost:mask(post)};}
+  return null;}
+// 古文: 見出し語が活用した形と、漢字表記（k）で書いた形を作って用例から探す
+const GYO={ア:'あいうえお',カ:'かきくけこ',ガ:'がぎぐげご',サ:'さしすせそ',ザ:'ざじずぜぞ',タ:'たちつてと',ダ:'だぢづでど',ナ:'なにぬねの',ハ:'はひふへほ',バ:'ばびぶべぼ',マ:'まみむめも',ヤ:'やいゆえよ',ラ:'らりるれろ',ワ:'わゐうゑを'};
+const KANA_RE=/^[ぁ-ゖー]+$/,KU=['く','から','かり','し','き','かる','けれ','かれ','う'],SHIKU=['','く','から','かり','き','かる','けれ','かれ','う'],RAHEN=['ら','り','る','れ'];
+// 品詞 pos と終止形 r（かな）から、活用語尾の変化を [語末から削る字数, 付ける語尾の一覧, かな書きだけに使うか] の組で返す。先頭は「そのままの形」
+// 品詞は「動カ四・下二」（カ行四段と下二段）、「動ハ四・サ下二」（併記の語ごとに違う活用）、「副・形動ナリ」のように併記される。行が語末と合わない活用は使わない
+function conjOf(pos,r){const out=[[0,['']]],last=r.slice(-1),stem=n=>{if(r.length-n>=3)out.push([n,[''],true]);};let cls='',row='';
+  for(let t of String(pos).split('・')){const m=/^(形動|動|形|名|副|連語|連体|感動|接)(.*)$/.exec(t);if(m){cls=m[1];t=m[2];row='';}
+    if(cls==='動'){const v=/^([ア-ワ]?)(四|上一|上二|下一|下二|変)$/.exec(t);if(!v)continue;if(v[1])row=v[1];const ty=v[2];
+      if(ty==='変'){if(row==='カ'&&last==='く')out.push([1,['こ','き','く','くる','くれ','こよ']]);
+        else if(row==='サ'&&/[すず]/.test(last)){const g=GYO[last==='す'?'サ':'ザ'];out.push([1,[g[3],g[1],g[2],g[2]+'る',g[2]+'れ',g[3]+'よ']]);}
+        else if(row==='ナ'&&last==='ぬ')out.push([1,['な','に','ぬ','ぬる','ぬれ','ね']]);
+        else if(row==='ラ'&&last==='り')out.push([1,RAHEN]);continue;}
+      if(ty==='上一'||ty==='下一'){if(last==='る')out.push([1,['','る','れ','よ']]);continue;}
+      // 行は語末のウ段から決める（「う」で終わる語は、品詞のア行・ワ行で決める）
+      const g=last==='う'?GYO[row==='ア'?'ア':'ワ']:Object.values(GYO).find(x=>x[2]===last);if(!g||(GYO[row]&&GYO[row][2]!==last))continue;
+      out.push([1,ty==='四'?[g[0],g[1],g[2],g[3]]:ty==='上二'?[g[1],g[2],g[2]+'る',g[2]+'れ',g[1]+'よ']:[g[3],g[2],g[2]+'る',g[2]+'れ',g[3]+'よ']]);}
+    // 形容詞・形容動詞は、かな3字以上の語幹だけの形（あたら夜、おぼろけの人）も拾う。短い語幹は別の語に当たるので使わない
+    else if(cls==='形'){if(!/[しじ]/.test(last))continue;if(t!=='シク'&&last==='し')out.push([1,KU]);if(t!=='ク')out.push([0,SHIKU]);stem(1);}
+    else if(cls==='形動'){if(t!=='タリ'&&r.endsWith('なり'))out.push([2,['なら','なり','に','なる','なれ']]);else if(r.endsWith('たり'))out.push([2,['たら','たり','と','たる','たれ']]);else continue;stem(2);}
+    // 連語は、語末の形で活用を決める（ひとやりならず→ならぬ、よのつねなり→なる、いとしもなし→なき、こころあり→ある）
+    else if(cls==='連語'){if(r.endsWith('なり'))out.push([2,['なら','なり','に','なる','なれ']]);else if(last==='ず')out.push([1,['ず','ぬ','ね','ざら','ざり','ざる','ざれ']]);
+      else if(r.endsWith('なし'))out.push([1,KU]);else if(r.endsWith('あり'))out.push([1,RAHEN]);}}
+  return out;}
+// 漢字表記 k と読み r を突き合わせ、漢字を1字ずつ「漢字のまま／かな」にした書き方をすべて返す（心付きなし＋こころづきなし → 心づきなし、心付きなし など）。
+// k のかなは r の同じ位置のかなと合うこと、漢字1字は1字以上のかなに当たることが条件。合わなければ空
+function spellings(k,r){const res=new Set();
+  (function go(i,j,acc){if(i===k.length){if(j===r.length)acc.forEach(s=>res.add(s));return;}
+    const c=k[i];if(KANA_RE.test(c)){if(r[j]===c)go(i+1,j+1,acc.map(s=>s+c));return;}
+    for(let n=1;j+n<=r.length-(k.length-i-1);n++){const seg=r.slice(j,j+n);go(i+1,j+n,[].concat(...acc.map(s=>[s+c,s+seg])));}
+  })(0,0,['']);return [...res];}
+// 見出し語 it が用例に出るときの形の一覧 [{s:書き方, y:その読み, b:終止形}]（長い順）。
+// 併記（A・B）は語ごとに、「〜」のある見出し語（え〜打消、な〜そ、〜あへず）は「〜」の前（無ければ後ろ）の語で作る
+const FORMS=new WeakMap();
+function formsOf(it){if(FORMS.has(it))return FORMS.get(it);const out=[],seen=new Set();
+  const bases=String(it.w).split('・').map(a=>{const p=a.split('〜');return p[0]||p[1]||'';}).filter(a=>KANA_RE.test(a));
+  const ks=String(it.k||'').split('・').filter(k=>k&&!KANA_RE.test(k)&&!/[()〔〕]/.test(k));
+  bases.forEach((r,bi)=>{const sp=new Set([r]);
+    // 漢字表記が見出し語と同じ数だけ併記されていれば順に対応させ、そうでなければ読みに合うものをすべて使う
+    (ks.length===bases.length?[ks[bi]]:ks).forEach(k=>spellings(k,r).forEach(s=>sp.add(s)));
+    for(const [cut,ends,only] of conjOf(it.pos,r))for(const s of sp){const kana=!cut||s.slice(-cut)===r.slice(-cut);if((!kana&&cut>1)||(only&&s!==r))continue;
+      // 語末が漢字の書き方（心得・来）は、語尾の1字目が漢字に含まれる（こころえ→心得、こころうる→心得る）
+      for(const e of ends){const f=kana?s.slice(0,s.length-cut)+e:s+e.slice(1),y=r.slice(0,r.length-cut)+e;if(!f||seen.has(f+'|'+y))continue;seen.add(f+'|'+y);out.push({s:f,y,b:r});}}});
+  out.sort((a,b)=>b.s.length-a.s.length);FORMS.set(it,out);return out;}
+// いちばん長く一致する形（同じ長さなら前にあるもの）を空所にする。短い形が別の語の一部に当たるのを避けるため。
+// 空所のほかに同じ語の形が出ていれば伏せる（かな1字の形は、助詞などに当たるので伏せない）
+function findJa(it,ex){const fs=formsOf(it);let best=null;
+  for(const f of fs){if(best&&f.s.length<best.f.s.length)break;const i=ex.indexOf(f.s);if(i>=0&&(!best||i<best.i))best={f,i};}
+  if(!best)return null;const hit=best.f.s,pre=ex.slice(0,best.i),post=ex.slice(best.i+hit.length);
+  const long=[...new Set(fs.filter(f=>f.s.length>=2||!KANA_RE.test(f.s)).map(f=>reEsc(f.s)))],again=long.length?new RegExp(long.join('|'),'g'):null,mask=s=>again?s.replace(again,'＿＿'):s;
+  return{pre,hit,post,mpre:mask(pre),mpost:mask(post),base:best.f.b,ys:[...new Set(fs.filter(f=>f.s===hit).map(f=>f.y))]};}
+function clozeOk(it,ans,f){f=f||findForm(it);ans=String(ans||'').trim().toLowerCase();if(!ans)return false;
+  return ans===it.w.toLowerCase()||(!!f&&[f.hit,f.base].concat(f.ys||[]).some(x=>!!x&&ans===x.toLowerCase()));}
 function hideWord(it){const re=new RegExp(it.w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig');return it.m.map(m=>m.replace(/[（(][^）)]*[A-Za-z][^）)]*[）)]/g,'').replace(re,'＿＿').replace(/^[・\s]+|[・\s]+$/g,'')).filter(Boolean);}
 function choiceText(x,toM){return toM?x.m.slice(0,2).join('／'):x.w;}
 function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});}
@@ -992,19 +1066,22 @@ function detailHtml(it){const c=SUBJ[S.subj].cls;
   ${it.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[it.img]?`<figure class="ill"><img src="${JOSHIKI_IMG[it.img]}" alt="${esc(it.w)}の挿絵"></figure>`:''}
   ${it.note?`<div class="note"><b>${it.yomi?'意味':'注'}</b>${esc(it.note)}</div>`:''}
   ${it.sei?seiHtml(it.sei):''}
-  ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(x[0])}</span><span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
+  ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(bareW(x[0]))}</span>${noteW(x[0])?`<span class="rp">${esc(noteW(x[0]))}</span>`:''}<span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
   ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}`;}
 
 function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,sk=streak();
+  // 古文330は、関連語の数を見出し語と分けて各タイルに添える
+  const rc=SUBJ[S.subj].book?countOf(BOOKREL):null,relLab=k=>rc?`<div class="lab">関連語 ${rc[k]}</div>`:'';
+  const czn=SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<span class="d" data-czn>${esc(clozeNote())}</span>`;
   const pct=k=>c.total?(c[k]/c.total*100):0;
   const tagOpts=TAGS[S.subj].map(t=>`<option value="tag:${esc(t)}"${p.range==='tag:'+t?' selected':''}>分野: ${esc(t)}</option>`).join('');
   const sel=(v)=>p.range===v?' selected':'';
   return `
   <section class="tiles">
-    <div class="tile"><div class="lab">収録語数</div><div class="val num">${c.total}<small>語</small></div></div>
-    <div class="tile ok"><div class="lab">習得</div><div class="val num">${c.ok}<small>語</small></div></div>
-    <div class="tile weak"><div class="lab">苦手</div><div class="val num">${c.weak}<small>語</small></div></div>
-    <div class="tile"><div class="lab">未学習</div><div class="val num">${c.new}<small>語</small></div></div>
+    <div class="tile"><div class="lab">収録語数</div><div class="val num">${c.total}<small>語</small></div>${relLab('total')}</div>
+    <div class="tile ok"><div class="lab">習得</div><div class="val num">${c.ok}<small>語</small></div>${relLab('ok')}</div>
+    <div class="tile weak"><div class="lab">苦手</div><div class="val num">${c.weak}<small>語</small></div>${relLab('weak')}</div>
+    <div class="tile"><div class="lab">未学習</div><div class="val num">${c.new}<small>語</small></div>${relLab('new')}</div>
   </section>
   <div class="bar" aria-hidden="true"><i class="ok" style="width:${pct('ok')}%"></i><i class="learning" style="width:${pct('learning')}%"></i><i class="weak" style="width:${pct('weak')}%"></i></div>
   <div class="legend"><span class="ok">習得 ${c.ok}</span><span class="learning">学習中 ${c.learning}</span><span class="weak">苦手 ${c.weak}</span><span>未学習 ${c.new}</span></div>
@@ -1036,8 +1113,8 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
     <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">語を見て意味を思い出し、めくって確認。「覚えた／まだ」を自分で判定します。</span></button>
     <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'}</span><span class="d">読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。</span></button>
     ${SUBJ[S.subj].yomi||(SUBJ[S.subj].joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)))?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。</span></button>`:''}
-    ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${isEn()?'例文':'用例'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span></button>
-    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span></button>`}
+    ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${isEn()?'例文':'用例'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span>${czn}</button>
+    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span>${czn}</button>`}
     <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>
   </section>
   ${SUBJ[S.subj].tables?`<section class="panel"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${SUBJ[S.subj].tables.map((t,i)=>{const im=t.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[t.img];if(!t.html&&!im)return'';
@@ -1074,14 +1151,15 @@ function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
   if(!typed&&!sess.choices)sess.choices=makeChoices(it);
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const done=sess.picked!==null;const ok=done&&(typed?sess.picked===true:sess.choices[sess.picked].id===it.id);
-  const sent=`<p class="cloze ${c}">${esc(f.pre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(f.post)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(cz.tr)}</div>${done&&cz.mi>=0?`<div class="hint" style="margin:8px 0 0">この用例は意味${'①②③④⑤⑥'[cz.mi]}「${esc(it.m[cz.mi])}」</div>`:''}`;
-  const prompt=`<div class="qprompt">空所に入る${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${typed?`<span class="chip">${esc(it.w[0])}${'・'.repeat(Math.max(0,it.w.length-1))}（${it.w.length}字）</span>`:''}</div>${sent}`;
+  const bw=f.base||it.w; // 空所に入る語の終止形（併記の見出し語なら、用例に入っている1語）
+  const sent=`<p class="cloze ${c}">${esc(done?f.pre:f.mpre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(done?f.post:f.mpost)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(cz.tr)}</div>${done&&cz.mi>=0?`<div class="hint" style="margin:8px 0 0">この用例は意味${'①②③④⑤⑥'[cz.mi]}「${esc(it.m[cz.mi])}」</div>`:''}`;
+  const prompt=`<div class="qprompt">空所に入る${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${typed?`<span class="chip">${esc(bw[0])}${'・'.repeat(Math.max(0,bw.length-1))}（${bw.length}字）</span>`:''}</div>${sent}`;
   let body='';
   if(typed){body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${isEn()?'英単語を入力':'ひらがなで入力'}" lang="${isEn()?'en':'ja'}"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;}
   else{body=`<div class="choices">${sess.choices.map((x,i)=>{let cls='choice';if(done){if(x.id===it.id)cls+=' correct';else if(i===sess.picked)cls+=' wrong';else cls+=' dim';}
     return `<button class="${cls}" data-pick="${i}"${done?' disabled':''}><span class="n">${i+1}</span><span class="txt ${c}">${esc(x.w)}</span></button>`;}).join('')}</div>`;}
   let after='';
-  if(done){after=`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}${ok?'':'　正答: '+esc(f.hit)+(f.hit.toLowerCase()!==it.w.toLowerCase()?'（'+esc(it.w)+'）':'')}${typed&&sess.typedAns&&!ok?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
+  if(done){after=`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}${ok?'':'　正答: '+esc(f.hit)+(f.hit.toLowerCase()!==bw.toLowerCase()?'（'+esc(bw)+'）':'')}${typed&&sess.typedAns&&!ok?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
     <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`;}
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
 
@@ -1115,22 +1193,24 @@ function viewList(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase()
   :'<div class="empty">該当する語がありません</div>'}`;}
 
 function viewStats(){const c=SUBJ[S.subj].cls;
-  const subjBlock=s=>{const cc=counts(s),all=DATA[s];const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
+  const subjBlock=s=>{const cc=counts(s),all=DATA[s],rc=SUBJ[s].book?countOf(BOOKREL):null;const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
     return `<div class="panel"><h2>${esc(SUBJ[s].name)} <span class="sub">${cc.total}語</span></h2>
     <div class="bar"><i class="ok" style="width:${cc.ok/cc.total*100}%"></i><i class="learning" style="width:${cc.learning/cc.total*100}%"></i><i class="weak" style="width:${cc.weak/cc.total*100}%"></i></div>
     <div class="legend" style="margin-bottom:6px"><span class="ok">習得 ${cc.ok}</span><span class="learning">学習中 ${cc.learning}</span><span class="weak">苦手 ${cc.weak}</span><span>未学習 ${cc.new}</span></div>
+    ${rc?`<p class="hint" style="margin:0 0 6px">関連語 ${rc.total}語：習得 ${rc.ok}・学習中 ${rc.learning}・苦手 ${rc.weak}・未学習 ${rc.new}</p>`:''}
     ${lvs.map(l=>`<div class="lvbar"><span class="lab">${l.n} ${esc(l.lab)}</span><div class="track"><i style="width:${l.a?l.o/l.a*100:0}%"></i></div><span class="v num">${l.o}/${l.a}</span></div>`).join('')}</div>`;};
   // 14日間の回答数
   const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({k:today(d),d,n:store.days[today(d)]||0});}
   const max=Math.max(1,...days.map(x=>x.n)),W=560,H=120,pad=22,bw=(W-pad*2)/14;
   const bars=days.map((x,i)=>{const h=x.n/max*(H-40);const bx=pad+i*bw+3;return `<rect x="${bx.toFixed(1)}" y="${(H-24-h).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${x.n?'var(--accent)':'var(--line)'}"/>${x.n?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${(H-28-h).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.n}</text>`:''}${i%2===1?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.d.getMonth()+1}/${x.d.getDate()}</text>`:''}`;}).join('');
-  const weak=DATA[S.subj].filter(it=>status(it)==='weak').map(it=>({it,r:store.prog[it.id]})).sort((a,b)=>(b.r.x-b.r.c)-(a.r.x-a.r.c)).slice(0,15);
+  const isWeak=it=>status(it)==='weak',wHead=DATA[S.subj].filter(isWeak),wRel=relOf(S.subj).filter(isWeak);
+  const weak=wHead.concat(wRel).map(it=>({it,r:store.prog[it.id]})).sort((a,b)=>(b.r.x-b.r.c)-(a.r.x-a.r.c)).slice(0,15);
   const total=Object.values(store.days).reduce((a,b)=>a+b,0);
   return `<div class="sgrid">${Object.keys(SUBJ).filter(k=>!SUBJ[k].base).map(subjBlock).join('')}</div>
   <section class="panel"><h2>学習の記録 <span class="sub">直近14日 ／ 累計 ${total} 問 ／ 連続 ${streak()} 日</span></h2>
     <svg class="act" viewBox="0 0 ${W} ${H}" role="img" aria-label="直近14日間の回答数"><line x1="${pad}" y1="${H-24}" x2="${W-pad}" y2="${H-24}" stroke="var(--line)"/>${bars}</svg></section>
-  <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15</span></h2>
-    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}">${esc(it.w)}</span><span class="m">${esc(it.m.join('／'))}</span><span class="num" style="color:var(--bad);font-size:.8rem">✕${r.x}　◯${r.c}</span></li>`).join('')}</ul>
+  <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15${SUBJ[S.subj].book?`（見出し語 ${wHead.length}語・関連語 ${wRel.length}語）`:''}</span></h2>
+    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}">${esc(it.w)}</span>${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${esc(it.m.join('／'))}</span><span class="num" style="color:var(--bad);font-size:.8rem">✕${r.x}　◯${r.c}</span></li>`).join('')}</ul>
     <div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
   <section class="panel"><h2>バックアップ <span class="sub">別の端末へ記録を移す</span></h2>
     <div class="row"><button class="btn" data-export>記録をコピー</button></div>
@@ -1139,7 +1219,7 @@ function viewStats(){const c=SUBJ[S.subj].cls;
     <div class="row" style="margin-top:8px"><button class="btn" data-import>復元（既存の記録と統合）</button></div>
     <div class="msg" id="msg">${esc(S.msg)}</div></section>
   <section class="panel"><h2 class="danger">記録のリセット</h2>
-    ${S.confirm?`<div class="confirm"><span>${esc(SUBJ[S.subj].name)}の学習記録をすべて消します。元に戻せません。</span><button class="btn bad" data-reset="yes" style="padding:8px 14px">消す</button><button class="btn ghost" data-reset="no" style="padding:8px 14px">やめる</button></div>`
+    ${S.confirm?`<div class="confirm"><span>${esc(SUBJ[S.subj].name)}の学習記録${SUBJ[S.subj].book?'（関連語を含む）':''}をすべて消します。元に戻せません。</span><button class="btn bad" data-reset="yes" style="padding:8px 14px">消す</button><button class="btn ghost" data-reset="no" style="padding:8px 14px">やめる</button></div>`
     :`<div class="row"><button class="btn ghost danger" data-reset="ask">${esc(SUBJ[S.subj].name)}の記録を消す</button></div>`}</section>`;}
 
 /* ---- events ---- */
@@ -1148,12 +1228,12 @@ document.querySelector('.switch').addEventListener('click',e=>{const b=e.target.
 document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-subj]');if(!b)return;setSubj(b.dataset.subj);});
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.session=null;S.msg='';S.confirm=false;render();});
 const view=$('#view');
-view.addEventListener('change',e=>{const s=e.target.closest('[data-pref]');if(s){setPref(s.dataset.pref,s.value);}});
+view.addEventListener('change',e=>{const s=e.target.closest('[data-pref]');if(s){setPref(s.dataset.pref,s.value);document.querySelectorAll('[data-czn]').forEach(x=>{x.textContent=clozeNote();});}});
 view.addEventListener('input',e=>{if(e.target.id==='q'){S.list.q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#q');if(q){q.focus();try{q.setSelectionRange(pos,pos);}catch(x){}}}});
 view.addEventListener('click',e=>{
   const t=e.target;const h=(sel)=>t.closest(sel);let b;
   if(b=h('[data-start]')){start(b.dataset.start);return;}
-  if(h('[data-start-weak]')){const items=shuffle(DATA[S.subj].filter(it=>status(it)==='weak'));start('quiz',items);return;}
+  if(h('[data-start-weak]')){const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
   if(h('[data-quit]')){S.session=null;S.tab='home';render();return;}
   if(h('[data-flip]')){S.session.flipped=true;render();return;}
   if(b=h('[data-ans]')){answer(b.dataset.ans==='1');next();return;}
@@ -1163,7 +1243,7 @@ view.addEventListener('click',e=>{
   if(b=h('[data-f]')){S.list[b.dataset.f]=b.dataset.v;render();return;}
   if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;render();return;}
   if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);render();}return;}
-  if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){DATA[S.subj].forEach(it=>delete store.prog[it.id]);save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
+  if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){DATA[S.subj].concat(relOf(S.subj)).forEach(it=>delete store.prog[it.id]);save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
   if(h('[data-export]')){const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();}catch(x){fallback();}return;}
@@ -1185,6 +1265,8 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
     if((e.key==='Enter'||e.key===' ')&&sess.picked!==null){e.preventDefault();next();return;}
   }});
 
+// テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
+window.__tangoTest={DATA,BOOKREL,findForm};
 $('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
 {if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語'+(DATA.joshiki?'／古文常識 '+DATA.joshiki.length+'語':'')+'／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
 if(!SUBJ[S.subj])S.subj='kobun';
