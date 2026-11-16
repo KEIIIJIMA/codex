@@ -148,12 +148,13 @@ test('update_baseline.js（コマンド）: いまの基準の検査に通らな
   assert.deepEqual(JSON.parse(fs.readFileSync(base, 'utf8')).ids, [...FIXTURE_IDS].sort());
 });
 
-test('リポジトリの移行表（src/migrations.json）: v は1からの連番、対応は 旧ID→新ID の文字列', () => {
+test('リポジトリの移行表（src/migrations.json）: v は1からの連番、対応は 旧ID→新ID の文字列（削除は null）', () => {
   const migs = H.repoMigrations();
   assert.ok(migs.length >= 1, 'src/migrations.json が無いか空');
   migs.forEach((m, i) => {
     assert.equal(m.v, i + 1);
     for (const [from, to] of Object.entries(m.map)) {
+      if (to === null) continue; // null は「削除」（その項目が無くなった）
       assert.ok(typeof to === 'string' && to, 'v:' + m.v + ' の「' + from + '」の付け替え先が空');
       assert.notEqual(from, to);
     }
