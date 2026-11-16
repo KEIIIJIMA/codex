@@ -1,5 +1,6 @@
 # 単語集準拠データ（古文330・読み70）を組み立てて src/book_data.js を出力する。
-# 入力: mm_numbered.tsv（番号・見出し・品詞・意味・ページ）, mm_related.tsv（関連語）, mm_yomi.tsv（読み）,
+# 入力: mm_numbered.tsv（番号・見出し・品詞・意味・ページ。本の索引の書き起こし index_transcription.json から作成）, mm_related.tsv（関連語）, mm_yomi.tsv（読み）,
+#       book_overrides.json（見直し済みの漢字・品詞・注・分野）,
 #       mm_new97.json（新規作成した語）, exs_out_*.json（意味ごとの用例）, 既存の src/data_kobun.js と src/chunks/kobun_add.json
 import json,re,subprocess,sys
 import os
@@ -46,6 +47,8 @@ OVR={315:(['お仕えする','あります・おります','〜ございます']
      316:(['お仕えする','あります・おります','〜ございます'],'謙譲語（お仕えする）・丁寧語（あります／〜ございます）。'),
      329:(['（天皇に）申し上げる','（上皇に）申し上げる'],'謙譲語。天皇・上皇に申し上げる場合だけに使う（絶対敬語）。'),
      330:(['（皇后に）申し上げる','（皇太子に）申し上げる'],'謙譲語。皇后・皇太子に申し上げる場合だけに使う（絶対敬語）。')}
+try: OV=json.load(open(SP+'book_overrides.json',encoding='utf-8'))
+except FileNotFoundError: OV={}
 ch=lambda n:1 if n<=50 else 2 if n<=150 else 3 if n<=250 else 4 if n<=300 else 5
 out=[];missing=[]
 for l in open(SP+'mm_numbered.tsv',encoding='utf-8'):
@@ -70,7 +73,11 @@ for l in open(SP+'mm_numbered.tsv',encoding='utf-8'):
     if n in POSFIX: k,src=POSFIX[n][0],src[:2]+[POSFIX[n][1]]+src[3:]
     # 本の意味を優先。既存データの品詞（活用の種類つき）を使う
     e=exs.get(n) if exs.get(n) and len(exs.get(n))==len(m) else ([[src[4],src[5]]] if len(m)==1 and src[4] else None)
-    out.append([n,w,k,src[2] if src[2] else pos,m,src[4],src[5],note,ch(n),src[8],rel.get(w,[]),e])
+    # 見直し済みの漢字・品詞・注・分野（book_overrides.json、番号がキー）があれば、それを使う
+    ov=OV.get(str(n))
+    kk,pp,nn,tt=(ov['k'],ov['pos'],ov['note'],ov['tags']) if ov else (k,src[2] if src[2] else pos,note,src[8])
+    exm,trm=(e[0][0],e[0][1]) if e else (src[4],src[5])
+    out.append([n,w,kk,pp,m,exm,trm,nn,ch(n),tt,rel.get(w,[]),e])
 yomi=[]
 for l in open(SP+'mm_yomi.tsv',encoding='utf-8'):
     a,kj,rd,mn,hist=l.rstrip('\n').split('\t'); yomi.append([int(a),kj,rd,mn,hist])
