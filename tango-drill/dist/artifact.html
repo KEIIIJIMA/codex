@@ -844,6 +844,8 @@ if(SUBJ.book){DATA.book=BOOK_RAW.map(r=>({id:'b:'+r[0],num:r[0],w:bareW(r[1]),k:
 // 古文330は、関連語の記録も集計・苦手の復習・リセットの対象にする（数は見出し語と分けて出す）
 const relOf=subj=>SUBJ[subj].book?BOOKREL:[];
 if(SUBJ.yomi)DATA.yomi=YOMI_RAW.map(r=>({id:'y:'+r[0],num:r[0],w:r[1],k:'',pos:'読み',m:[r[2]],rd:r[2],alt:r[4]||'',ex:'',tr:'',note:r[3]+(r[4]&&r[4]!==r[2]?'（歴史的仮名遣い：'+r[4]+'）':''),lv:1,tags:[],yomi:true}));
+// 英語は「レベル→ABC 順」に並べてから、レベル別タブの一覧を作る（レベル別タブも、全レベルタブと同じ ABC 順にするため）
+DATA.eigo.sort((a,b)=>a.lv-b.lv||a.w.localeCompare(b.w,'en'));
 for(const l of [1,2,3,4])DATA['eigo'+l]=DATA.eigo.filter(it=>it.lv===l);
 if(SUBJ.joshiki)DATA.joshiki=JOSHIKI_RAW.map(r=>({id:'j:'+r[1],w:r[1],k:'',pos:r[0],m:[r[3]],rd:r[2]!==r[1]?r[2]:'',alt:r[5]||'',ex:'',tr:'',note:'',lv:r[6],tags:[],img:r[7],fig:r[8],page:r[4]}));
 if(typeof EXTRA_SUBJ!=='undefined')for(const e of EXTRA_SUBJ){SUBJ[e.key]=Object.assign({cls:'ja',qw:'語',joshiki:true,noCloze:true},e.meta);GROUPS[0].subs.push(e.key);
@@ -852,7 +854,7 @@ const findAny=id=>{for(const s in DATA){const x=DATA[s].find(it=>it.id===id);if(
 if(typeof KOBUN_EXS!=='undefined')DATA.kobun.forEach(it=>{const e=KOBUN_EXS[it.w+'|'+(it.k||'')];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
 if(typeof EIGO_EXS!=='undefined')DATA.eigo.forEach(it=>{const e=EIGO_EXS[it.w];if(e&&e.length===it.m.length){it.exs=e;it.ex=e[0][0];it.tr=e[0][1];}});
 for(const k of ['kobun','eigo','book'])(DATA[k]||[]).forEach(it=>{if(!it.exs&&it.m.length===1&&it.ex)it.exs=[[it.ex,it.tr]];});
-DATA.kobun.sort((a,b)=>a.w.localeCompare(b.w,'ja'));DATA.eigo.sort((a,b)=>a.lv-b.lv||a.w.localeCompare(b.w,'en'));
+DATA.kobun.sort((a,b)=>a.w.localeCompare(b.w,'ja'));
 const TAGS={};for(const s in DATA){const t=new Set();DATA[s].forEach(it=>it.tags.forEach(x=>t.add(x)));TAGS[s]=[...t];}
 const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
 
@@ -860,25 +862,75 @@ const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
 // 保存データの版 v（無ければ0）より新しい移行を番号順に当て、記録を新しいIDへ付け替える。
 // 1つの移行は同時の付け替え（新しい prog を作ってから差し替えるので、a→b と b→a が同じ移行にあれば入れ替わる）。
 // 対応表に無いIDはそのまま。付け替え先が重なったら回答数（c＋x）の多いほうを残す。
-function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),n=r=>r?(r.c||0)+(r.x||0):-1;let prog=j.prog||{};
+// 消した印（del。下の「保存データの形」）のIDも、同じ対応で付け替える。
+function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),n=r=>r?(r.c||0)+(r.x||0):-1;let prog=j.prog||{},del=isObj(j.del)?j.del:null;
   for(const m of MIGRATIONS){if(m.v<=from)continue;const np={};
     for(const id in prog){const to=has(m.map,id)?m.map[id]:id;if(to===null)continue;if(!has(np,to)||n(prog[id])>n(np[to]))np[to]=prog[id];}
-    prog=np;}
-  j.prog=prog;j.v=VER;return j;}
+    prog=np;
+    if(del){const nd={};for(const id in del){const to=has(m.map,id)?m.map[id]:id;if(to!==null&&!(nd[to]>=del[id]))nd[to]=del[id];}del=nd;}}
+  j.prog=prog;if(del)j.del=del;j.v=VER;return j;}
+// 保存データの形（キー tango-drill-v1 に、全体を1つの JSON で入れる）
+//   prog  {ID:{c:正答数, x:誤答数, s:連続正解数, t:最後に答えた時刻}}     days {日付:その日の回答数}     prefs 設定     v 版（移行の番号）
+//   del   {ID:記録を消した時刻}。記録を消した印。2つのタブで開いているとき、もう片方が覚えている古い記録と合わせても、
+//         消した記録が戻らないようにするためのもの（その時刻以前の記録は捨てる）。一度も消していなければ、この欄は無い
+const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o),isNum=v=>typeof v==='number'&&isFinite(v)&&v>=0;
+// 記録の形の検査: c・x・s・t がどれも0以上の数値
+const validRec=r=>isObj(r)&&isNum(r.c)&&isNum(r.x)&&isNum(r.s)&&isNum(r.t);
+// lastRaw … 最後に読んだ（または書いた）保存内容の文字列。同じなら読み直さない
+let lastRaw=null,saveWarned=false;
 let store=load();
 // 読み込み。古い版の記録は、元の内容を BAK に退避してから移行し、すぐ保存する。記録が空なら v を最新にするだけ
 function load(){let raw=null,j=null;try{raw=localStorage.getItem(KEY);j=JSON.parse(raw);}catch(e){}
   if(!j||!j.prog)return{prog:{},days:{},prefs:{},v:VER};
-  j=Object.assign({prog:{},days:{},prefs:{}},j);
-  if((+j.v||0)<VER){try{if(Object.keys(j.prog).length)localStorage.setItem(BAK,raw);}catch(e){}migrate(j);try{localStorage.setItem(KEY,JSON.stringify(j));}catch(e){}}
+  j=Object.assign({prog:{},days:{},prefs:{}},j);lastRaw=raw;
+  if((+j.v||0)<VER){try{if(Object.keys(j.prog).length)localStorage.setItem(BAK,raw);}catch(e){}migrate(j);put(j);}
   return j;}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+function put(o){try{const raw=JSON.stringify(o);localStorage.setItem(KEY,raw);lastRaw=raw;}catch(e){warnSave();}}
+// 保存。直前に、いまの保存内容を読んで合わせる（2つのタブで開いていても、片方の記録がもう片方を上書きして消さないように）
+function save(){sync();put(store);}
+// 保存できなかったとき（容量の不足、プライベートブラウズなど）は、画面に一度だけ知らせる（閉じたあとは、もう出さない）
+function warnSave(){if(saveWarned)return;saveWarned=true;const v=document.getElementById('view');if(!v)return;
+  const n=document.createElement('div');n.id='savewarn';n.className='note';n.setAttribute('role','alert');n.style.margin='0 0 16px';
+  n.innerHTML='<b>保存できません</b>学習記録を保存できませんでした。端末の空き容量が足りないか、プライベートブラウズで開いている可能性があります。このままページを閉じると、ここからの記録は残りません。記録を残すには、成績タブの「記録をコピー」で控えを取ってください。 <button type="button" class="fchip">閉じる</button>';
+  n.querySelector('button').addEventListener('click',()=>n.remove());v.parentNode.insertBefore(n,v);}
+// いまの保存内容を読み、覚えている内容に合わせる。記録を変える操作の前、出題を始める前、保存の直前、ほかのタブが保存したとき（storage イベント）に呼ぶ。
+// 古い版のタブが書いた内容は、移行してから合わせる。新しい版の内容なら、版を下げない。
+// 合わせるのは学習記録（prog・days・del）だけ。出題設定（prefs）は、このタブの画面に出ている内容のままにする（保存データでは、後から保存したタブの設定が残る）
+function sync(){let raw,j;try{raw=localStorage.getItem(KEY);}catch(e){return;}
+  if(raw==null||raw===lastRaw)return;lastRaw=raw;
+  try{j=JSON.parse(raw);}catch(e){return;}
+  if(!isObj(j)||!isObj(j.prog))return;
+  if((+j.v||0)<VER)migrate(j);else if(+j.v>(+store.v||0))store.v=j.v;
+  merge(j);}
+// 2つの記録のうち b を残すか: 回答数（c＋x）の多いほう。同数なら新しいほう（それも同じなら連続正解・正答の多いほう。どのタブでも同じ結果にするための決め）
+const nAns=r=>(+r.c||0)+(+r.x||0);
+const bWins=(a,b)=>(nAns(b)-nAns(a)||(+b.t||0)-(+a.t||0)||(+b.s||0)-(+a.s||0)||(+b.c||0)-(+a.c||0))>0;
+// 保存内容 o（最新の版に移行ずみ）を、覚えている内容に合わせる。o から取り込んだ記録の数を返す。
+//   記録 … 項目ごとに、回答数の多いほう（同数なら新しいほう）を残す。形のおかしい記録と、消した印より前の記録は取り込まない
+//   日別の回答数 … 多いほうを残す     消した印 … 新しいほうを残す
+//   restore（バックアップの復元）のときは、消した印があっても取り込む（消した時刻の直後の記録として扱う。消したあとでバックアップから戻せるように）
+function merge(o,restore){let n=0;const del={};
+  for(const src of [store.del,o.del])if(isObj(src))for(const id in src)if(isNum(src[id])&&!(del[id]>=src[id]))del[id]=src[id];
+  for(const id in store.prog){const a=store.prog[id];if(a&&del[id]>=(+a.t||0))delete store.prog[id];}
+  for(const id in o.prog){let b=o.prog[id];if(!validRec(b))continue;
+    if(del[id]>=b.t){if(!restore)continue;b=Object.assign({},b,{t:del[id]+1});}
+    const a=store.prog[id];if(!a||bWins(a,b)){store.prog[id]=b;n++;}}
+  if(isObj(o.days))for(const d in o.days)if(isNum(o.days[d])&&!(store.days[d]>=o.days[d]))store.days[d]=o.days[d];
+  if(Object.keys(del).length)store.del=del;
+  return n;}
+// 項目 id の記録を消した時刻（消していなければ0）
+const delAt=id=>{const d=isObj(store.del)?store.del[id]:0;return isNum(d)?d:0;};
+// 記録を消す。消した印を残す
+function forget(ids){const now=Date.now();for(const id of ids){const r=store.prog[id];if(r===undefined)continue;
+  if(!isObj(store.del))store.del={};store.del[id]=Math.max(now,delAt(id),+(r&&r.t)||0);delete store.prog[id];}}
+// 記録に付ける時刻。消した印より後にする（端末の時計がずれていても、消したあとの新しい記録が「消した記録」の扱いにならないように）
+const stamp=id=>Math.max(Date.now(),delAt(id)+1);
 function today(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function status(it){const r=store.prog[it.id];if(!r)return'new';if(r.s>=2)return'ok';if(r.x>0)return'weak';return'learning';}
-function record(it,ok){const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};if(ok){r.c++;r.s++;}else{r.x++;r.s=0;}r.t=Date.now();store.prog[it.id]=r;const d=today();store.days[d]=(store.days[d]||0)+1;save();}
-function setStatus(it,st){if(st==='weak'){store.prog[it.id]={c:(store.prog[it.id]||{}).c||0,x:Math.max(1,(store.prog[it.id]||{}).x||0),s:0,t:Date.now()};}
-  else if(st==='ok'){const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};r.s=2;r.c++;r.t=Date.now();store.prog[it.id]=r;}
-  else if(st==='new'){delete store.prog[it.id];}save();}
+function record(it,ok){sync();const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};if(ok){r.c++;r.s++;}else{r.x++;r.s=0;}r.t=stamp(it.id);store.prog[it.id]=r;const d=today();store.days[d]=(store.days[d]||0)+1;save();}
+function setStatus(it,st){sync();if(st==='weak'){store.prog[it.id]={c:(store.prog[it.id]||{}).c||0,x:Math.max(1,(store.prog[it.id]||{}).x||0),s:0,t:stamp(it.id)};}
+  else if(st==='ok'){const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};r.s=2;r.c++;r.t=stamp(it.id);store.prog[it.id]=r;}
+  else if(st==='new'){forget([it.id]);}save();}
 function countOf(list){const c={new:0,learning:0,weak:0,ok:0,total:0};list.forEach(it=>{c[status(it)]++;c.total++;});return c;}
 function counts(subj){return countOf(DATA[subj]);}
 function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(d.getDate()-1);while(store.days[today(d)]){n++;d.setDate(d.getDate()-1);}return n;}
@@ -900,14 +952,25 @@ function pool(subj,range){let all=DATA[subj];
   if(/^lv\d+$/.test(range))return all.filter(it=>it.lv===+range.slice(2));
   if(range.startsWith('tag:')){const t=range.slice(4);return all.filter(it=>it.tags.includes(t));}
   return all.slice();}
+const RANK={weak:0,new:1,learning:2,ok:3};
 function order(items,mode){
   if(mode==='index')return items[0]&&items[0].num?items.slice().sort((a,b)=>a.num-b.num||(a.isRel?1:0)-(b.isRel?1:0)):items;
   if(mode==='random')return shuffle(items);
-  const w={weak:0,new:1,learning:2,ok:3};shuffle(items);
-  return items.map((it,i)=>({it,k:w[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
-function start(mode,items){const p=prefsOf();
+  shuffle(items);
+  return items.map((it,i)=>({it,k:RANK[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
+// 出題する語を、設定 p（出題範囲 range・問題数 count・出題順 order）で選んで並べる。
+// おまかせ（苦手・未学習を優先）は、出題順がランダムや収録順でも、苦手→未学習→学習中→習得 の順に問題数ぶんを先に確保してから、出題順に並べ替える。
+// 確保するとき、同じ状態の語の中では、収録順なら収録順の先頭から、ランダムなら答えてから日がたった語を先に選ぶ。
+// それ以外の出題範囲は、出題順に並べた先頭から問題数ぶん
+function pick(items,p){const n=p.count==='all'?items.length:+p.count;
+  if(p.range!=='auto'||p.order==='smart'||n>=items.length)return order(items,p.order).slice(0,n);
+  const byIndex=p.order==='index',inOrder=byIndex?order(items,'index'):null;
+  const pri=byIndex?inOrder.map((it,i)=>({it,k:RANK[status(it)],i})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.it):order(items,'smart');
+  const sel=new Set(pri.slice(0,n));
+  return byIndex?inOrder.filter(it=>sel.has(it)):shuffle([...sel]);}
+function start(mode,items){sync();const p=prefsOf(); // 出題する語は、最新の記録（ほかのタブの回答を含む）で選ぶ
   const modeOk=it=>askable(it,mode);
-  if(!items){items=order(pool(S.subj,p.range).filter(modeOk),p.order);if(p.count!=='all')items=items.slice(0,+p.count);}
+  if(!items)items=pick(pool(S.subj,p.range).filter(modeOk),p);
   items=items.filter(modeOk);
   if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
   S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
@@ -983,6 +1046,24 @@ function findJa(it,ex){const fs=formsOf(it);let best=null;
   return{pre,hit,post,mpre:mask(pre),mpost:mask(post),base:best.f.b,ys:[...new Set(fs.filter(f=>f.s===hit).map(f=>f.y))]};}
 function clozeOk(it,ans,f){f=f||findForm(it);ans=String(ans||'').trim().toLowerCase();if(!ans)return false;
   return ans===it.w.toLowerCase()||(!!f&&[f.hit,f.base].concat(f.ys||[]).some(x=>!!x&&ans===x.toLowerCase()));}
+/* ---- 読みを入力の判定 ---- */
+// 比べる前に、空白と「・」を除き、カタカナをひらがなにそろえる（半角カタカナも、NFKC で全角にしてからそろえる）
+const normY=s=>String(s??'').normalize('NFKC').replace(/[\s・]/g,'').replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+// 項目 it の読み {ok:正解にする読み（そろえた形）の集合, more:回答後に「別の読み」として見せる読み}。正解にするのは:
+//   ・データの読み（rd）と歴史的仮名遣い（alt）。「A・B」の併記は、見出し語も同じ数の併記（摂政・関白＝せっしょう・かんぱく）なら全体で1つの読み
+//     （中黒は打たなくてよい。片方だけでは正解にしない）。見出し語が併記でなければ、別々の読み（どれも正解）
+//   ・読みの末尾のかっこ書き（藤原定家＝ふじわらのさだいえ（ていか））は別の読み。最後の「の」より後ろを入れ替えた形（ふじわらのていか）を正解にする
+//   ・説明に「ふづき」とも読む／「けいひち」とも のように、かなで書いてある別の読み（文月・御息所・築地・警蹕）
+const YR=new WeakMap(),YPAR=/[（(]([^（）()]+)[）)]$/;
+function readings(it){let r=YR.get(it);if(r)return r;const ok=new Set(),more=[],nw=String(it.w).split('・').length;
+  const add=(s,extra)=>{const k=normY(s);if(!k)return;if(extra&&!ok.has(k))more.push(s);ok.add(k);};
+  const each=s=>{const ps=s.split('・');if(ps.length>1&&ps.length!==nw)ps.forEach(x=>add(x));else add(s);};
+  for(const s0 of [it.rd||it.m[0],it.alt]){if(!s0)continue;const s=String(s0),m=YPAR.exec(s);
+    if(!m){each(s);continue;}
+    const base=s.slice(0,m.index);add(s);each(base);add(base.slice(0,base.lastIndexOf('の')+1)+m[1],true);}
+  for(const t of it.m.concat(it.note||''))for(const m of String(t).matchAll(/「([ぁ-ゖー]+)」とも/g))add(m[1],true);
+  YR.set(it,r={ok,more});return r;}
+const yomiOk=(it,ans)=>{const a=normY(ans);return !!a&&readings(it).ok.has(a);};
 /* ---- 4択の選択肢と設問文 ---- */
 // 1枚に複数の語と意味が並ぶ項目（「よし＝良い／よろし＝…」「［行幸］…／［行啓］…」）。見出し語ごとに意味を分けて書いてあり、4択では答えが見えるので、
 // 4択（両方向）と空所補充には出さない（フラッシュカードと単語帳には出す）
@@ -1245,9 +1326,9 @@ function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
 
 function viewTypeY(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,done=sess.picked!==null,ok=sess.picked===true;
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
-  const prompt=`<div class="qprompt">この漢字の読みは？（現代仮名遣い。歴史的仮名遣いでも正解）</div>${chipsHtml(it)}${wordHtml(it)}`;
+  const prompt=`<div class="qprompt">この漢字の読みは？（現代仮名遣いで。歴史的仮名遣いでも正解）</div>${chipsHtml(it)}${wordHtml(it)}`,more=readings(it).more;
   const body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ひらがなで入力" lang="ja"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;
-  const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.rd||it.m[0])}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
+  const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.rd||it.m[0])}${more.length?'（別の読み: '+esc(more.join('・'))+'）':''}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
     <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`:'';
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
 
@@ -1284,7 +1365,7 @@ function viewStats(){const c=SUBJ[S.subj].cls;
   const max=Math.max(1,...days.map(x=>x.n)),W=560,H=120,pad=22,bw=(W-pad*2)/14;
   const bars=days.map((x,i)=>{const h=x.n/max*(H-40);const bx=pad+i*bw+3;return `<rect x="${bx.toFixed(1)}" y="${(H-24-h).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${x.n?'var(--accent)':'var(--line)'}"/>${x.n?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${(H-28-h).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.n}</text>`:''}${i%2===1?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.d.getMonth()+1}/${x.d.getDate()}</text>`:''}`;}).join('');
   const isWeak=it=>status(it)==='weak',wHead=DATA[S.subj].filter(isWeak),wRel=relOf(S.subj).filter(isWeak);
-  const weak=wHead.concat(wRel).map(it=>({it,r:store.prog[it.id]})).sort((a,b)=>(b.r.x-b.r.c)-(a.r.x-a.r.c)).slice(0,15);
+  const weak=wHead.concat(wRel).map(it=>({it,r:store.prog[it.id]})).sort((a,b)=>b.r.x-a.r.x||a.r.c-b.r.c).slice(0,15);
   const total=Object.values(store.days).reduce((a,b)=>a+b,0);
   return `<div class="sgrid">${Object.keys(SUBJ).filter(k=>!SUBJ[k].base).map(subjBlock).join('')}</div>
   <section class="panel"><h2>学習の記録 <span class="sub">直近14日 ／ 累計 ${total} 問 ／ 連続 ${streak()} 日</span></h2>
@@ -1303,7 +1384,7 @@ function viewStats(){const c=SUBJ[S.subj].cls;
     :`<div class="row"><button class="btn ghost danger" data-reset="ask">${esc(SUBJ[S.subj].name)}の記録を消す</button></div>`}</section>`;}
 
 /* ---- events ---- */
-function setSubj(k){S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.confirm=false;S.list.open=null;S.list.lv='all';render();}
+function setSubj(k){if(k!==S.subj){S.list.q='';S.list.st='all';}S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.confirm=false;S.list.open=null;S.list.lv='all';render();}
 document.querySelector('.switch').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(!b)return;const g=b.dataset.group;const last=(store.prefs.last||{})[g];setSubj(last&&SUBJ[last]?last:g);});
 document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-subj]');if(!b)return;setSubj(b.dataset.subj);});
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.session=null;S.msg='';S.confirm=false;render();});
@@ -1313,7 +1394,7 @@ view.addEventListener('input',e=>{if(e.target.id==='q'){S.list.q=e.target.value;
 view.addEventListener('click',e=>{
   const t=e.target;const h=(sel)=>t.closest(sel);let b;
   if(b=h('[data-start]')){start(b.dataset.start);return;}
-  if(h('[data-start-weak]')){const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
+  if(h('[data-start-weak]')){sync();const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
   if(h('[data-quit]')){S.session=null;S.tab='home';render();return;}
   if(h('[data-flip]')){S.session.flipped=true;render();return;}
   if(b=h('[data-ans]')){answer(b.dataset.ans==='1');next();return;}
@@ -1323,18 +1404,23 @@ view.addEventListener('click',e=>{
   if(b=h('[data-f]')){S.list[b.dataset.f]=b.dataset.v;render();return;}
   if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;render();return;}
   if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);render();}return;}
-  if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){DATA[S.subj].concat(relOf(S.subj)).forEach(it=>delete store.prog[it.id]);save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
-  if(h('[data-export]')){const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
+  if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){sync();forget(DATA[S.subj].concat(relOf(S.subj)).map(it=>it.id));save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
+  if(h('[data-export]')){sync();const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();}catch(x){fallback();}return;}
-  if(h('[data-import]')){const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!j||typeof j.prog!=='object')throw 0;migrate(j);let n=0;
-      for(const id in j.prog){const a=store.prog[id],b=j.prog[id];if(!b)continue;if(!a||(b.t||0)>(a.t||0)){store.prog[id]=b;n++;}}
-      for(const d in (j.days||{})){store.days[d]=Math.max(store.days[d]||0,j.days[d]);}save();S.msg=n+' 語の記録を取り込みました。';}
+  // バックアップの取り込み。形を確かめてから取り込む: 記録は {c,x,s,t} がどれも0以上の数値のものだけ（余分な欄は落とす）、
+  // 日別の回答数は「年-月-日」の日付と0以上の数値の組だけ。おかしな項目は捨てて、取り込んだ件数と捨てた件数を知らせる。
+  // 取り込みの優先は、2つのタブの記録を合わせるときと同じ（merge）
+  if(h('[data-import]')){const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!isObj(j)||!isObj(j.prog))throw 0;const prog={},days={};let bad=0;
+      for(const id in j.prog){const r=j.prog[id];if(validRec(r))prog[id]={c:r.c,x:r.x,s:r.s,t:r.t};else bad++;}
+      if(isObj(j.days)){for(const d in j.days){if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&isNum(j.days[d]))days[d]=j.days[d];else bad++;}}else if(j.days!=null)bad++;
+      sync();const n=merge(migrate({v:j.v,prog,days}),true);save();S.msg=n+' 語の記録を取り込みました。'+(bad?'形の正しくない '+bad+' 件は読み飛ばしました。':'');}
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
-view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i],nk=x=>String(x).replace(/[\s　]/g,'');const ok=sess.mode==='typeY'?(nk(v)===nk(it_.rd||it_.m[0])||(!!it_.alt&&nk(v)===nk(it_.alt))):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
-document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length)return;if(e.target.matches('input,textarea,select'))return;
+view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i];const ok=sess.mode==='typeY'?yomiOk(it_,v):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
+// 回答のキー操作。Ctrl・Alt・Meta を押しながらの操作（ブラウザのタブ切り替えや「戻る」）と、入力欄にいるときの操作は、回答に使わない
+document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length)return;if(e.ctrlKey||e.altKey||e.metaKey)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
     if(e.key===' '){e.preventDefault();if(!sess.flipped){sess.flipped=true;render();}return;}
     if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();answer(false);next();return;}
@@ -1344,9 +1430,11 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
     if(/^[1-4]$/.test(e.key)&&sess.picked===null&&sess.choices){const i=+e.key-1;sess.picked=i;answer(sess.choices[i].id===sess.items[sess.i].id);render();return;}
     if((e.key==='Enter'||e.key===' ')&&sess.picked!==null){e.preventDefault();next();return;}
   }});
+// ほかのタブ（同じ保存データを使う、ほかのウィンドウ）が保存したら、その内容を取り込む。画面は描き直さない（入力中の文字や、開いた表を消さないため）。次に描くときに反映される
+window.addEventListener('storage',e=>{if(e.key===KEY)sync();});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
-window.__tangoTest={DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji};
+window.__tangoTest={DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
 $('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
 {if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語'+(DATA.joshiki?'／古文常識 '+DATA.joshiki.length+'語':'')+'／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
 if(!SUBJ[S.subj])S.subj='kobun';

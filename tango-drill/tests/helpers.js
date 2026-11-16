@@ -53,6 +53,15 @@ async function open(browser, html, stored) {
   await page.waitForSelector('#view > *');
   return page;
 }
+// 同じブラウザ（同じ保存データ）で、完成版をもう1ページ開く（2つのタブで同時に開いた状態を作る）
+async function openMore(page, html) {
+  const p = await page.context().newPage();
+  p.errors = [];
+  p.on('pageerror', e => p.errors.push(e.message));
+  await p.goto('file://' + html);
+  await p.waitForSelector('#view > *');
+  return p;
+}
 const raw = (page, key = KEY) => page.evaluate(k => localStorage.getItem(k), key);
 const stored = async page => JSON.parse(await raw(page));
 
@@ -66,4 +75,4 @@ async function statCounts(page) {
   })));
 }
 
-module.exports = { ROOT, KEY, BAK, tmpDir, cleanup, repoMigrations, chain, build, open, raw, stored, statCounts };
+module.exports = { ROOT, KEY, BAK, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };
