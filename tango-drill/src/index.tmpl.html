@@ -529,20 +529,27 @@ function posCls(it){let c=PC.get(it);if(c)return c;const pos=String(it.pos);
   else if(it.id.startsWith('e:'))c=pos.split('・');
   else c=[/助詞$/.test(pos)?'助詞':pos];
   PC.set(it,c);return c;}
+// 説明の文の集合: 意味を「。」で区切る（かっこ書きはそのまま比べる。文学史の「平安時代（11世紀）の物語。紫式部」→ 2文）
+const SENT=new WeakMap(),sentSet=ms=>{const o=new Set();for(const m of ms)for(const t of m.split('。')){const g=t.replace(/\s/g,'');if(g)o.add(g);}return o;};
+const sentAll=it=>{let s=SENT.get(it);if(!s)SENT.set(it,s=sentSet(it.m));return s;};
 // 4択の選択肢（正解＋誤答3つ）を作る。mode が quiz（語→意味）なら選択肢は意味、それ以外（意味→語・空所補充）は語。
 // 誤答にしない語:
 //   ・正解と同じ語（併記のどれかが同じ。が と が・の、同じ語形の たまふ）、1枚に複数の語が並ぶ項目
 //   ・正解と意味が重なる語（訳語が1つでも同じ）。語→意味は選択肢に出す意味を、それ以外はすべての意味を、正解のすべての意味と比べる
+//   ・説明がまるごと当てはまる語。語→意味は、選択肢の文がすべて正解の語の説明にもある語（源氏物語に対する「平安時代（11世紀）の物語」）。
+//     それ以外は、設問文（正解の語の説明）がすべてその語の説明にもある語（「平安時代（11世紀）の物語」に対する源氏物語）
 //   ・語→意味で、選択肢の文に正解の見出し語が出る語。選択肢の表示がほかと同じになる語、訳がほかの誤答とまったく同じ語（む と むず を両方は出さない）
 // 誤答の順: 正解と同じ品詞の大分類（主な品詞が同じ → 品詞が1つでも同じ → ほか）を先に、その中ではレベル・章・区分が近い語を先に選ぶ。同じ品詞で足りないときだけ、次の語で補う
 const ALT=new WeakMap(),wordAlts=it=>{let a=ALT.get(it);if(!a)ALT.set(it,a=wordForms(String(it.w).toLowerCase(),'・'));return a;};
-function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),wi=wordAlts(it),pi=posCls(it);
-  const gOf=x=>toM?choiceM(x).g:glossAll(x),txt=x=>toM?choiceM(x).t:x.w.toLowerCase(),gkey=x=>'\n'+[...gOf(x)].sort().join('\n'),hit=g=>{for(const x of g)if(gi.has(x))return true;return false;};
-  const ok=x=>x.id!==it.id&&!isMulti(x)&&!wordAlts(x).some(w=>wi.includes(w))&&!hit(gOf(x))&&!(toM&&mentions(it,choiceM(x).t));
+function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=sentAll(it),wi=wordAlts(it),pi=posCls(it);
+  const gOf=x=>toM?choiceM(x).g:glossAll(x),txt=x=>toM?choiceM(x).t:x.w.toLowerCase(),gkey=x=>'\n'+[...gOf(x)].sort().join('\n');
+  const any=(a,b)=>{for(const x of a)if(b.has(x))return true;return false;},within=(a,b)=>{if(!a.size)return false;for(const x of a)if(!b.has(x))return false;return true;};
+  const ok=x=>!isMulti(x)&&!wordAlts(x).some(w=>wi.includes(w))&&!any(gOf(x),gi)&&!(toM?within(sentSet(choiceM(x).ms),si)||mentions(it,choiceM(x).t):within(si,sentAll(x)));
   const rank=x=>{const px=posCls(x);return (px[0]===pi[0]?0:px.some(p=>pi.includes(p))?1:2)*100+(Math.abs(x.lv-it.lv)||0);};
-  const by=new Map();for(const x of shuffle(DATA[subj].filter(ok))){const r=rank(x);if(!by.has(r))by.set(r,[]);by.get(r).push(x);}
+  const by=new Map();for(const x of DATA[subj]){if(x.id===it.id)continue;const r=rank(x);if(!by.has(r))by.set(r,[]);by.get(r).push(x);}
+  // 順位の高い組から、組の中は無作為の順に、誤答にできる語を3つ選ぶ（できるかどうかは、選ぶ段になってから確かめる）
   const picks=[],seen=new Set([txt(it)]);
-  for(const r of [...by.keys()].sort((a,b)=>a-b)){for(const x of by.get(r)){if(seen.has(txt(x))||seen.has(gkey(x)))continue;seen.add(txt(x));seen.add(gkey(x));picks.push(x);if(picks.length===3)break;}if(picks.length===3)break;}
+  for(const r of [...by.keys()].sort((a,b)=>a-b)){for(const x of shuffle(by.get(r))){if(!ok(x)||seen.has(txt(x))||seen.has(gkey(x)))continue;seen.add(txt(x));seen.add(gkey(x));picks.push(x);if(picks.length===3)break;}if(picks.length===3)break;}
   return shuffle([it,...picks]);}
 function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});}
 function next(){const sess=S.session;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';render();const a=$('#ans');if(a)a.focus();}

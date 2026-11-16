@@ -43,6 +43,8 @@ const openWeak = (subj, ids, prefs) => openAt(subj, { weak: ids, prefs: Object.a
 const texts = (page, sel) => page.$$eval(sel, els => els.map(e => e.textContent));
 const num = async page => (await page.textContent('.prog .num')).trim();
 const total = async page => +(await num(page)).split(' / ')[1];
+// 画面にある要素の数（要素そのものを assert に渡すと、失敗したときの表示でメモリを使い切るので、数で比べる）
+const count = (page, sel) => page.$$eval(sel, els => els.length);
 
 /* ---- 判定（アプリの実装とは別に書く） ---- */
 const kind = it => it.id.slice(0, it.id.indexOf(':')); // k=古文単語 e=英単語 b=古文330 br=関連語 y=読み j=古文常識 ほかは科目名
@@ -51,6 +53,9 @@ const noParen = s => { let p; do { p = s; s = s.replace(PAREN, ''); } while (s !
 // 訳語の集合: かっこ書きを除き、「・」「／」で区切る（指示書の比べ方）
 const glosses = ms => { const o = new Set(); for (const m of ms) for (const t of noParen(m).split(/[・／]/)) { const g = t.trim(); if (g) o.add(g); } return o; };
 const common = (a, b) => [...a].filter(x => b.has(x));
+// 説明の文の集合: 意味を「。」で区切る（かっこ書きはそのまま。文学史の「平安時代（11世紀）の物語。紫式部」→ 2文）
+const sentences = ms => { const o = new Set(); for (const m of ms) for (const t of m.split('。')) { const g = t.replace(/\s/g, ''); if (g) o.add(g); } return o; };
+const within = (a, b) => a.size > 0 && [...a].every(x => b.has(x));
 // 見出し語の表記に含まれる語: 「・」「〜」で分けた各語。全角かっこの添え書き（む（ん）、こころ（を）やる）は、外した形・入れた形・中身
 function wordParts(w, sep = /[・〜]/) {
   const o = new Set();
@@ -117,7 +122,7 @@ for (const [subj, name, reps, hasCloze] of SUBJECTS) {
   test(name + ': 選択肢は必ず4つ、正解は1つだけ、語→意味の選択肢に見出し語が出ない（全項目で繰り返し確かめる）', async t => {
     const page = await openAt(subj);
     const byId = new Map(D[subj].concat(subj === 'book' ? D.REL : []).map(it => [it.id, it])), inPool = new Set(D[subj].map(it => it.id)); // 誤答の候補は見出し語から選ぶ
-    const G = new Map([...byId.values()].map(it => [it.id, glosses(it.m)]));
+    const G = new Map([...byId.values()].map(it => [it.id, glosses(it.m)])), SE = new Map([...byId.values()].map(it => [it.id, sentences(it.m)]));
     RATES[subj] = {};
     for (const mode of ['quiz', 'quizR'].concat(hasCloze ? ['cloze'] : [])) {
       const toM = mode === 'quiz', { info, out } = await generate(page, subj, mode, mode === 'cloze' ? Math.ceil(reps / 2) : reps, subj === 'book');
@@ -161,6 +166,9 @@ for (const [subj, name, reps, hasCloze] of SUBJECTS) {
             // 語→意味は、選択肢に表示している意味と、正解の語のすべての意味を比べる。意味→語・空所補充は、すべての意味どうし
             const ov = common(toM ? glosses(info[x.id].ms) : G.get(x.id), gAll);
             if (ov.length) say(`${at}: 誤答「${x.w}」は正解と意味が重なる（${ov.join('・')}）`);
+            // 説明がまるごと当てはまる誤答が無い。語→意味: 誤答の選択肢の文がすべて、正解の語の説明にもある（源氏物語の誤答に「平安時代（11世紀）の物語」）。
+            // 意味→語・空所補充: 設問文（正解の語の説明）がすべて、誤答の語の説明にもある（「平安時代（11世紀）の物語」の誤答に源氏物語）
+            if (toM ? within(sentences(info[x.id].ms), SE.get(it.id)) : within(SE.get(it.id), SE.get(x.id))) say(`${at}: 誤答「${x.w}」にも説明がまるごと当てはまる`);
             if (wordParts(x.w.toLowerCase(), '・').some(p => alts.includes(p))) say(`${at}: 誤答「${x.w}」は正解と同じ語`);
             if (toM) { const f = shows(x, info[x.id].t, ''); if (f) say(`${at}: 誤答「${x.w}」の文に、その語「${f}」が出ている`); }
             nDis++; if (cls(x) === cls(it)) same++;
@@ -292,12 +300,12 @@ test('1枚に複数の語と意味が並ぶ項目は、4択（両方向）と空
     for (const mode of ['quiz', 'quizR', 'cloze', 'clozeT']) {
       await page.click(`[data-start="${mode}"]`);
       assert.match(await page.textContent('#view'), /この条件に当てはまる語がありません/, `${subj} ${mode}`);
-      assert.equal(await page.$('.prog'), null, `${subj} ${mode}: 出題が始まった`);
+      assert.equal(await count(page, '.prog'), 0, `${subj} ${mode}: 出題が始まった`);
     }
     // 成績の「苦手ワードだけ4択で復習」でも出ない
     await page.click('.tabs [data-tab="stats"]');
     await page.click('[data-start-weak]');
-    assert.equal(await page.$('.prog'), null, subj + ': 苦手の復習で出題が始まった');
+    assert.equal(await count(page, '.prog'), 0, subj + ': 苦手の復習で出題が始まった');
     // フラッシュカードには出る
     await page.click('.tabs [data-tab="home"]');
     await page.click('[data-start="flash"]');
@@ -336,7 +344,7 @@ test('意味→語と空所補充では、回答するまで漢字表記と分�
       const page = await openWeak(subj, [id]);
       await page.click(`[data-start="${mode}"]`);
       // 回答前: 漢字表記の欄が無い。チップは品詞と区分（記述は字数のヒントも）だけで、分野タグが無い
-      assert.equal(await page.$('.card .kanji'), null, `${id} ${mode}: 回答前に漢字表記が出ている`);
+      assert.equal(await count(page, '.card .kanji'), 0, `${id} ${mode}: 回答前に漢字表記が出ている`);
       const chips = await texts(page, '.card .chip');
       assert.equal(chips[0], it.pos, `${id} ${mode}: 品詞の表示`);
       assert.equal(chips.length, mode === 'clozeT' ? 3 : 2, `${id} ${mode}: ${chips.join(' ')}`);
@@ -357,7 +365,7 @@ test('語→意味: 意味が漢字表記そのものの語（かち＝徒歩）
     const page = await openWeak(subj, [id], prefs);
     await page.click('[data-start="quiz"]');
     assert.equal(await total(page), 1);
-    assert.equal(await page.$('.card .kanji'), null, id + ': 回答前に漢字表記が出ている');
+    assert.equal(await count(page, '.card .kanji'), 0, id + ': 回答前に漢字表記が出ている');
     assert.ok((await texts(page, '.choice .txt')).includes(k), id);
     await page.click('[data-pick="0"]');
     assert.equal(await page.textContent('.detail .kanji'), k, id);
