@@ -1086,10 +1086,6 @@
    [
     "The law protects people with a disability from discrimination.",
     "その法律は障害のある人々を差別から守る。"
-   ],
-   [
-    "The government's disability to deal with the crisis soon became obvious.",
-    "その危機に対処できない政府の無力さがすぐに明らかになった。"
    ]
   ]
  },
@@ -2182,12 +2178,12 @@
   "w": "ensure",
   "exs": [
    [
-    "Regular checks ensure that the machines are safe to use.",
-    "定期点検によって機械が安全に使えることが保証される。"
-   ],
-   [
     "Please ensure that all the doors are locked before you leave.",
     "出かける前に、すべてのドアに確実に鍵をかけてください。"
+   ],
+   [
+    "Regular checks ensure that the machines are safe to use.",
+    "定期点検によって機械が安全に使えることが保証される。"
    ]
   ]
  },
@@ -2840,12 +2836,12 @@
   "w": "expect",
   "exs": [
    [
-    "Parents expect teachers to treat every child fairly.",
-    "親は教師がすべての子どもを公平に扱うことを期待している。"
-   ],
-   [
     "Experts expect the economy to recover next year.",
     "専門家は来年景気が回復すると予想している。"
+   ],
+   [
+    "Parents expect teachers to treat every child fairly.",
+    "親は教師がすべての子どもを公平に扱うことを期待している。"
    ]
   ]
  },

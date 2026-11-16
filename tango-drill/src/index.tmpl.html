@@ -294,7 +294,10 @@ footer.about{margin-top:36px;font-size:.78rem;color:var(--muted);text-align:cent
 'use strict';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const KEY='tango-drill-v1';
+const KEY='tango-drill-v1',BAK=KEY+'-bak';
+// 項目IDの移行表 [{v:連番,map:{旧ID:新ID}}]。build.js が src/migrations.json を埋め込む（この行の形は変えない）
+const MIGRATIONS=/*MIGRATIONS*/[];
+const VER=MIGRATIONS.reduce((n,m)=>Math.max(n,m.v),0);
 const SUBJ={kobun:{name:'古文単語',cls:'ja',qw:'語',lv:{1:'必修',2:'発展'},lvd:{1:'必修（どの難関大でも必要）',2:'発展（最難関向け）'}},eigo:{name:'英単語',cls:'en',qw:'単語',lv:{1:'基礎',2:'標準',3:'発展',4:'最難関'},lvd:{1:'基礎（共通テスト・高校必修）',2:'標準（MARCH・関関同立・地方国公立）',3:'発展（早慶上智・旧帝大）',4:'最難関（東大京大・早慶上位・医学部）'}}};
 if(typeof BOOK_RAW!=='undefined')SUBJ.book=Object.assign({name:'単語集',cls:'ja',qw:'語',book:true,lv:{1:'1章',2:'2章',3:'3章',4:'4章',5:'5章'},lvd:{1:'1章',2:'2章',3:'3章',4:'4章',5:'5章'}},typeof BOOK_META!=='undefined'?BOOK_META:{});
 if(typeof YOMI_RAW!=='undefined')SUBJ.yomi={name:'読み',cls:'ja',qw:'漢字',yomi:true,lv:{1:'読み'},lvd:{1:'読み重要語'}};
@@ -326,8 +329,21 @@ const TAGS={};for(const s in DATA){const t=new Set();DATA[s].forEach(it=>it.tags
 const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
 
 /* ---- storage ---- */
+// 保存データの版 v（無ければ0）より新しい移行を番号順に当て、記録を新しいIDへ付け替える。
+// 1つの移行は同時の付け替え（新しい prog を作ってから差し替えるので、a→b と b→a が同じ移行にあれば入れ替わる）。
+// 対応表に無いIDはそのまま。付け替え先が重なったら回答数（c＋x）の多いほうを残す。
+function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),n=r=>r?(r.c||0)+(r.x||0):-1;let prog=j.prog||{};
+  for(const m of MIGRATIONS){if(m.v<=from)continue;const np={};
+    for(const id in prog){const to=has(m.map,id)?m.map[id]:id;if(!has(np,to)||n(prog[id])>n(np[to]))np[to]=prog[id];}
+    prog=np;}
+  j.prog=prog;j.v=VER;return j;}
 let store=load();
-function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.prog)return Object.assign({prog:{},days:{},prefs:{}},j);}catch(e){}return{prog:{},days:{},prefs:{}};}
+// 読み込み。古い版の記録は、元の内容を BAK に退避してから移行し、すぐ保存する。記録が空なら v を最新にするだけ
+function load(){let raw=null,j=null;try{raw=localStorage.getItem(KEY);j=JSON.parse(raw);}catch(e){}
+  if(!j||!j.prog)return{prog:{},days:{},prefs:{},v:VER};
+  j=Object.assign({prog:{},days:{},prefs:{}},j);
+  if((+j.v||0)<VER){try{if(Object.keys(j.prog).length)localStorage.setItem(BAK,raw);}catch(e){}migrate(j);try{localStorage.setItem(KEY,JSON.stringify(j));}catch(e){}}
+  return j;}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
 function today(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function status(it){const r=store.prog[it.id];if(!r)return'new';if(r.s>=2)return'ok';if(r.x>0)return'weak';return'learning';}
@@ -411,12 +427,12 @@ const FIGS={
   [['北',0],['東',90],['南',180],['西',270]].forEach(([n,a])=>{const[x,y]=pt(a,130);g+=`<text x="${x}" y="${y+5}" text-anchor="middle" font-size="13" font-weight="700">${n}</text>`;});
   for(const k in D){const[x,y]=pt(D[k][0],143),on=k===hd;g+=`<text x="${x}" y="${y+2}" text-anchor="middle" font-size="13" font-weight="700" style="font-family:var(--serif-ja)${on?';fill:var(--accent)':''}">${k}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-size="9" style="fill:var(--muted)">${D[k][2]}</text>`;}
   return `<svg viewBox="0 0 320 330" role="img" aria-label="十二支の時刻と方角">${g}<text x="160" y="164" text-anchor="middle" font-size="10" style="fill:var(--muted)">一つの支が</text><text x="160" y="177" text-anchor="middle" font-size="10" style="fill:var(--muted)">約2時間</text></svg><div class="cap">子の時は午前0時ごろ（23〜1時）。方角は子＝北、卯＝東、午＝南、酉＝西。</div>`;},
- moon(it){const M=[[1,'朔日'],[3,'三日月'],[7,'七日'],[10,'十日余り'],[13,'十三夜'],[15,'望月'],[16,'十六夜'],[17,'立ち待ち'],[18,'居待ち'],[19,'寝待ち'],[20,'更け待ち'],[23,'二十日余り'],[29,'晦日']];
-  const key={'朔日':[1],'三日月':[3],'十三夜の月':[13],'望月':[15],'十六夜の月':[16],'立ち待ちの月':[17],'居待ちの月':[18],'寝待ちの月':[19],'更け待ちの月':[20],'二十日余りの月':[23],'晦日':[29],'夕月夜':[3,7,10],'有明の月':[16,17,18,19,20,23]}[it.w]||[];
+ moon(it){const M=[[1,'朔日'],[3,'三日月'],[7,'七日'],[10,'十日余り'],[13,'十三夜'],[15,'望月'],[16,'十六夜'],[17,'立ち待ち'],[18,'居待ち'],[19,'寝待ち'],[20,'更け待ち'],[22,'二十日余り'],[29,'晦日']];
+  const key={'朔日':[1],'三日月':[3],'十三夜の月':[13],'望月':[15],'十六夜の月':[16],'立ち待ちの月':[17],'居待ちの月':[18],'寝待ちの月':[19],'更け待ちの月':[20],'二十日余りの月':[22],'晦日':[29],'夕月夜':[3,7,10,13,15],'有明の月':[16,17,18,19,20,22]}[it.w]||[];
   let g='';M.forEach(([d,n],i)=>{const cx=30+(i%7)*46,cy=30+Math.floor(i/7)*74,r=15,th=2*Math.PI*d/29.53,k=(1-Math.cos(th))/2,wax=d<14.77,rx=Math.abs(r*Math.cos(th)).toFixed(1),on=key.includes(d);
    g+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#3a3f4b" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?3:1}"/>${k>0.02?`<path d="M${cx} ${cy-r}A${r} ${r} 0 0 ${wax?1:0} ${cx} ${cy+r}A${rx} ${r} 0 0 ${(k>0.5)===wax?1:0} ${cx} ${cy-r}Z" fill="#f2d27a"/>`:''}<text x="${cx}" y="${cy+30}" text-anchor="middle" font-size="9.5" ${on?'font-weight="700" style="fill:var(--accent)"':''}>${n}</text><text x="${cx}" y="${cy+41}" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">${d}日</text>`;});
   return `<svg viewBox="0 0 330 150" role="img" aria-label="月の満ち欠けと呼び名">${g}</svg><div class="cap">旧暦は月の満ち欠けで日付が決まる。十五日が満月。十六日以後、夜明けに残る月が有明の月。</div>`;},
- kani(it){const R=[['一位','太政大臣','上達部'],['二位','左大臣・右大臣・内大臣','上達部'],['三位','大納言・中納言','上達部'],['四位','参議・弁','参議は上達部、ほかは殿上人'],['五位','弁・蔵人・守（大国）','殿上人（選ばれた人）'],['六位','蔵人・守（小国）','蔵人だけ殿上人、ほかは地下'],['七位以下','','地下']];
+ kani(it){const R=[['一位','太政大臣','上達部'],['二位','左大臣・右大臣・内大臣','上達部'],['三位','大納言・中納言・参議','上達部'],['四位','参議・弁','参議は上達部、ほかは殿上人'],['五位','弁・蔵人・守（大国）','弁・蔵人は殿上人（選ばれた人）、守は地下'],['六位','蔵人・守（小国）','蔵人だけ殿上人、ほかは地下'],['七位以下','','地下']];
   const m=x=>it.w&&it.w.length>1?x.split(it.w).join('<mark>'+it.w+'</mark>'):x;
   return `<table><tr><th>位階</th><th>主な官職</th><th>区分</th></tr>${R.map(r=>`<tr><th>${r[0]}</th><td>${m(r[1])}</td><td>${m(r[2])}</td></tr>`).join('')}</table><div class="cap">上達部は国政を審議する。殿上人は清涼殿の殿上の間に昇れる人。守は受領（地方の長官）。</div>`;},
  kisaki(it){const m=x=>x.split(it.w).join('<mark>'+it.w+'</mark>');
@@ -620,10 +636,10 @@ view.addEventListener('click',e=>{
   if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;render();return;}
   if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);render();}return;}
   if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){DATA[S.subj].forEach(it=>delete store.prog[it.id]);save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
-  if(h('[data-export]')){const txt=JSON.stringify({prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
+  if(h('[data-export]')){const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();}catch(x){fallback();}return;}
-  if(h('[data-import]')){const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!j||typeof j.prog!=='object')throw 0;let n=0;
+  if(h('[data-import]')){const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!j||typeof j.prog!=='object')throw 0;migrate(j);let n=0;
       for(const id in j.prog){const a=store.prog[id],b=j.prog[id];if(!b)continue;if(!a||(b.t||0)>(a.t||0)){store.prog[id]=b;n++;}}
       for(const d in (j.days||{})){store.days[d]=Math.max(store.days[d]||0,j.days[d]);}save();S.msg=n+' 語の記録を取り込みました。';}
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
