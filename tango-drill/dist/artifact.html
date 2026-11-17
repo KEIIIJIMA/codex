@@ -4,11 +4,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=Source+Serif+4:ital,wght@0,500;0,600;1,500&display=swap">
 <style>
-/* レイアウト: 上部に科目スイッチ付きの固定ヘッダー、3タブ、760px の単一カラム。学習中は1枚のカードに集中させる */
+/* レイアウト: 上部に科目スイッチ付きの固定ヘッダー、3タブ、760px の単一カラム。学習中はヘッダーとタブを隠し、1枚のカードと下端の操作欄に集中させる。
+   色の役割: --accent は科目の色（古文=臙脂、英語=青。選択中のタブ・進捗・主ボタン・見出し語の強調）。文字と線は --accent、塗りは --accent-fill（ダークで分かれる）。
+   --ok は習得と正答、--bad は誤答と苦手、--warn は学習中（文字に使うときは --warn-ink）。 */
 :root{
   --bg:#eef0f4; --surface:#ffffff; --surface2:#f5f6f9; --fg:#1b1d24; --muted:#5f6573; --line:#d8dbe2;
-  --accent:#9b2335; --accent-ink:#ffffff; --accent-soft:#f7e7ea;
-  --ok:#2b7a4b; --ok-ink:#ffffff; --ok-soft:#e2f1e7; --bad-ink:#ffffff; --warn:#a2650a; --warn-soft:#f9ecd4; --bad:#b4372c; --bad-soft:#f9e3e0; --new:#8a90a0;
+  --accent:#8c1c3f; --accent-fill:var(--accent); --accent-ink:#ffffff; --accent-soft:#f5e6eb;
+  --ok:#2b7a4b; --ok-ink:#ffffff; --ok-soft:#e2f1e7; --bad-ink:#ffffff; --warn:#a2650a; --warn-ink:#8a5300; --warn-soft:#f9ecd4; --bad:#c2351d; --bad-soft:#fbe6e0; --new:#8a90a0;
   --shadow:0 1px 2px rgba(20,24,40,.05),0 10px 28px -14px rgba(20,24,40,.22);
   --serif-ja:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif;
   --serif-en:'Source Serif 4',Georgia,'Times New Roman',serif;
@@ -16,104 +18,160 @@
   --r:14px;
 }
 :root[data-subj="eigo"]{--accent:#1f4e9c;--accent-soft:#e4ebf8}
+/* ダークの定義は2か所（端末の設定に従う場合と、data-theme="dark" の指定）。同じ値にそろえる */
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#14161c; --surface:#1d2029; --surface2:#242834; --fg:#e8e9ee; --muted:#9aa0ae; --line:#303542;
-    --accent:#e2808d; --accent-ink:#1a0d10; --accent-soft:#3a2229;
-    --ok:#6cc48e; --ok-ink:#0d2416; --ok-soft:#1f3328; --bad-ink:#2a0f0c; --warn:#e0b25b; --warn-soft:#3a3020; --bad:#ef8a7f; --bad-soft:#3d2422; --new:#6f7585;
+    --accent:#f09ab4; --accent-fill:#b3294f; --accent-ink:#ffffff; --accent-soft:#3a2230;
+    --ok:#6cc48e; --ok-ink:#0d2416; --ok-soft:#1f3328; --bad-ink:#2a0f0c; --warn:#e0b25b; --warn-ink:#e0b25b; --warn-soft:#3a3020; --bad:#f08a6c; --bad-soft:#40261d; --new:#6f7585;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.6);
     color-scheme:dark;
   }
-  :root:not([data-theme="light"])[data-subj="eigo"]{--accent:#8fb0f2;--accent-ink:#0b1630;--accent-soft:#222d46}
+  :root:not([data-theme="light"])[data-subj="eigo"]{--accent:#9dbaf5;--accent-fill:#3565c4;--accent-ink:#ffffff;--accent-soft:#222d46}
 }
 :root[data-theme="dark"]{
   --bg:#14161c; --surface:#1d2029; --surface2:#242834; --fg:#e8e9ee; --muted:#9aa0ae; --line:#303542;
-  --accent:#e2808d; --accent-ink:#1a0d10; --accent-soft:#3a2229;
-  --ok:#6cc48e; --ok-ink:#0d2416; --ok-soft:#1f3328; --bad-ink:#2a0f0c; --warn:#e0b25b; --warn-soft:#3a3020; --bad:#ef8a7f; --bad-soft:#3d2422; --new:#6f7585;
+  --accent:#f09ab4; --accent-fill:#b3294f; --accent-ink:#ffffff; --accent-soft:#3a2230;
+  --ok:#6cc48e; --ok-ink:#0d2416; --ok-soft:#1f3328; --bad-ink:#2a0f0c; --warn:#e0b25b; --warn-ink:#e0b25b; --warn-soft:#3a3020; --bad:#f08a6c; --bad-soft:#40261d; --new:#6f7585;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.6);
   color-scheme:dark;
 }
-:root[data-theme="dark"][data-subj="eigo"]{--accent:#8fb0f2;--accent-ink:#0b1630;--accent-soft:#222d46}
+:root[data-theme="dark"][data-subj="eigo"]{--accent:#9dbaf5;--accent-fill:#3565c4;--accent-ink:#ffffff;--accent-soft:#222d46}
 
 *{box-sizing:border-box}
-html,body{height:100%}
+/* html・body に高さを指定しない（指定すると、固定ヘッダーが1画面ぶん送ったところで外れ、末尾の下余白も効かない） */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(48px + env(safe-area-inset-bottom,0px));
   -webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button,select,summary,input,[role=button]{touch-action:manipulation}
+button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* 入力欄の枠は墨色（古文の臙脂だと、入力の誤りの表示に見える） */
+select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+[tabindex="-1"]:focus{outline:0}
 h1,h2,h3{margin:0;text-wrap:balance;line-height:1.3}
 .wrap{max-width:760px;margin:0 auto}
 .num{font-variant-numeric:tabular-nums}
+/* 読み上げだけに出す文字 */
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 /* header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   margin-left:calc(-1 * max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)));
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:10px}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:6px 4px}
+.top .wrap+.wrap{padding-block:2px 0}
 .brand{display:flex;align-items:baseline;gap:10px;min-width:0}
-.brand h1{font-family:var(--serif-ja);font-weight:700;font-size:1.15rem;letter-spacing:.04em}
+.brand h1{font-family:var(--serif-ja);font-weight:700;font-size:1.15rem;letter-spacing:.04em;white-space:nowrap}
 .brand .lv{font-size:.72rem;color:var(--muted);letter-spacing:.08em}
-.switch{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:3px}
-.switch{flex-wrap:wrap}.switch button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
-.switch button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
-.subtabs{display:flex;gap:6px;overflow-x:auto;padding-block:0 10px;scrollbar-width:none}
+.switch{display:inline-flex;flex:none;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:3px}
+.switch button{border:0;background:transparent;border-radius:999px;min-height:44px;padding:6px 16px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
+.switch button[aria-selected="true"]{background:var(--accent-fill);color:var(--accent-ink)}
+/* 上と左右に4pxの余白を取り、フォーカス枠が横スクロールの枠で切れないようにする（負の余白で見た目の位置は変えない） */
+.subtabs{display:flex;gap:6px;overflow-x:auto;padding:4px 4px 8px;margin:-4px -4px 0;scrollbar-width:none;min-width:0}
 .subtabs::-webkit-scrollbar{display:none}
-.subtabs button{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:5px 14px;font-size:.85rem;font-weight:500}
+.subtabs button{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;min-height:44px;padding:5px 15px;font-size:.85rem;font-weight:500}
 .subtabs button[aria-selected="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
-.subtabs button .n{font-size:.72rem;margin-left:4px;opacity:.75;font-variant-numeric:tabular-nums}
+.subtabs button .n{font-size:.72rem;margin-left:4px;font-variant-numeric:tabular-nums}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:20px}
-.tabs button{border:0;background:transparent;padding:12px 14px 10px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button{border:0;background:transparent;min-height:46px;padding:12px 14px 10px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
 .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+/* スマホでは副題を隠して、題名とスイッチを1段にする */
+@media (max-width:560px){.brand .lv{display:none}.top .wrap{flex-wrap:nowrap}}
+/* 学習中（出題の途中）はヘッダー・タブ・フッターを隠す。render() が html に studying を付け外しする */
+.studying .top,.studying .tabs,.studying footer.about{display:none}
+/* 学習中の画面は1画面ぶんの高さを取り、操作欄（.actions）をいつも下端に置く（カードが短くても、ボタンの位置が変わらないように） */
+.studying body{padding-bottom:0}
+.studying #view{padding-top:calc(10px + env(safe-area-inset-top,0px));min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.studying #view>.actions{margin-top:auto}
+.studying #view>.card,.studying #view>.detail,.studying #view>.choices,.studying #view>.typeform{flex:none}
 
 /* home */
+.today{display:flex;gap:4px 16px;font-size:.85rem;color:var(--muted);margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.today b{color:var(--fg)}
+/* 直近7日の印（回答した日は塗り） */
+.wk{display:inline-flex;gap:3px;vertical-align:-1px;margin-left:6px}
+.wk i{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--new)}
+.wk i.on{background:var(--ok);border-color:var(--ok)}
+/* 数字のタイルは押せないので面を持たせない。スマホ幅では出さない（同じ数は下の凡例にある） */
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-@media (max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.tile{padding:4px 0;min-width:0}
 .tile .lab{font-size:.72rem;color:var(--muted);letter-spacing:.06em}
 .tile .val{font-size:1.6rem;font-weight:700;line-height:1.2;margin-top:2px}
 .tile .val small{font-size:.8rem;font-weight:400;color:var(--muted);margin-left:2px}
 .tile.ok .val{color:var(--ok)}.tile.weak .val{color:var(--bad)}
-.bar{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--surface2);border:1px solid var(--line);margin-bottom:6px}
+.relsum{display:none}
+@media (max-width:560px){.tiles{display:none}.relsum{display:block}}
+.bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--surface2);border:1px solid var(--line);margin-bottom:6px}
 .bar i{display:block;height:100%}
 .bar .ok{background:var(--ok)}.bar .learning{background:var(--warn)}.bar .weak{background:var(--bad)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-bottom:22px}
-.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--new)}
-.legend .ok::before{background:var(--ok)}.legend .learning::before{background:var(--warn)}.legend .weak::before{background:var(--bad)}
+/* 状態の印は、色に加えて形も変える（未学習=輪、学習中=半分、習得=塗り、苦手=三角） */
+.legend{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-bottom:18px}
+.legend span::before{content:"";display:inline-block;box-sizing:border-box;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0;background:transparent;border:2px solid var(--new)}
+.legend .ok::before{background:var(--ok);border-color:var(--ok)}
+.legend .learning::before{background:linear-gradient(to right,var(--warn) 50%,transparent 50%);border-color:var(--warn)}
+.legend .weak::before{background:var(--bad);border:0;border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.jump{display:inline-flex;align-items:center;min-height:44px;border:0;background:transparent;padding:0 4px;margin:-8px 0 8px;font-size:.88rem;font-weight:700;color:var(--accent)}
+.jump::after{content:"›";margin-left:6px;font-size:1.1em}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;margin-bottom:16px}
-.panel h2{font-size:.95rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel h2{font-size:.95rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .panel h2 .sub{font-weight:400;color:var(--muted);font-size:.8rem}
 .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media (max-width:560px){.opts{grid-template-columns:1fr}}
+.opts+.opts{margin-top:12px}
+@media (max-width:560px){.opts{grid-template-columns:1fr}.opts+.opts{grid-template-columns:1fr 1fr}.opts+.opts>.opt:nth-child(3){grid-column:1/-1}}
 .opt label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px;letter-spacing:.04em}
-select,input[type=text],input[type=search],textarea{width:100%;font:inherit;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
-.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:14px}
-.mode{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;transition:transform .12s,border-color .12s;box-shadow:var(--shadow)}
-.mode:hover{transform:translateY(-1px);border-color:var(--accent)}
-.mode .k{font-size:.72rem;letter-spacing:.08em;color:var(--accent);font-weight:700}
+/* 入力欄の文字は16px以上（iPhone は16px未満の欄に触れると画面を拡大する） */
+select,input[type=text],input[type=search],input[type=number],textarea{width:100%;font:inherit;font-size:16px;min-height:44px;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+::placeholder{color:var(--muted);opacity:1}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px}
+.mode{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-height:60px;text-align:left;display:flex;flex-direction:column;gap:6px;transition:transform .12s,border-color .12s;box-shadow:var(--shadow)}
+.mode:active{background:var(--surface2)}
 .mode .t{font-size:1.05rem;font-weight:700}
-.mode .d{font-size:.82rem;color:var(--muted)}
+.mode .d,.mode .c{font-size:.82rem;color:var(--muted)}
+.mode .c .cx{display:inline-block}
+/* スマホ幅は2列。説明文は出さない（「使い方」にある）。奇数個のときは先頭のフラッシュカードを横いっぱいにする */
+@media (max-width:560px){
+  .modes{grid-template-columns:1fr 1fr;gap:8px}
+  .modes.odd .mode:first-child{grid-column:1/-1}
+  .mode{padding:10px 14px;justify-content:center;gap:1px}
+  .mode .d{display:none}
+  .mode .t{font-size:.95rem}
+  .mode .c{font-size:.74rem}
+  .mode .c .cx{display:none}
+}
 .hint{font-size:.78rem;color:var(--muted);margin:0 0 12px}
-.today{display:flex;gap:18px;font-size:.85rem;color:var(--muted);margin-bottom:18px;flex-wrap:wrap}
-.today b{color:var(--fg)}
+.zero{font-size:.88rem;font-weight:500;color:var(--bad);background:var(--bad-soft);border-radius:10px;padding:10px 12px;margin:0 0 10px;scroll-margin:24px}
 .share{background:var(--accent-soft);border-radius:var(--r);padding:14px 16px;font-size:.84rem;color:var(--fg)}
 .share b{display:block;margin-bottom:2px}
 
 /* study */
 .prog{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:.85rem;color:var(--muted)}
 .prog .track{flex:1;height:6px;background:var(--surface2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
-.prog .track i{display:block;height:100%;background:var(--accent);transition:width .25s}
-.prog button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:.8rem}
+.prog .track i{display:block;height:100%;background:var(--accent-fill);transition:width .25s}
+.prog .tally{font-variant-numeric:tabular-nums;white-space:nowrap}
+.prog .tally .o{color:var(--ok)}.prog .tally .x{color:var(--bad)}
+.prog button{border:1px solid var(--line);background:var(--surface);border-radius:999px;min-height:44px;padding:4px 16px;font-size:.8rem}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:30px 26px;min-height:340px;display:flex;flex-direction:column;justify-content:center;position:relative}
-.card.flip{cursor:pointer}
+/* 4択・空所補充・読み入力の問題カード */
+.card.q{min-height:0;padding:22px 24px}
+.card.in{animation:rise .18s ease-out both}
+/* 表面: 見出し語を中央に大きく。ラベルは上端へ。語の大きさは字数（--n）に合わせ、1行に収める */
+.card.flip{cursor:pointer;align-items:center;text-align:center}
+.card.flip .chips{position:absolute;top:16px;left:18px;right:18px;margin:0}
+.card.flip .word{text-wrap:balance;max-width:100%;overflow-wrap:anywhere}
+.card.flip .word.ja{font-size:clamp(1.5rem,calc((min(100vw,760px) - 100px)/var(--n,4)),3.4rem)}
+.card.flip .word.en{font-size:clamp(1.5rem,calc((min(100vw,760px) - 100px)/(var(--n,8)*.56)),3.1rem)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.chip{display:inline-block;font-size:.72rem;padding:2px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--muted)}
-.chip.acc{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:700}
-.chip.lv{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+/* ラベル（押せない）は枠なしの四角寄り。押せる丸い部品（絞り込み・タブ）と形を分ける */
+.chip{display:inline-block;font-size:.72rem;padding:3px 9px;border-radius:6px;background:var(--surface2);color:var(--muted)}
+.chip.acc{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.chip.num{background:transparent;box-shadow:inset 0 0 0 1px var(--line);font-variant-numeric:tabular-nums}
 .word{line-height:1.2;margin:0}
 .word.ja{font-family:var(--serif-ja);font-size:clamp(2rem,7vw,2.9rem);font-weight:700;letter-spacing:.02em}
 .word.en{font-family:var(--serif-en);font-size:clamp(2.1rem,7vw,3.1rem);font-weight:600;letter-spacing:-.01em}
+.word.gloss{font-size:1.35rem;font-weight:700}
 .kanji{font-family:var(--serif-ja);color:var(--muted);font-size:1.05rem;margin-top:6px}
 .tap{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:.78rem;color:var(--muted)}
 /* キーボード操作の案内（.kbd）は、タッチ操作の端末では出さない */
@@ -121,23 +179,28 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .back{animation:rise .22s ease-out both}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .back .word.ja{font-size:1.6rem}.back .word.en{font-size:1.7rem}
-.means{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.means{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;counter-reset:m}
 .means li{display:flex;gap:10px;font-size:1.05rem;font-weight:500}
-.means li::before{content:counter(m);counter-increment:m;flex:none;width:1.4em;height:1.4em;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:.72rem;display:grid;place-items:center;margin-top:.3em;font-weight:700}
-.means{counter-reset:m}
-.ex{margin:16px 0 0;padding:10px 14px;border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 10px 10px 0}
+.means li>span{text-wrap:balance}
+.means li::before{content:counter(m);counter-increment:m;flex:none;width:1.4em;height:1.4em;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);font-size:.72rem;display:grid;place-items:center;margin-top:.3em;font-weight:700}
+/* 意味が1つなら番号を出さない。説明文の意味（古文常識・文学史、1つで長い意味）は細字の本文にする */
+.means li:only-child::before{display:none}
+.means.desc li{font-size:.95rem;font-weight:400;line-height:1.75}
+.means.desc li>span{text-wrap:pretty}
+.ex{margin:16px 0 0;padding:10px 14px;border-left:3px solid var(--line);border-left-color:color-mix(in srgb,var(--accent) 35%,var(--line));background:var(--surface2);border-radius:0 10px 10px 0;text-wrap:pretty}
 .ex .q{font-weight:500}
-.ex .q.ja{font-family:var(--serif-ja)}.ex .q.en{font-family:var(--serif-en);font-style:italic;font-size:1.02rem}
+.ex .q.ja{font-family:var(--serif-ja)}.ex .q.en{font-family:var(--serif-en);font-size:1.02rem}
+.ex .q b.hit{color:var(--accent);font-weight:700}
 .ex .tr{color:var(--muted);font-size:.9rem;margin-top:3px}
 .note{margin-top:12px;font-size:.86rem;background:var(--warn-soft);color:var(--fg);border-radius:10px;padding:8px 12px}
-.note b{color:var(--warn);margin-right:6px}
+.note b{color:var(--warn-ink);margin-right:6px}
 .der{margin-top:10px;font-size:.86rem;color:var(--muted)}
 .sei{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:.86rem;text-align:left}
 .sei-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
 .sei-h b{color:var(--muted);font-size:.78rem;letter-spacing:.06em}
 .sei-y{font-weight:700;font-size:.98rem}
 .conf{margin-left:auto;font-size:.74rem;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap}
-.conf.hi{background:var(--ok-soft);color:var(--ok)}.conf.mid{background:var(--warn-soft);color:var(--warn)}.conf.lo{background:var(--bad-soft);color:var(--bad)}
+.conf.hi{background:var(--ok-soft);color:var(--ok)}.conf.mid{background:var(--warn-soft);color:var(--warn-ink)}.conf.lo{background:var(--bad-soft);color:var(--bad)}
 .sei-s{margin-top:8px;font-size:.76rem;font-weight:700;color:var(--muted);letter-spacing:.06em}
 .sei ul{margin:2px 0 0;padding-left:1.25em}.sei li{margin:2px 0}
 .sei p{margin:2px 0 0}
@@ -159,33 +222,51 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .rel ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .rel li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;padding:6px 10px;background:var(--surface2);border-radius:8px}
 .rel .rw{font-family:var(--serif-ja);font-weight:700}.rel .rp{font-size:.72rem;color:var(--muted)}.rel .rm{flex:1 1 160px;min-width:0}
-.chip.num{background:var(--fg);color:var(--bg);border-color:var(--fg);font-variant-numeric:tabular-nums}
 .der b{color:var(--fg);font-weight:500;margin-right:6px}
+/* スマホではカードの左右の余白を詰め、意味ごとの用例の箱を番号の下まで広げる（番号のある行だけ） */
+@media (max-width:520px){
+  .card{padding:24px 18px}
+  .card.q{padding:20px 18px}
+  .detail{padding:16px}
+  .means.per li:not(:only-child) .ex.sm{margin-left:-26px}
+}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:14px 16px;font-weight:700;font-size:1rem;transition:transform .1s,background .15s}
+.actions.one{grid-template-columns:1fr}
+/* 学習中の操作欄（答えを見る／まだ・覚えた／正誤と次へ）は画面の下端に固定する。ページ全体を送る形は変えない */
+#view>.actions{position:sticky;bottom:0;z-index:4;margin-top:6px;padding:14px 0 calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);background:linear-gradient(to bottom,transparent,var(--bg) 14px)}
+.actions.band{grid-template-columns:minmax(0,1fr) auto;align-items:stretch;gap:10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:44px;padding:14px 16px;font-weight:700;font-size:1rem;transition:transform .1s,background .15s}
 .btn:active{transform:scale(.98)}
 .btn.ok{background:var(--ok);border-color:var(--ok);color:var(--ok-ink)}
 .btn.bad{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
-.btn.acc{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.acc{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .btn.ghost{background:transparent}
-.btn small{display:block;font-weight:400;font-size:.72rem;opacity:.75}
+.btn.text{background:transparent;border-color:transparent;color:var(--muted);font-weight:500}
+.btn.sm{padding:8px 14px}
+.btn small{display:block;font-weight:400;font-size:.72rem}
+.band .btn{min-width:108px}
+@media (max-width:360px){.band .btn{min-width:84px}}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row .btn{flex:1 1 180px}
 
 /* cloze */
 .cloze{margin:4px 0 0;font-size:1.25rem;line-height:1.7;font-weight:500}
 .cloze.en{font-family:var(--serif-en)}.cloze.ja{font-family:var(--serif-ja)}
-.blank{display:inline-block;min-width:4.5em;text-align:center;border-bottom:2px solid var(--accent);color:var(--accent);padding:0 .3em;font-weight:700}
+/* 空所は下線1本（中の「＿」は見せない）。線は墨色で、正誤が出たときだけ緑・赤になる */
+.blank{display:inline-block;min-width:4.5em;text-align:center;border-bottom:2px solid var(--fg);padding:0 .3em;font-weight:700}
+.blank:not(.ok):not(.ng){color:transparent}
 .blank.ok{color:var(--ok);border-color:var(--ok)}.blank.ng{color:var(--bad);border-color:var(--bad)}
 .typeform{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:16px}
-@media (max-width:480px){.typeform{grid-template-columns:1fr}}
 .typeform input{font-size:1.1rem;padding:12px 14px}
+@media (max-width:480px){.typeform .btn{padding-inline:14px;white-space:nowrap}}
 /* reference tables */
-.refd{border-top:1px solid var(--line);padding:10px 0}
-.refd:first-of-type{border-top:0;padding-top:0}
-.refd summary{cursor:pointer;font-weight:700;font-size:.92rem;padding:4px 0}
-.tblwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table.ref{border-collapse:collapse;font-size:.8rem;min-width:100%;white-space:nowrap}
+.refd{border-top:1px solid var(--line)}
+.refd:first-of-type{border-top:0}
+.refd summary{cursor:pointer;font-weight:700;font-size:.92rem;padding:11px 0}
+.refd[open]{padding-bottom:12px}
+.tblwrap{overflow-x:auto;margin-top:2px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+/* 外周のセル枠は消し、.tblwrap の枠1本にする */
+table.ref{border-collapse:collapse;border-style:hidden;font-size:.8rem;min-width:100%;white-space:nowrap}
 table.ref.wide{white-space:normal;min-width:760px}
 table.ref th,table.ref td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
 table.ref tr:first-child th{background:var(--surface2);color:var(--muted);font-weight:500}
@@ -202,65 +283,125 @@ table.ref mark{background:var(--accent-soft);color:var(--accent);font-weight:700
 /* quiz */
 .qprompt{font-size:.8rem;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}
 .choices{display:grid;gap:10px;margin-top:16px}
-.choice{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:13px 14px;font-size:1rem;line-height:1.45;min-width:0;transition:border-color .12s,background .12s}
+.choice{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:44px;padding:13px 14px;font-size:1rem;line-height:1.45;min-width:0;transition:border-color .12s,background .12s}
 .choice .n{flex:none;width:1.6em;height:1.6em;border-radius:8px;background:var(--surface2);border:1px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:var(--muted);font-weight:700}
-.choice .txt{min-width:0;overflow-wrap:anywhere}
+.choice .txt{min-width:0;overflow-wrap:anywhere;text-wrap:balance}
+/* 意味ごとの塊。塊の途中では折り返さない（1行より長い塊は中で折れる） */
+.mm,.mp{display:inline-block;max-width:100%}
 .choice .txt.en{font-family:var(--serif-en);font-size:1.15rem}
 .choice .txt.ja{font-family:var(--serif-ja);font-size:1.15rem}
-.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice:active:not(:disabled){background:var(--surface2)}
 .choice:disabled{cursor:default}
-.choice.correct{background:var(--ok-soft);border-color:var(--ok)}.choice.correct .n{background:var(--ok);color:var(--ok-ink);border-color:var(--ok)}
-.choice.wrong{background:var(--bad-soft);border-color:var(--bad)}.choice.wrong .n{background:var(--bad);color:var(--bad-ink);border-color:var(--bad)}
+/* 解答後: 正答は緑に「✓」、選んだ誤答は赤に「✕」（色だけに頼らない） */
+.choice.correct{background:var(--ok-soft);border-color:var(--ok)}.choice.correct .n{background:var(--ok);color:var(--ok-ink);border-color:var(--ok);font-size:.95rem}
+.choice.wrong{background:var(--bad-soft);border-color:var(--bad)}.choice.wrong .n{background:var(--bad);color:var(--bad-ink);border-color:var(--bad);font-size:.95rem}
 .choice.dim{opacity:.55}
+/* 触れたあとに hover の見た目が残らないよう、hover はマウスのある端末だけ */
+@media (hover:hover){
+  .mode:hover{transform:translateY(-1px);border-color:var(--accent)}
+  .choice:hover:not(:disabled){border-color:var(--accent)}
+}
+/* 正誤の表示。下端の帯の中では、淡色の面に記号つきで出す */
 .verdict{margin-top:16px;font-weight:700;font-size:1.05rem}
 .verdict.ok{color:var(--ok)}.verdict.ng{color:var(--bad)}
+.verdict::before{margin-right:.4em}
+.verdict.ok::before{content:"◯"}.verdict.ng::before{content:"✕"}
+.band .verdict{margin:0;display:block;align-self:stretch;border-radius:12px;padding:8px 12px;font-size:.98rem;line-height:1.45;min-width:0;overflow-wrap:anywhere;align-content:center}
+.band .verdict.ok{background:var(--ok-soft)}.band .verdict.ng{background:var(--bad-soft)}
+/* 4択の帯は2行まで（全文は選択肢の強調と解説で読める）。入力式は答えを全部見せる */
+.band .verdict.clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .detail{margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;animation:rise .2s ease-out both}
 
 /* result */
-.score{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:18px}
-.ring{width:120px;height:120px;flex:none}
+.score{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.score>div{flex:1;min-width:0}
+.ring{width:96px;height:96px;flex:none}
 .score .big{font-size:2rem;font-weight:700;line-height:1.1}
 .score .sm{color:var(--muted);font-size:.9rem}
-.wlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.wlist li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.score .perfect{display:inline-block;margin-bottom:4px;font-size:.78rem;font-weight:700;color:var(--ok);background:var(--ok-soft);border-radius:6px;padding:2px 9px}
+/* 誤答・苦手の一覧（押して開く行と押せない行がある）。カードの形にせず、罫線で区切る */
+.wlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.wlist li{border-bottom:1px solid var(--line);padding:10px 2px;display:flex;gap:4px 12px;align-items:baseline;flex-wrap:wrap}
+.wlist li:last-child{border-bottom:0}
 .wlist .w{font-weight:700;font-size:1.05rem}
 .wlist .w.ja{font-family:var(--serif-ja)}.wlist .w.en{font-family:var(--serif-en)}
-.wlist .m{color:var(--muted);flex:1 1 200px;min-width:0}
+.wlist .w small{font-weight:400;color:var(--muted);margin-left:6px;font-family:var(--sans)}
+.wlist .m{color:var(--muted);flex:1 1 9em;min-width:0;text-wrap:balance}
+.wlist .wn{font-size:.8rem;white-space:nowrap;margin-left:auto}
+.wlist .wx{color:var(--bad)}.wlist .wo{color:var(--ok);margin-left:.6em}
+/* 結果画面の一覧: 語と意味を2列にそろえる。行を押すと解説が開く */
+.wlist.res li{display:block;padding:0}
+.wlist.res summary{display:grid;grid-template-columns:minmax(0,8.5em) minmax(0,1fr) auto;gap:4px 12px;align-items:baseline;padding:11px 2px;cursor:pointer;list-style:none}
+.wlist.res summary::-webkit-details-marker{display:none}
+.wlist.res summary::after{content:"";width:.5em;height:.5em;border:solid var(--muted);border-width:0 2px 2px 0;transform:rotate(45deg);align-self:center;margin:0 4px 4px}
+.wlist.res details[open] summary::after{transform:rotate(-135deg);margin-bottom:-2px}
+.wlist.res .w{overflow-wrap:anywhere}
+.wlist.res .w small{display:block;margin-left:0;font-size:.8rem;line-height:1.5}
+.wlist.res .vdet{padding:0 2px 14px;border-top:0}
 
 /* list */
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
-.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.82rem;color:var(--muted)}
-.fchip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.filters{display:grid;gap:8px;margin:12px 0 16px}
+.fgrp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.fgrp .fl{flex:0 0 100%;font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+.fgrp select{width:auto;max-width:100%}
+.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;min-height:44px;padding:5px 12px;font-size:.82rem;color:var(--muted)}
+.fchip:active{background:var(--surface2)}
+.fchip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
 .count{font-size:.8rem;color:var(--muted);margin-bottom:8px}
 .vlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .vrow{background:var(--surface);border:1px solid var(--line);border-radius:12px}
-.vrow>button{width:100%;border:0;background:transparent;text-align:left;padding:11px 14px;display:grid;grid-template-columns:10px minmax(0,1.1fr) minmax(0,2fr);gap:12px;align-items:center}
-@media (max-width:560px){.vrow>button{grid-template-columns:10px 1fr}.vrow .vm{grid-column:2}}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--new)}
-.dot.ok{background:var(--ok)}.dot.learning{background:var(--warn)}.dot.weak{background:var(--bad)}
+.vrow>button{width:100%;border:0;border-radius:12px;background:transparent;text-align:left;min-height:44px;padding:11px 14px;display:grid;grid-template-columns:12px minmax(0,1.1fr) minmax(0,2fr);gap:12px;align-items:center}
+.vrow>button:active{background:var(--surface2)}
+@media (max-width:560px){.vrow>button{grid-template-columns:12px 1fr;row-gap:2px;padding:9px 14px}.vrow .vm{grid-column:2}}
+.dot{box-sizing:border-box;width:12px;height:12px;border-radius:50%;background:transparent;border:2px solid var(--new)}
+.dot.ok{background:var(--ok);border-color:var(--ok)}
+.dot.learning{background:linear-gradient(to right,var(--warn) 50%,transparent 50%);border-color:var(--warn)}
+.dot.weak{background:var(--bad);border:0;border-radius:0;clip-path:polygon(50% 4%,100% 96%,0 96%)}
 .vw{font-weight:700;font-size:1.05rem;min-width:0;overflow-wrap:anywhere}
 .vw.ja{font-family:var(--serif-ja)}.vw.en{font-family:var(--serif-en)}
 .vw small{font-weight:400;color:var(--muted);font-size:.78rem;margin-left:6px;font-family:var(--sans)}
-.vm{color:var(--muted);font-size:.9rem;min-width:0;overflow-wrap:anywhere}
+.vm{color:var(--muted);font-size:.9rem;min-width:0;overflow-wrap:anywhere;text-wrap:balance}
 .vdet{padding:0 14px 14px;border-top:1px dashed var(--line);margin-top:0;padding-top:12px;animation:rise .18s ease-out both}
 .vdet .row{margin-top:12px}
 .vdet .row .btn{flex:1 1 140px;padding:9px 12px;font-size:.88rem;font-weight:500}
 .empty{color:var(--muted);text-align:center;padding:40px 0}
 
 /* stats */
-.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-@media (max-width:560px){.sgrid{grid-template-columns:1fr}}
+.sum3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.sum3 .lab{font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+.sum3 .val{font-size:1.5rem;font-weight:700;line-height:1.2}
+.sum3 .val small{font-size:.8rem;font-weight:400;color:var(--muted);margin-left:2px}
+.sgrid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
+.sgrid .panel{margin:0}
+/* ほかの教材は1行（名前と習得のバー）にまとめ、押すと内訳が開く */
+details.panel{padding:0 18px}
+details.panel>summary{display:flex;align-items:center;gap:10px;min-height:52px;cursor:pointer;list-style:none}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary::after{content:"";flex:none;width:.5em;height:.5em;border:solid var(--muted);border-width:0 2px 2px 0;transform:rotate(45deg);margin:0 4px 4px 2px}
+details.panel[open]>summary::after{transform:rotate(-135deg);margin-bottom:-2px}
+details.panel>summary h2{margin:0;flex:none;font-size:.92rem}
+details.panel>summary .bar{flex:1;margin:0;min-width:40px}
+details.panel>summary .pc{flex:none;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:2.6em;text-align:right}
+details.panel[open]{padding-bottom:16px}
+details.dm>summary h2{flex:1}
 .lvbar{display:flex;align-items:center;gap:10px;font-size:.85rem;margin-top:8px}
 .lvbar .lab{width:6.5em;color:var(--muted);flex:none}
 .lvbar .track{flex:1;height:8px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
-.lvbar .track i{display:block;height:100%;background:var(--accent)}
+/* 習得を表す塗りは科目の色ではなく --ok（上の積み上げバーの緑と同じ意味） */
+.lvbar .track i{display:block;height:100%;background:var(--ok)}
 .lvbar .v{width:4.5em;text-align:right;flex:none}
 .act{width:100%;height:auto;display:block;margin-top:6px}
 .danger{color:var(--bad)}
 .confirm{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:.9rem}
 .msg{font-size:.85rem;color:var(--ok);margin-top:8px;min-height:1.2em}
-textarea{min-height:80px;font-size:.8rem;font-family:ui-monospace,Menlo,Consolas,monospace}
+textarea{min-height:80px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.dm h3{font-size:.9rem;margin:16px 0 10px}
 footer.about{margin-top:36px;font-size:.78rem;color:var(--muted);text-align:center}
+/* 横向きなど高さの無い画面: カードの最低高さを外す（学習中はヘッダーを隠している） */
+@media (max-height:500px){
+  .card{min-height:0}
+  .card.flip{padding:52px 24px 40px}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <header class="top"><div class="wrap">
@@ -273,11 +414,12 @@ footer.about{margin-top:36px;font-size:.78rem;color:var(--muted);text-align:cent
 <div class="wrap"><nav class="subtabs" role="tablist" aria-label="教材"></nav></div></header>
 <div class="wrap">
   <nav class="tabs" role="tablist" aria-label="画面">
-    <button role="tab" data-tab="home" aria-selected="true">学習</button>
-    <button role="tab" data-tab="list" aria-selected="false">単語帳</button>
-    <button role="tab" data-tab="stats" aria-selected="false">成績</button>
+    <button role="tab" id="tab-home" data-tab="home" aria-controls="view" aria-selected="true">学習</button>
+    <button role="tab" id="tab-list" data-tab="list" aria-controls="view" aria-selected="false">単語帳</button>
+    <button role="tab" id="tab-stats" data-tab="stats" aria-controls="view" aria-selected="false">成績</button>
   </nav>
-  <main id="view" aria-live="polite"></main>
+  <main id="view" role="tabpanel" aria-labelledby="tab-home"></main>
+  <div id="live" class="sr" aria-live="polite"></div>
   <footer class="about"></footer>
 </div>
 <script>
@@ -895,6 +1037,8 @@ let store=load();
 function load(){let raw=null,j=null;try{raw=localStorage.getItem(KEY);j=JSON.parse(raw);}catch(e){}
   if(!j||!j.prog)return{prog:{},days:{},prefs:{},v:VER};
   j=Object.assign({prog:{},days:{},prefs:{}},j);lastRaw=raw;
+  // 欄が null や配列など、形のおかしい保存データでも起動できるように、空のオブジェクトに置き換える
+  for(const k of ['prog','days','prefs'])if(!isObj(j[k]))j[k]={};
   if((+j.v||0)<VER){try{if(Object.keys(j.prog).length)localStorage.setItem(BAK,raw);}catch(e){}migrate(j);put(j);}
   return j;}
 function put(o){try{const raw=JSON.stringify(o);localStorage.setItem(KEY,raw);lastRaw=raw;}catch(e){warnSave();}}
@@ -951,9 +1095,17 @@ function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(
 // list.shown … 単語帳に出す語数（PAGE 語ずつ「さらに表示」で増やす）   leave … 学習の途中で離れようとしたときの確認（確認のあとに行う操作）
 // resume … 前回の途中のセッション（読み込み直後に「続きから」を出す）
 const PAGE=200;
-const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',leave:null,resume:null,howto:null};
-const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart',rel:'no',from:'',to:''},store.prefs[S.subj]||{});
+const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',zero:false,dm:false,leave:null,resume:null,howto:null};
+const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart',rel:'no',from:'',to:''},isObj(store.prefs[S.subj])?store.prefs[S.subj]:{});
 function setPref(k,v){store.prefs[S.subj]=Object.assign(prefsOf(),{[k]:v});save();}
+// 古文330の章 lv の番号の範囲 [最初, 最後]（文字列）。章は番号と1対1（2章＝No.51〜150）
+function chapRange(lv){const a=(DATA.book||[]).filter(it=>it.lv===lv).map(it=>it.num);return a.length?[String(Math.min(...a)),String(Math.max(...a))]:null;}
+// 古文330で出題範囲を変えたとき: 章を選んだら番号欄にその章の範囲を入れる（章と番号が食い違って0語にならないように）。
+// 章の選択をやめたら、章から入った番号だけ消す（手で入れた番号は残す）
+function chapSync(prev,now){if(!SUBJ[S.subj].book)return false;const p=prefsOf(),lv=r=>/^lv\d+$/.test(r)?chapRange(+r.slice(2)):null,a=lv(prev),b=lv(now);
+  if(b){setPref('from',b[0]);setPref('to',b[1]);return true;}
+  if(a&&p.from===a[0]&&p.to===a[1]){setPref('from','');setPref('to','');return true;}
+  return false;}
 
 /* ---- session ---- */
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -983,36 +1135,54 @@ function pick(items,p){const n=p.count==='all'?items.length:+p.count;
   const pri=byIndex?inOrder.map((it,i)=>({it,k:RANK[status(it)],i})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.it):order(items,'smart');
   const sel=new Set(pri.slice(0,n));
   return byIndex?inOrder.filter(it=>sel.has(it)):shuffle([...sel]);}
-function start(mode,items){sync();const p=prefsOf(); // 出題する語は、最新の記録（ほかのタブの回答を含む）で選ぶ
+// seen … 「次のn問へ」で続けてきた、これまでの回に出た語のID（次の回から除く）
+function start(mode,items,seen){sync();const p=prefsOf(); // 出題する語は、最新の記録（ほかのタブの回答を含む）で選ぶ
   const modeOk=it=>askable(it,mode);
   if(!items)items=pick(pool(S.subj,p.range).filter(modeOk),p);
   items=items.filter(modeOk);
-  if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
-  S.msg='';S.leave=null;S.resume=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};saveSess();render();}
+  // 0語のときの案内は、出題モードの一覧のすぐ上に出し、見える位置まで送る（押したボタンの近く）
+  if(!items.length){S.zero=true;S.tab='home';S.session=null;render();const z=$('[data-zero]');if(z)try{z.scrollIntoView({block:'center'});}catch(e){}return;}
+  S.msg='';S.zero=false;S.leave=null;S.resume=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null,seen:seen||[]};saveSess();render();}
+// 結果画面の「次のn問へ」: いまの出題設定で、これまでの回に出た語を除いて選ぶ（収録順なら続きの語が出る）。除くと0語になるなら null（同じ設定でもう一度）
+function nextItems(sess){const p=prefsOf(),ex=new Set(sess.seen.concat(sess.items.map(it=>it.id)));
+  const rest=pool(S.subj,p.range).filter(it=>askable(it,sess.mode)&&!ex.has(it.id));return rest.length?pick(rest,p):null;}
 /* ---- 進行中のセッションの保存（再読み込みやページを閉じたあとで、続きから再開するため） ---- */
 // 学習記録とは別のキーに入れる（学習記録の保存データの形・移行・2つのタブの統合には関わらない）。
-//   {v:版, subj:教材, mode:出題形式, ids:[出題する語のID（出題順）], res:[答えた問題の正誤 1/0（出題順）]}
+//   {v:版, subj:教材, mode:出題形式, ids:[出題する語のID（出題順）], res:[答えた問題の正誤 1/0（出題順）], tab:書いたタブの印, at:書いた時刻}
+// tab・at … 2つのタブで開いているとき、片方で進行中の学習を、もう片方に「前回の続き」として出さないためのもの。
+//   タブの印は sessionStorage に持つ（再読み込みしても同じタブなら同じ印）。進行中のタブは ALIVE ごとに時刻を書き直し、閉じるとき（pagehide）に印を外す。
+//   読む側は、印が自分のものでなく、時刻が STALE 以内なら、ほかのタブで進行中とみなして出さない（印が無い・時刻が古いなら出す）
 // 始めたときと1問答えるごとに書き、最後まで答えたとき・中断したとき・「やめる」を選んだときに消す。
 // 再開は、答えた数の次の問題から（答えた直後の解説の表示中に閉じたときも、次の問題から。同じ問題を二重に記録しないため）。
 // 4択の選択肢と、空所補充で使う用例は、再開のときに選び直す
 const SKEY=KEY+'-session',MODES={flash:'フラッシュカード',quiz:'4択',quizR:'4択',cloze:'空所補充',clozeT:'空所補充',typeY:'読みを入力'};
 const unfinished=()=>!!S.session&&S.session.i<S.session.items.length;
-function saveSess(){const s=S.session;try{if(!s||s.res.length>=s.items.length)localStorage.removeItem(SKEY);
-  else localStorage.setItem(SKEY,JSON.stringify({v:VER,subj:S.subj,mode:s.mode,ids:s.items.map(it=>it.id),res:s.res.map(r=>r.ok?1:0)}));}catch(e){}}
+const ALIVE=20000,STALE=150000;
+const TAB=(()=>{const k=KEY+'-tab';let id='';try{id=sessionStorage.getItem(k)||'';if(!id){id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);sessionStorage.setItem(k,id);}}catch(e){}return id||('t'+Math.random());})();
+function saveSess(release){const s=S.session;try{if(!s||s.res.length>=s.items.length)localStorage.removeItem(SKEY);
+  else localStorage.setItem(SKEY,JSON.stringify({v:VER,subj:S.subj,mode:s.mode,ids:s.items.map(it=>it.id),res:s.res.map(r=>r.ok?1:0),tab:release?'':TAB,at:Date.now()}));}catch(e){}}
+// 保存してあるセッションが、このタブの進行中のものか（ほかのタブが上書きしていないか）
+function ownSess(){try{const j=JSON.parse(localStorage.getItem(SKEY));return isObj(j)&&j.tab===TAB;}catch(e){return false;}}
+setInterval(()=>{if(unfinished()&&ownSess())saveSess();},ALIVE);
+// ページを閉じる・離れるときは印を外す（すぐ別のタブで続きから再開できるように）。戻ってきたら（bfcache）付け直す
+window.addEventListener('pagehide',()=>{if(unfinished()&&ownSess())saveSess(true);});
+window.addEventListener('pageshow',e=>{if(e.persisted&&unfinished())saveSess();});
 // 保存してある途中のセッションを読む。古い版のIDは、記録の移行と同じ対応で付け替える。形がおかしい・語が見つからない・もう全部答えてある、なら無いものとして扱う
 function loadSess(){let j=null;try{j=JSON.parse(localStorage.getItem(SKEY));}catch(e){}
   if(!isObj(j)||!Object.prototype.hasOwnProperty.call(SUBJ,j.subj)||!Object.prototype.hasOwnProperty.call(MODES,j.mode)||!Array.isArray(j.ids)||!Array.isArray(j.res)||j.res.length>=j.ids.length)return null;
+  if(j.tab&&j.tab!==TAB&&isNum(j.at)&&Math.abs(Date.now()-j.at)<STALE)return null; // ほかのタブで進行中
   const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),items=[];
   for(let id of j.ids){for(const m of MIGRATIONS)if(m.v>from&&typeof id==='string'&&has(m.map,id))id=m.map[id];
     const it=typeof id==='string'?findAny(id):null;if(!it||!askable(it,j.mode))return null;items.push(it);}
   return{subj:j.subj,mode:j.mode,items,res:j.res.map((r,i)=>({it:items[i],ok:!!r}))};}
 function resume(){const r=S.resume;if(!r)return;S.resume=null;S.leave=null;S.subj=r.subj;S.tab='home';S.msg='';
-  S.session={mode:r.mode,items:r.items,i:r.res.length,res:r.res,flipped:false,picked:null,choices:null};render();}
+  S.session={mode:r.mode,items:r.items,i:r.res.length,res:r.res,flipped:false,picked:null,choices:null,seen:[]};saveSess();render();}
 // 学習の途中で離れる操作（中断・タブ・教科や教材の切り替え）は、その場に確認を出してから行う。入力中の答えは残す
 function leave(act){if(!unfinished()){act();return;}S.leave=act;redraw();const c=$('[data-leave]');if(c)try{c.scrollIntoView({block:'nearest'});}catch(e){}}
 function redraw(){const a=$('#ans'),v=a?a.value:null;render();const n=$('#ans');if(n&&v!=null)n.value=v;}
 // 学習ホームの空所補充モードに出す対象語数。いまの出題設定の範囲のうち、用例から空所を作れる語の数
-function clozeNote(){const all=pool(S.subj,prefsOf().range),n=all.filter(it=>askable(it,'cloze')).length;return '対象 '+n+'語'+(n<all.length?'（範囲 '+all.length+'語のうち）':'');}
+// 「（範囲 n語のうち）」は、スマホ幅では出さない（CSS の .cx）
+function clozeNote(){const all=pool(S.subj,prefsOf().range),n=all.filter(it=>askable(it,'cloze')).length;return '対象 '+n+'語'+(n<all.length?'<span class="cx">（範囲 '+all.length+'語のうち）</span>':'');}
 /* ---- 空所補充の照合 ---- */
 // 用例の中の見出し語を探して {pre,hit,post} に分ける（hit が空所）。見つからなければ null。
 //   mpre・mpost … 空所のほかにも同じ語が出ていれば「＿＿」で伏せた前後（答える前の表示に使う）
@@ -1155,8 +1325,9 @@ const glossAll=it=>{let g=GL.get(it);if(!g)GL.set(it,g=glossSet(it.m));return g;
 const CM=new WeakMap();
 function choiceM(x){let c=CM.get(x);if(c)return c;
   const on=x.m.map(m=>({m,t:maskM(x,m,true)})).filter(o=>!blankM(o.t)).slice(0,2),bare=!on.length,ms=bare?x.m.slice(0,2):on.map(o=>o.m);
-  let t=(bare?ms.map(m=>maskM(x,m,false)).filter(s=>!blankM(s)):on.map(o=>o.t)).join('／');if(!t)t=ms.join('／');
-  CM.set(x,c={ms,t,bare,g:glossSet(ms)});return c;}
+  // tl … 表示する意味の一覧（意味ごとの塊で折り返すのに使う）。t … それを「／」でつないだ文
+  let tl=bare?ms.map(m=>maskM(x,m,false)).filter(s=>!blankM(s)):on.map(o=>o.t);if(!tl.length)tl=ms.slice();
+  CM.set(x,c={ms,t:tl.join('／'),tl,bare,g:glossSet(ms)});return c;}
 function choiceText(x,toM){return toM?choiceM(x).t:x.w;}
 // 語→意味の設問に出す漢字表記（出さないときは空）
 const qKanji=it=>it.k&&!choiceM(it).bare?it.k:'';
@@ -1195,35 +1366,70 @@ function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=se
   const picks=[],seen=new Set([txt(it)]);
   for(const r of [...by.keys()].sort((a,b)=>a-b)){for(const x of shuffle(by.get(r))){if(!ok(x)||seen.has(txt(x))||seen.has(gkey(x)))continue;seen.add(txt(x));seen.add(gkey(x));picks.push(x);if(picks.length===3)break;}if(picks.length===3)break;}
   return shuffle([it,...picks]);}
-function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});S.leave=null;saveSess();}
-function next(){const sess=S.session;S.leave=null;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';render();const a=$('#ans');if(a)a.focus();}
+// 読み上げ用の知らせ（画面には出さない）。画面全体を読み上げ対象にする代わりに、正誤などの短い文だけを伝える
+function say(t){const l=$('#live');if(l)l.textContent=t||'';}
+function answer(ok){const sess=S.session,it=sess.items[sess.i],m=sess.mode;record(it,ok);sess.res.push({it,ok});S.leave=null;saveSess();
+  if(m!=='flash')say(ok?'正解':'不正解。正答は '+(m==='quiz'?it.m[0]:m==='typeY'?(it.rd||it.m[0]):it.w));}
+function next(){const sess=S.session;S.leave=null;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';say('');render();const a=$('#ans');if(a)a.focus();}
+// フラッシュカードをめくる。めくった直後（GUARD ミリ秒）は「まだ／覚えた」を受け付けない（「答えを見る」と同じ位置に出るので、2回押しで記録されないように）
+const GUARD=300;
+function flip(){const sess=S.session;if(!sess||sess.mode!=='flash'||sess.flipped||sess.i>=sess.items.length)return;sess.flipped=true;sess.flipAt=Date.now();render();}
+const canJudge=sess=>sess.flipped&&Date.now()-(sess.flipAt||0)>=GUARD;
 
 /* ---- rendering ---- */
 function render(){
-  document.documentElement.setAttribute('data-subj',baseOf(S.subj));
+  const root=document.documentElement,studying=unfinished();
+  root.setAttribute('data-subj',baseOf(S.subj));
+  // 学習中（出題の途中）はヘッダーとタブを隠す（CSS の .studying）。結果画面では戻す
+  root.classList.toggle('studying',studying);
   const grp=groupOf(S.subj);
   document.querySelectorAll('.switch [data-group]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.group===grp)));
   const subs=GROUPS.find(g=>g.key===grp).subs.filter(k=>SUBJ[k]);
   $('.subtabs').innerHTML=subs.map(k=>`<button role="tab" data-subj="${k}" aria-selected="${k===S.subj}">${esc(SUBLABEL[k]||SUBJ[k].name)}<span class="n">${DATA[k].length}</span></button>`).join('');
   document.querySelectorAll('.tabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));
-  const v=$('#view');
-  if(!unfinished())S.leave=null;
+  const v=$('#view');v.setAttribute('aria-labelledby','tab-'+S.tab);
+  if(!studying)S.leave=null;
   if(S.session){v.innerHTML=(S.leave?leaveHtml():'')+(S.session.i>=S.session.items.length?viewResult():(S.session.mode==='flash'?viewFlash():S.session.mode.startsWith('cloze')?viewCloze():S.session.mode==='typeY'?viewTypeY():viewQuiz()));}
   else if(S.tab==='home')v.innerHTML=viewHome();
   else if(S.tab==='list')v.innerHTML=viewList();
   else v.innerHTML=viewStats();
-  const vk=S.subj+'|'+S.tab+'|'+(S.session?'s'+S.session.i:'');
-  if(vk!==render.vk){render.vk=vk;try{window.scrollTo({top:0});}catch(e){}}
-  const a=$('#ans');if(a&&S.session&&S.session.picked===null)a.focus();
+  const vk=S.subj+'|'+S.tab+'|'+(S.session?'s'+S.session.i:''),moved=vk!==render.vk;
+  if(moved){render.vk=vk;try{window.scrollTo({top:0});}catch(e){}}
+  if(studying){const sess=S.session,q=sess.i;
+    // 問題が変わったときだけ、進捗バーを前の幅から動かし、カードに入りの動きを付ける（毎回付けると、選ぶたびに問題カードが動く）
+    if(moved){const bar=$('.prog .track i'),c=$('.card');if(c)c.classList.add('in');
+      if(bar&&render.pq===q-1){const w=bar.style.width;bar.style.width=((q-1)/sess.items.length*100)+'%';bar.getBoundingClientRect();bar.style.width=w;}}
+    render.pq=q;
+    // めくった直後は判定ボタンを押せなくしてあるので、時間がたったら押せるようにする
+    const lock=[...document.querySelectorAll('[data-ans][disabled]')];
+    if(lock.length)setTimeout(()=>lock.forEach(b=>{b.disabled=false;}),Math.max(0,GUARD-(Date.now()-(sess.flipAt||0))));
+    // 次に操作する所へフォーカスを移す（描き直すたびに body へ戻らないように）。画面は送らない（解説を飛ばして下まで送られないように）
+    const a=$('#ans'),f=a&&sess.picked===null?a:sess.picked!==null?$('[data-next]'):(moved||sess.flipped)&&!S.leave?$('.card'):null;
+    if(f)try{f.focus({preventScroll:f!==a});}catch(e){}
+  }else render.pq=null;
   showSub();
 }
 // 選択中の教材タブが横スクロールの外に隠れていたら、タブの列だけを横に送って中央に出す（ページの縦位置は動かさない）
 function showSub(){const st=$('.subtabs'),b=st.querySelector('[aria-selected="true"]');if(!b)return;
   const r=b.getBoundingClientRect(),c=st.getBoundingClientRect();if(r.left<c.left||r.right>c.right)st.scrollLeft+=r.left-c.left-(c.width-r.width)/2;}
-function leaveHtml(){return `<div class="confirm" role="alert" style="margin:0 0 14px"><span>学習を中断しますか？ ここまでの回答は記録されています。</span><button class="btn bad" data-leave="yes" style="padding:8px 14px">中断する</button><button class="btn ghost" data-leave="no" style="padding:8px 14px">続ける</button></div>`;}
+function leaveHtml(){return `<div class="confirm" role="alert" style="margin:0 0 14px"><span>学習を中断しますか？ ここまでの回答は記録されています。</span><button class="btn bad sm" data-leave="yes">中断する</button><button class="btn ghost sm" data-leave="no">続ける</button></div>`;}
 function resumeHtml(){const r=S.resume,n=r.items.length;
-  return `<section class="panel"><h2>前回の続き <span class="sub">${esc(SUBJ[r.subj].name)}・${MODES[r.mode]}（全${n}問）</span></h2><div class="confirm" style="margin-top:0"><span>学習が途中で止まっています。</span><button class="btn acc" data-resume="yes" style="padding:8px 14px">続きから（${r.res.length+1}問目）</button><button class="btn ghost" data-resume="no" style="padding:8px 14px">やめる</button></div></section>`;}
-function wordHtml(it,cls,k=it.k){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${k?`<div class="kanji">${esc(k)}</div>`:''}`;}
+  return `<section class="panel"><h2>前回の続き <span class="sub">${esc(SUBJ[r.subj].name)}・${MODES[r.mode]}（全${n}問）</span></h2><div class="confirm" style="margin-top:0"><span>学習が途中で止まっています。</span><button class="btn acc sm" data-resume="yes">続きから（${r.res.length+1}問目）</button><button class="btn ghost sm" data-resume="no">やめる</button></div></section>`;}
+// 英語の語・例文には lang="en" を付ける（読み上げの発音と、英字の書体の選び方のため）
+const enAttr=()=>isEn()?' lang="en"':'';
+// 見出し語。--n は字数（カードの表面で、語の大きさを字数に合わせるのに使う）
+function wordHtml(it,cls,k=it.k){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}"${enAttr()} style="--n:${[...String(it.w)].length}">${esc(it.w)}</p>${k?`<div class="kanji">${esc(k)}</div>`:''}`;}
+// 進捗行。学習中はヘッダーを隠すので、これが画面の先頭になる。正誤の数は、色に加えて記号でも示す
+function progHtml(sess){const n=sess.items.length,ok=sess.res.filter(r=>r.ok).length,ng=sess.res.length-ok;
+  return `<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div>${sess.res.length?`<span class="tally" aria-label="正解 ${ok}、不正解 ${ng}"><span class="o">◯${ok}</span> <span class="x">✕${ng}</span></span>`:''}<button data-quit>中断</button></div>`;}
+// 解答後の下端の帯: 正誤（text は .verdict の中身の HTML）と「次へ」
+function bandHtml(ok,text,clamp){return `<div class="actions band"><div class="verdict ${ok?'ok':'ng'}${clamp?' clamp':''}">${text}</div><button class="btn acc" data-next>次へ<small class="kbd" aria-hidden="true">Enter</small></button></div>`;}
+// 意味の並びを、意味ごとの塊（.mm）にして「／」でつなぐ。塊の途中では折り返さない（区切りの「／」「・」は前の塊に付ける）。文字は ms.join('／') と同じ
+// 1行に入らない長い塊は、中の「・」の区切り（.mp）で折り返す
+const mmHtml=ms=>ms.map((m,j)=>{const ps=String(m).split('・');return `<span class="mm">${ps.map((x,i)=>`<span class="mp">${esc(x)}${i<ps.length-1?'・':j<ms.length-1?'／':''}</span>`).join('')}</span>`;}).join('');
+// 選択肢の番号。解答後は、正答を「✓」、選んだ誤答を「✕」に替え、読み上げ用の文字を添える
+function choiceHtml(i,state,inner){const mark=state==='correct'?'✓':state==='wrong'?'✕':i+1,sr=state==='correct'?'<span class="sr">正答</span>':state==='wrong'?'<span class="sr">あなたの答え</span>':'';
+  return `<button class="choice${state?' '+state:''}" data-pick="${i}"${state?' disabled':''}><span class="n">${mark}</span>${inner}${sr}</button>`;}
 function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.filter(t=>t!==lvName(it)).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 /* ---- 古文常識の図（本の図を参考に描き直した略図） ---- */
 const FIGS={
@@ -1233,27 +1439,29 @@ const FIGS={
   let g='';E.forEach((e,i)=>{const a=i*30,[x1,y1]=pt(a-15,112),[x2,y2]=pt(a+15,112),[x3,y3]=pt(a+15,52),[x4,y4]=pt(a-15,52),on=hi.includes(i),[lx,ly]=pt(a,92),[tx,ty]=pt(a,68);
    g+=`<path d="M${x1} ${y1}A112 112 0 0 1 ${x2} ${y2}L${x3} ${y3}A52 52 0 0 0 ${x4} ${y4}Z" fill="${on?'var(--accent-soft)':'var(--surface)'}" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?2:1}"/><text x="${lx}" y="${ly+6}" text-anchor="middle" font-size="17" font-weight="700" style="font-family:var(--serif-ja)${on?';fill:var(--accent)':''}">${e}</text><text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${i*2}時</text>`;});
   [['北',0],['東',90],['南',180],['西',270]].forEach(([n,a])=>{const[x,y]=pt(a,130);g+=`<text x="${x}" y="${y+5}" text-anchor="middle" font-size="13" font-weight="700">${n}</text>`;});
-  for(const k in D){const[x,y]=pt(D[k][0],143),on=k===hd;g+=`<text x="${x}" y="${y+2}" text-anchor="middle" font-size="13" font-weight="700" style="font-family:var(--serif-ja)${on?';fill:var(--accent)':''}">${k}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-size="9" style="fill:var(--muted)">${D[k][2]}</text>`;}
+  for(const k in D){const[x,y]=pt(D[k][0],143),on=k===hd;g+=`<text x="${x}" y="${y+2}" text-anchor="middle" font-size="13" font-weight="700" style="font-family:var(--serif-ja)${on?';fill:var(--accent)':''}">${k}</text><text x="${x}" y="${y+14}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${D[k][2]}</text>`;}
   return `<svg viewBox="0 0 320 330" role="img" aria-label="十二支の時刻と方角">${g}<text x="160" y="164" text-anchor="middle" font-size="10" style="fill:var(--muted)">一つの支が</text><text x="160" y="177" text-anchor="middle" font-size="10" style="fill:var(--muted)">約2時間</text></svg><div class="cap">子の時は午前0時ごろ（23〜1時）。方角は子＝北、卯＝東、午＝南、酉＝西。</div>`;},
  moon(it){const M=[[1,'朔日'],[3,'三日月'],[7,'七日'],[10,'十日余り'],[13,'十三夜'],[15,'望月'],[16,'十六夜'],[17,'立ち待ち'],[18,'居待ち'],[19,'寝待ち'],[20,'更け待ち'],[22,'二十日余り'],[29,'晦日']];
   const key={'朔日':[1],'三日月':[3],'十三夜の月':[13],'望月':[15],'十六夜の月':[16],'立ち待ちの月':[17],'居待ちの月':[18],'寝待ちの月':[19],'更け待ちの月':[20],'二十日余りの月':[22],'晦日':[29],'夕月夜':[3,7,10,13,15],'有明の月':[16,17,18,19,20,22]}[it.w]||[];
   let g='';M.forEach(([d,n],i)=>{const cx=30+(i%7)*46,cy=30+Math.floor(i/7)*74,r=15,th=2*Math.PI*d/29.53,k=(1-Math.cos(th))/2,wax=d<14.77,rx=Math.abs(r*Math.cos(th)).toFixed(1),on=key.includes(d);
-   g+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#3a3f4b" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?3:1}"/>${k>0.02?`<path d="M${cx} ${cy-r}A${r} ${r} 0 0 ${wax?1:0} ${cx} ${cy+r}A${rx} ${r} 0 0 ${(k>0.5)===wax?1:0} ${cx} ${cy-r}Z" fill="#f2d27a"/>`:''}<text x="${cx}" y="${cy+30}" text-anchor="middle" font-size="9.5" ${on?'font-weight="700" style="fill:var(--accent)"':''}>${n}</text><text x="${cx}" y="${cy+41}" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">${d}日</text>`;});
-  return `<svg viewBox="0 0 330 150" role="img" aria-label="月の満ち欠けと呼び名">${g}</svg><div class="cap">旧暦は月の満ち欠けで日付が決まる。十五日が満月。十六日以後、夜明けに残る月が有明の月。</div>`;},
+   g+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#3a3f4b" stroke="${on?'var(--accent)':'var(--muted)'}" stroke-width="${on?3:1}"/>${k>0.02?`<path d="M${cx} ${cy-r}A${r} ${r} 0 0 ${wax?1:0} ${cx} ${cy+r}A${rx} ${r} 0 0 ${(k>0.5)===wax?1:0} ${cx} ${cy-r}Z" fill="#f2d27a"/>`:''}<text x="${cx}" y="${cy+30}" text-anchor="middle" font-size="10" ${on?'font-weight="700" style="fill:var(--accent)"':''}>${n}</text><text x="${cx}" y="${cy+42}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${d}日</text>`;});
+  return `<svg viewBox="0 0 330 152" role="img" aria-label="月の満ち欠けと呼び名">${g}</svg><div class="cap">旧暦は月の満ち欠けで日付が決まる。十五日が満月。十六日以後、夜明けに残る月が有明の月。</div>`;},
  kani(it){const R=[['一位','太政大臣','上達部'],['二位','左大臣・右大臣・内大臣','上達部'],['三位','大納言・中納言・参議','上達部'],['四位','参議・弁','参議は上達部、ほかは殿上人'],['五位','弁・蔵人・守（大国）','弁・蔵人は殿上人（選ばれた人）、守は地下'],['六位','蔵人・守（小国）','蔵人だけ殿上人、ほかは地下'],['七位以下','','地下']];
   const m=x=>it.w&&it.w.length>1?x.split(it.w).join('<mark>'+it.w+'</mark>'):x;
   return `<table><tr><th>位階</th><th>主な官職</th><th>区分</th></tr>${R.map(r=>`<tr><th>${r[0]}</th><td>${m(r[1])}</td><td>${m(r[2])}</td></tr>`).join('')}</table><div class="cap">上達部は国政を審議する。殿上人は清涼殿の殿上の間に昇れる人。守は受領（地方の長官）。</div>`;},
  kisaki(it){const m=x=>x.split(it.w).join('<mark>'+it.w+'</mark>');
   return `<table><tr><th>天皇の后妃</th><td>${m('中宮（皇后）＞ 女御 ＞ 更衣')}</td></tr><tr><th>内侍司の女官</th><td>${m('尚侍（ないしのかみ）＞ 典侍（ないしのすけ）＞ 掌侍（ないしのじょう）')}</td></tr><tr><th>その下</th><td>${m('女房')}</td></tr></table><div class="cap">御息所は、天皇の子を産んだ女御・更衣や、春宮・親王の后。</div>`;},
- kyo(it){const hl=n=>(it.w===n||(it.w==='山'&&n==='比叡山'))?'font-weight="700" style="fill:var(--accent)"':'';
-  return `<svg viewBox="0 0 320 270" role="img" aria-label="平安京付近の略図"><rect x="80" y="70" width="170" height="180" fill="var(--surface)" stroke="var(--fg)"/><line x1="165" y1="120" x2="165" y2="250" stroke="var(--line)" stroke-width="3"/><rect x="135" y="70" width="60" height="50" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="165" y="88" text-anchor="middle" font-size="10">大内裏</text><rect x="158" y="94" width="22" height="18" fill="var(--surface)" stroke="var(--accent)"/><text x="169" y="106" text-anchor="middle" font-size="8">内裏</text>
-  <text x="120" y="190" text-anchor="middle" font-size="13" font-weight="700">右京</text><text x="120" y="204" text-anchor="middle" font-size="9" style="fill:var(--muted)">（西）</text><text x="210" y="190" text-anchor="middle" font-size="13" font-weight="700">左京</text><text x="210" y="204" text-anchor="middle" font-size="9" style="fill:var(--muted)">（東）</text>
-  <text x="165" y="24" text-anchor="middle" font-size="10">上賀茂神社</text><text x="225" y="48" text-anchor="middle" font-size="10">下鴨神社</text><text x="288" y="26" text-anchor="middle" font-size="11" ${hl('比叡山')}>比叡山</text><text x="288" y="150" text-anchor="middle" font-size="11" ${hl('清水寺')}>清水寺</text><text x="288" y="190" text-anchor="middle" font-size="10">鳥辺野</text><text x="36" y="60" text-anchor="middle" font-size="10">化野</text>
+ kyo(it){const on=n=>it.w===n||(it.w==='山'&&n==='比叡山'),hl=n=>on(n)?'font-weight="700" style="fill:var(--accent)"':'';
+  // 京の外の地名: [名前, 文字のx, y, 字の大きさ, 印のx, y]。印は位置を示す点（強調する地名だけ科目の色）
+  const P=[['上賀茂神社',150,24,10,150,34],['下鴨神社',222,46,10,222,56],['比叡山',288,26,11,288,36],['清水寺',288,150,11,264,146],['鳥辺野',288,190,10,265,186],['化野',36,60,10,36,70]];
+  return `<svg viewBox="0 0 320 270" role="img" aria-label="平安京付近の略図"><rect x="80" y="70" width="170" height="180" fill="var(--surface)" stroke="var(--fg)"/><line x1="165" y1="120" x2="165" y2="250" stroke="var(--line)" stroke-width="3"/><rect x="135" y="70" width="60" height="50" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="165" y="88" text-anchor="middle" font-size="10">大内裏</text><rect x="156" y="93" width="26" height="20" fill="var(--surface)" stroke="var(--accent)"/><text x="169" y="107" text-anchor="middle" font-size="10">内裏</text>
+  <text x="120" y="190" text-anchor="middle" font-size="13" font-weight="700">右京</text><text x="120" y="204" text-anchor="middle" font-size="10" style="fill:var(--muted)">（西）</text><text x="210" y="190" text-anchor="middle" font-size="13" font-weight="700">左京</text><text x="210" y="204" text-anchor="middle" font-size="10" style="fill:var(--muted)">（東）</text>
+  ${P.map(([n,x,y,fs,dx,dy])=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" ${hl(n)}>${n}</text><circle cx="${dx}" cy="${dy}" r="2.5" fill="${on(n)?'var(--accent)':'var(--muted)'}"/>`).join('')}
   <text x="30" y="238" text-anchor="middle" font-size="11" font-weight="700">北 ↑</text></svg><div class="cap">天皇が内裏で南を向くと東が左になるので、東半分が左京、西半分が右京。鳥辺野・化野は葬送の地。</div>`;},
  dairi(it){const B=[['紫宸殿',125,150,70,36,'紫宸殿'],['仁寿殿',135,110,50,26,''],['承香殿',135,74,50,26,'後宮'],['清涼殿',70,116,46,50,'清涼殿'],['弘徽殿',70,70,46,34,'後宮'],['飛香舎',14,80,46,30,'後宮'],['淑景舎',226,26,50,30,'後宮']];
   const key=it.w==='上の御局'||it.w==='殿上の間'?'清涼殿':it.w;
   let g=B.map(b=>{const on=b[5]===key;return `<rect x="${b[1]}" y="${b[2]}" width="${b[3]}" height="${b[4]}" rx="2" fill="${on?'var(--accent-soft)':'var(--surface)'}" stroke="${on?'var(--accent)':'var(--fg)'}" stroke-width="${on?2:1}"/><text x="${b[1]+b[3]/2}" y="${b[2]+b[4]/2+4}" text-anchor="middle" font-size="10" ${on?'font-weight="700"':''}>${b[0]}</text>`;}).join('');
-  g+=`<text x="37" y="122" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">（藤壺）</text><text x="251" y="68" text-anchor="middle" font-size="8.5" style="fill:var(--muted)">（桐壺）</text><text x="93" y="112" text-anchor="middle" font-size="7.5" style="fill:var(--muted)">北:上の御局</text><text x="93" y="176" text-anchor="middle" font-size="7.5" style="fill:var(--muted)">南:殿上の間</text><text x="118" y="204" text-anchor="middle" font-size="9">右近の橘</text><text x="204" y="204" text-anchor="middle" font-size="9">左近の桜</text><text x="160" y="16" text-anchor="middle" font-size="10" style="fill:var(--muted)">北側が後宮（天皇の妻たちの殿舎）</text><text x="276" y="214" text-anchor="middle" font-size="11" font-weight="700">北 ↑</text>`;
+  g+=`<text x="37" y="122" text-anchor="middle" font-size="9.5" style="fill:var(--muted)">（藤壺）</text><text x="251" y="68" text-anchor="middle" font-size="9.5" style="fill:var(--muted)">（桐壺）</text><text x="93" y="113" text-anchor="middle" font-size="9" style="fill:var(--muted)">北:上の御局</text><text x="93" y="177" text-anchor="middle" font-size="9" style="fill:var(--muted)">南:殿上の間</text><text x="118" y="204" text-anchor="middle" font-size="9">右近の橘</text><text x="204" y="204" text-anchor="middle" font-size="9">左近の桜</text><text x="160" y="16" text-anchor="middle" font-size="10" style="fill:var(--muted)">北側が後宮（天皇の妻たちの殿舎）</text><text x="276" y="214" text-anchor="middle" font-size="11" font-weight="700">北 ↑</text>`;
   return `<svg viewBox="0 0 300 220" role="img" aria-label="内裏の略図"><rect x="4" y="4" width="292" height="212" fill="none" stroke="var(--line)"/>${g}</svg><div class="cap">位置関係の略図。紫宸殿は正殿、清涼殿は天皇が日常住む所。</div>`;}
 };
 // 文学史: 成立年の根拠・注意点・確実性
@@ -1263,10 +1471,14 @@ function seiHtml(s){const c=CONF[s.conf]||CONF['中'];
   <div class="sei-s">根拠</div><ul>${s.basis.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
   ${s.caveat?`<div class="sei-s">注意点</div><p>${esc(s.caveat)}</p>`:''}
   ${/\?/.test(s.book||'')?`<p class="sei-b">本の年表の「${esc(s.book)}」の「?」は、成立年に諸説があることを示します。</p>`:''}</div>`;}
-function detailHtml(it){const c=SUBJ[S.subj].cls;
+// 用例の中の見出し語（空所補充で空所にする部分）を強調する。見つからない用例（「〜」「・」のある見出し語、活用形が見つからない文）はそのまま出す
+function exHtml(it,sent){const f=/^(k|b|e):/.test(it.id)?findForm(it,sent):null;return f?esc(f.pre)+'<b class="hit">'+esc(f.hit)+'</b>'+esc(f.post):esc(sent);}
+function detailHtml(it){const c=SUBJ[S.subj].cls,en=enAttr();
   const per=it.exs&&it.exs.length===it.m.length;
-  return `<ol class="means${per?' per':''}">${it.m.map((m,i)=>`<li><span>${esc(m)}${per?`<span class="ex sm"><span class="q ${c}">${esc(it.exs[i][0])}</span><span class="tr">${esc(it.exs[i][1])}</span></span>`:''}</span></li>`).join('')}</ol>
-  ${it.ex&&!per?`<div class="ex"><div class="q ${c}">${esc(it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
+  // 説明文の意味（古文常識・文学史の項目、1つだけで20字以上の意味）は、訳語と同じ太字にせず細字の本文にする。文法・和歌の短い意味は太字のまま
+  const desc=/^(j|bungaku):/.test(it.id)||(it.m.length===1&&[...it.m[0]].length>=20);
+  return `<ol class="means${per?' per':''}${desc?' desc':''}">${it.m.map((m,i)=>`<li><span>${desc?esc(m):mmHtml([m])}${per?`<span class="ex sm"><span class="q ${c}"${en}>${exHtml(it,it.exs[i][0])}</span><span class="tr">${esc(it.exs[i][1])}</span></span>`:''}</span></li>`).join('')}</ol>
+  ${it.ex&&!per?`<div class="ex"><div class="q ${c}"${en}>${exHtml(it,it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
   ${it.rd&&!it.yomi?`<div class="der"><b>読み</b>${esc(it.rd)}${it.alt&&it.alt!==it.rd?'（歴史的仮名遣い：'+esc(it.alt)+'）':''}</div>`:''}
   ${it.fig&&FIGS[it.fig]?`<div class="figbox">${FIGS[it.fig](it)}</div>`:''}
   ${it.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[it.img]?`<figure class="ill"><img src="${JOSHIKI_IMG[it.img]}" alt="${esc(it.w)}の挿絵"></figure>`:''}
@@ -1275,15 +1487,27 @@ function detailHtml(it){const c=SUBJ[S.subj].cls;
   ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(bareW(x[0]))}</span>${noteW(x[0])?`<span class="rp">${esc(noteW(x[0]))}</span>`:''}<span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
   ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}`;}
 
-function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,sk=streak();
-  // 古文330は、関連語の数を見出し語と分けて各タイルに添える
-  const rc=SUBJ[S.subj].book?countOf(BOOKREL):null,relLab=k=>rc?`<div class="lab">関連語 ${rc[k]}</div>`:'';
-  const czn=SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<span class="d" data-czn>${esc(clozeNote())}</span>`;
+// 学習ホーム。上から: 今日の行 → 進捗バーと凡例 →（一覧表への近道）→ 出題モード → 出題設定 → 一覧表 → 使い方・案内。
+// 開いてすぐ始められるよう、出題モードを設定より上に置く。並べ替えは CSS ではなく、ここの出力順で行う
+function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,sk=streak();
+  // 古文330は、関連語の数を見出し語と分けて添える（PC幅は各タイルに、スマホ幅は凡例の下の1行に）
+  const rc=sj.book?countOf(BOOKREL):null,relLab=k=>rc?`<div class="lab">関連語 ${rc[k]}</div>`:'';
+  const czn=sj.yomi||sj.noCloze?'':`<span class="c" data-czn>${clozeNote()}</span>`;
   const pct=k=>c.total?(c[k]/c.total*100):0;
-  const tagOpts=TAGS[S.subj].map(t=>`<option value="tag:${esc(t)}"${p.range==='tag:'+t?' selected':''}>${esc(tagLab(t))}</option>`).join('');
   const sel=(v)=>p.range===v?' selected':'';
+  const lvOpts=sj.fixLv?'':Object.keys(sj.lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${lvKind(S.subj)==='レベル'?'レベル'+l+': ':''}${esc(sj.lvd[l])}</option>`).join('');
+  const tagOpts=TAGS[S.subj].map(t=>`<option value="tag:${esc(t)}"${p.range==='tag:'+t?' selected':''}>${esc(tagLab(t))}</option>`).join('');
+  const tagKind=TAGS[S.subj].every(t=>TAGLAB[t])?'本の印':TAGS[S.subj].some(t=>TAGLAB[t])?'分野・本の印':'分野';
   const fresh=!Object.keys(store.prog).length;
-  return `${S.resume?resumeHtml():''}${fresh?firstHtml():''}${howtoHtml(fresh)}
+  // 直近7日の印（回答した日は塗り。右端が今日）
+  const week=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);week.push(store.days[today(d)]?'<i class="on"></i>':'<i></i>');}
+  const tables=(sj.tables||[]).filter(t=>t.html);
+  const typeY=sj.yomi||(sj.joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)));
+  // 出題モードの並び: カード／4択 語→意味／4択 意味→語／空所 4択／空所 記述／読み入力
+  const modes=[['flash','フラッシュカード',''],['quiz','4択：'+(sj.yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'),''],['quizR','4択：'+(sj.yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'),'']]
+    .concat(sj.yomi||sj.noCloze?[]:[['cloze','空所補充：4択',czn],['clozeT','空所補充：記述',czn]],typeY?[['typeY','読みを入力','']]:[]);
+  return `${S.resume?resumeHtml():''}${fresh?firstHtml()+howtoHtml(true):''}
+  <div class="today"><span>今日の回答 <b class="num">${t}</b> 問</span><span>連続学習 <b class="num">${sk}</b> 日<span class="wk" aria-hidden="true">${week.join('')}</span></span><span>${esc(sj.name)}の習得率 <b class="num">${c.total?Math.round(c.ok/c.total*100):0}%</b></span><span>学習した語 <b class="num">${c.total-c.new}</b> / ${c.total}</span></div>
   <section class="tiles">
     <div class="tile"><div class="lab">収録語数</div><div class="val num">${c.total}<small>語</small></div>${relLab('total')}</div>
     <div class="tile ok"><div class="lab">習得</div><div class="val num">${c.ok}<small>語</small></div>${relLab('ok')}</div>
@@ -1291,18 +1515,22 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
     <div class="tile"><div class="lab">未学習</div><div class="val num">${c.new}<small>語</small></div>${relLab('new')}</div>
   </section>
   <div class="bar" aria-hidden="true"><i class="ok" style="width:${pct('ok')}%"></i><i class="learning" style="width:${pct('learning')}%"></i><i class="weak" style="width:${pct('weak')}%"></i></div>
-  <div class="legend"><span class="ok">習得 ${c.ok}</span><span class="learning">学習中 ${c.learning}</span><span class="weak">苦手 ${c.weak}</span><span>未学習 ${c.new}</span></div>
-  <div class="today"><span>今日の回答 <b class="num">${t}</b> 問</span><span>連続学習 <b class="num">${sk}</b> 日</span><span>${esc(SUBJ[S.subj].name)}の習得率 <b class="num">${c.total?Math.round(c.ok/c.total*100):0}%</b></span></div>
+  <div class="legend"${rc?' style="margin-bottom:4px"':''}><span class="ok">習得 ${c.ok}</span><span class="learning">学習中 ${c.learning}</span><span class="weak">苦手 ${c.weak}</span><span>未学習 ${c.new}</span></div>
+  ${rc?`<p class="hint relsum" style="margin-bottom:14px">関連語 ${rc.total}語：習得 ${rc.ok}・学習中 ${rc.learning}・苦手 ${rc.weak}・未学習 ${rc.new}</p>`:''}
+  ${tables.length?`<button type="button" class="jump" data-jump>一覧表（${tables.length}表）</button>`:''}
+  ${S.zero?`<p class="zero" role="alert" data-zero>この条件に当てはまる語がありません。下の「出題設定」で範囲を変えてください。</p>`:''}
+  <section class="modes${modes.length%2?' odd':''}">${modes.map(([k,t,x])=>`<button class="mode" data-start="${k}"><span class="t">${t}</span><span class="d">${modeDesc(k)}</span>${x}</button>`).join('')}</section>
   <section class="panel"><h2>出題設定 <span class="sub">科目ごとに記憶されます</span></h2>
     <div class="opts">
       <div class="opt"><label for="o-range">出題範囲</label><select id="o-range" data-pref="range">
+        <optgroup label="状態">
         <option value="auto"${sel('auto')}>おまかせ（苦手・未学習を優先）</option>
         <option value="notok"${sel('notok')}>未習得のみ（苦手＋学習中＋未学習）</option>
         <option value="weak"${sel('weak')}>苦手のみ</option>
         <option value="new"${sel('new')}>未学習のみ</option>
-        ${SUBJ[S.subj].fixLv?'':Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${lvKind(S.subj)==='レベル'?'レベル'+l+': ':''}${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
-        <option value="all"${sel('all')}>すべて</option>
-        ${tagOpts}</select></div>
+        <option value="all"${sel('all')}>すべて</option></optgroup>
+        ${lvOpts?`<optgroup label="${lvKind(S.subj)}">${lvOpts}</optgroup>`:''}
+        ${tagOpts?`<optgroup label="${tagKind}">${tagOpts}</optgroup>`:''}</select></div>
       <div class="opt"><label for="o-count">問題数</label><select id="o-count" data-pref="count">
         ${['10','20','30','50','all'].map(n=>`<option value="${n}"${p.count===n?' selected':''}>${n==='all'?'全部':n+'問'}</option>`).join('')}</select></div>
       <div class="opt"><label for="o-order">出題順</label><select id="o-order" data-pref="order">
@@ -1310,21 +1538,13 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
         <option value="random"${p.order==='random'?' selected':''}>ランダム</option>
         <option value="index"${p.order==='index'?' selected':''}>収録順</option></select></div>
     </div>
-    ${SUBJ[S.subj].book?`<div class="opts" style="margin-top:12px">
+    ${sj.book?`<div class="opts">
       <div class="opt"><label for="o-from">番号（から）</label><input type="number" id="o-from" data-pref="from" min="1" max="330" inputmode="numeric" placeholder="1" value="${esc(p.from)}"></div>
       <div class="opt"><label for="o-to">番号（まで）</label><input type="number" id="o-to" data-pref="to" min="1" max="330" inputmode="numeric" placeholder="330" value="${esc(p.to)}"></div>
       <div class="opt"><label for="o-rel">関連語</label><select id="o-rel" data-pref="rel"><option value="no"${p.rel==='no'?' selected':''}>見出し語のみ</option><option value="with"${p.rel==='with'?' selected':''}>関連語も出題（${BOOKREL.length}語）</option><option value="only"${p.rel==='only'?' selected':''}>関連語だけ</option></select></div></div>`:''}
-    ${S.msg?`<p class="hint" style="color:var(--bad);margin:10px 0 0">${esc(S.msg)}</p>`:''}
   </section>
-  <section class="modes">
-    <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">${modeDesc('flash')}</span></button>
-    <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'}</span><span class="d">${modeDesc('quiz')}</span></button>
-    ${SUBJ[S.subj].yomi||(SUBJ[S.subj].joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)))?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">${modeDesc('typeY')}</span></button>`:''}
-    ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${modeDesc('cloze')}</span>${czn}</button>
-    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">${modeDesc('clozeT')}</span>${czn}</button>`}
-    <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">${modeDesc('quizR')}</span></button>
-  </section>
-  ${SUBJ[S.subj].tables?`<section class="panel"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${SUBJ[S.subj].tables.map(t=>t.html?`<details class="refd"><summary>${esc(t.title)}</summary><div class="tblwrap">${t.html}</div></details>`:'').join('')}</section>`:''}
+  ${tables.length?`<section class="panel" id="tables" tabindex="-1"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${tables.map(t=>`<details class="refd"><summary>${esc(t.title)}</summary><div class="tblwrap">${t.html}</div></details>`).join('')}</section>`:''}
+  ${fresh?'':howtoHtml(false)}
   <p class="hint kbd">キーボード操作: Space で裏返す、← まだ ／ → 覚えた、1〜4 で選択、Enter で答え合わせ・次へ。</p>
   <div class="share"><b>このページについて</b>学習記録（習得・苦手）は、この端末のブラウザの中に保存され、他の人には見えません。別の端末へは「成績」タブのバックアップで移せます。iPhone では、Safari の共有ボタンから「ホーム画面に追加」して開くと、記録が消えにくくなります。</div>`;}
 // 出題モードの説明文（科目ごと）。古文330は古文単語と同じ。無い科目・モードは古文単語の文を使う
@@ -1349,13 +1569,16 @@ const MODE_D={
 MODE_D.book=MODE_D.kobun;
 const modeDesc=mode=>{const d=MODE_D[baseOf(S.subj)]||MODE_D.kobun;return esc(d[mode]||MODE_D.kobun[mode]);};
 // アプリ内の「使い方」。記録が空のとき（初めて開いたとき）は開いて出す。一度閉じたら prefs.howto='closed' を保存し、次からは閉じて出す。
-// 同じページの中では、開け閉めした状態（S.howto）を描き直しても保つ
+// 同じページの中では、自分で開け閉めした状態（S.howto）を描き直しても保つ。
+// 開いた状態で描くと、ブラウザが描画の直後に toggle を知らせてくる。これは利用者の操作ではないので、印（data-init）を付けて読み飛ばす
+// （読み飛ばさないと、初回に閉じないまま学習したあとも「開いた」と覚えてしまい、ホームに戻っても開いたまま残る）。
+// 記録が空のときはホームの上部に、記録があるときは出題設定の下に置く
 function howtoHtml(fresh){const open=S.howto!=null?S.howto:(fresh&&store.prefs.howto!=='closed');
   const kobun=GROUPS[0].subs.filter(k=>SUBJ[k]).map(k=>SUBJ[k].name).join('・');
   const P=(h,t)=>`<p style="margin:8px 0 0"><b>${h}</b>　${t}</p>`;
-  return `<section class="panel"><details class="refd" data-howto${open?' open':''}><summary>使い方</summary><div class="hint" style="margin:0;font-size:.84rem;color:var(--fg)">
+  return `<section class="panel"><details class="refd" data-howto${open?' open data-init':''}><summary>使い方</summary><div class="hint" style="margin:0;font-size:.84rem;color:var(--fg)">
     ${P('教科と教材','上の「古文／英語」で教科を、その下のタブで教材を選びます（タブは横に送ると続きがあります）。古文は'+esc(kobun)+'、英語は英単語（全レベルとレベル別）。')}
-    ${P('出題設定','出題範囲・問題数・出題順を選んでから、下の出題モードのボタンで始めます。設定は教材ごとに記憶されます。「おまかせ」は苦手と未学習の語を優先して出します。')}
+    ${P('出題設定','出題モードのボタンを押すと始まります。出題範囲・問題数・出題順は、その下の「出題設定」で変えられます。設定は教材ごとに記憶されます。「おまかせ」は苦手と未学習の語を優先して出します。')}
     ${P('出題モード','フラッシュカードは、めくって意味を確かめ「覚えた／まだ」を自分で付けます。4択は「語 → 意味」と「意味 → 語」の両方向。空所補充は、用例の空所に入る語を選ぶ・書く形です（古文単語・古文330・英単語）。読みを入力は、漢字の読みをひらがなで答えます（読み・古文常識など）。')}
     ${P('習得と苦手','続けて2回正解すると「習得」。それまでに一度でも間違えた語は「苦手」、正解したがまだ2回続いていない語は「学習中」です。苦手の語も、続けて2回正解すると習得になります。フラッシュカードの「覚えた」は正解、「まだ」は不正解として数えます。')}
     ${P('単語帳と成績','単語帳では語を検索して一覧で見られます。語を開くと意味や用例を確かめて、「苦手に登録」「習得済みにする」「記録を消す」ができます。成績では、教材ごとの習得の割合、直近14日の回答数、苦手ワードを見られます。')}
@@ -1365,118 +1588,138 @@ function howtoHtml(fresh){const open=S.howto!=null?S.howto:(fresh&&store.prefs.h
 // 記録が空のときだけ、ホームの上部に出す一言
 const firstHtml=()=>`<section class="panel" data-first><h2>はじめに</h2><p class="hint" style="margin:0 0 12px;font-size:.86rem;color:var(--fg)">上のタブで教材を選び、まずは「フラッシュカード」で語をめくってみましょう。間違えた語は自動で「苦手」に入ります。</p><div class="row"><button class="btn acc" data-start-first>フラッシュカードで始める</button></div></section>`;
 
-function viewFlash(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length;
-  const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
-  if(!sess.flipped)return head+`<div class="card flip" data-flip tabindex="0" role="button" aria-label="めくって意味を見る">${chipsHtml(it)}${wordHtml(it)}<div class="tap">タップ<span class="kbd"> / Space </span>で意味を表示</div></div>
-    <div class="actions"><button class="btn bad" data-ans="0">まだ<small class="kbd">← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small class="kbd">→ / 2</small></button></div>`;
-  return head+`<div class="card back">${chipsHtml(it)}${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions"><button class="btn bad" data-ans="0">まだ<small class="kbd">← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small class="kbd">→ / 2</small></button></div>`;}
+// フラッシュカード。表面は「答えを見る」だけ（カードのタップでもめくれる）。「まだ／覚えた」は、めくってから同じ位置に出す
+function viewFlash(){const sess=S.session,it=sess.items[sess.i],head=progHtml(sess);
+  if(!sess.flipped)return head+`<div class="card flip" data-flip tabindex="0" role="button">${chipsHtml(it)}${wordHtml(it)}<div class="tap">タップ<span class="kbd"> / Space </span>で意味を表示</div></div>
+    <div class="actions one"><button class="btn acc" data-flip>答えを見る<small class="kbd" aria-hidden="true">Space</small></button></div>`;
+  const lock=canJudge(sess)?'':' disabled';
+  return head+`<div class="card back" tabindex="-1">${chipsHtml(it)}${wordHtml(it)}${detailHtml(it)}</div>
+    <div class="actions"><button class="btn bad" data-ans="0"${lock}>まだ<small class="kbd" aria-hidden="true">← / 1</small></button><button class="btn ok" data-ans="1"${lock}>覚えた<small class="kbd" aria-hidden="true">→ / 2</small></button></div>`;}
 
-function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,toM=sess.mode==='quiz',c=SUBJ[S.subj].cls;
+function viewQuiz(){const sess=S.session,it=sess.items[sess.i],toM=sess.mode==='quiz',c=SUBJ[S.subj].cls;
   if(!sess.choices)sess.choices=makeChoices(it,sess.mode,S.subj);
-  const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const prompt=toM?`<div class="qprompt">${SUBJ[S.subj].yomi?'この漢字の読みは？':isEn()?'この単語の意味は？':'この語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it,'',qKanji(it))}`
-    :`<div class="qprompt">${SUBJ[S.subj].yomi?'この読みの漢字は？':'この意味を表す'+SUBJ[S.subj].qw+'は？'}</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word" style="font-size:1.35rem;font-weight:700">${esc(hideWord(it).join('　／　'))}</p>`;
+    :`<div class="qprompt">${SUBJ[S.subj].yomi?'この読みの漢字は？':'この意味を表す'+SUBJ[S.subj].qw+'は？'}</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word gloss">${esc(hideWord(it).join('　／　'))}</p>`;
   const picked=sess.picked;
-  const choices=sess.choices.map((x,i)=>{let cls='choice';if(picked!==null){if(x.id===it.id)cls+=' correct';else if(i===picked)cls+=' wrong';else cls+=' dim';}
-    return `<button class="${cls}" data-pick="${i}"${picked!==null?' disabled':''}><span class="n">${i+1}</span><span class="txt ${toM?'':c}">${esc(choiceText(x,toM))}</span></button>`;}).join('');
+  // 語→意味の選択肢は、意味ごとの塊（.mm）に分け、塊の途中で折り返さないようにする（区切りの「／」は前の塊に付ける）
+  const choices=sess.choices.map((x,i)=>{const st=picked===null?'':x.id===it.id?'correct':i===picked?'wrong':'dim';
+    const inner=toM?`<span class="txt">${mmHtml(choiceM(x).tl)}</span>`:`<span class="txt ${c}"${enAttr()}>${esc(x.w)}</span>`;
+    return choiceHtml(i,st,inner);}).join('');
   let after='';
   if(picked!==null){const ok=sess.choices[picked].id===it.id;
-    after=`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}${ok?'':'　正答: '+esc(toM?it.m[0]:it.w)}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small class="kbd">Enter</small></button></div>`;}
-  return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div><div class="choices">${choices}</div>${after}`;}
+    after=`<div class="detail">${wordHtml(it)}${detailHtml(it)}</div>${bandHtml(ok,(ok?'正解':'不正解')+(ok?'':'　正答: '+esc(toM?it.m[0]:it.w)),true)}`;}
+  return progHtml(sess)+`<div class="card q" tabindex="-1">${prompt}</div><div class="choices">${choices}</div>${after}`;}
 
 function curCloze(sess){const it=sess.items[sess.i];sess.cz=sess.cz||{};
   if(it.exs){if(sess.cz[sess.i]===undefined){const ok=it.exs.map((e,j)=>findForm(it,e[0])?j:-1).filter(j=>j>=0);sess.cz[sess.i]=ok.length?ok[Math.floor(Math.random()*ok.length)]:-1;}
     const j=sess.cz[sess.i];if(j>=0)return{f:findForm(it,it.exs[j][0]),tr:it.exs[j][1],mi:j};}
   return{f:findForm(it),tr:it.tr,mi:-1};}
-function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,typed=sess.mode==='clozeT',c=SUBJ[S.subj].cls,cz=curCloze(sess),f=cz.f;
+function viewCloze(){const sess=S.session,it=sess.items[sess.i],typed=sess.mode==='clozeT',c=SUBJ[S.subj].cls,cz=curCloze(sess),f=cz.f,en=enAttr();
   if(!typed&&!sess.choices)sess.choices=makeChoices(it,sess.mode,S.subj);
-  const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const done=sess.picked!==null;const ok=done&&(typed?sess.picked===true:sess.choices[sess.picked].id===it.id);
   const bw=f.base||it.w; // 空所に入る語の終止形（併記の見出し語なら、用例に入っている1語）
-  const sent=`<p class="cloze ${c}">${esc(done?f.pre:f.mpre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(done?f.post:f.mpost)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(cz.tr)}</div>${done&&cz.mi>=0?`<div class="hint" style="margin:8px 0 0">この用例は意味${'①②③④⑤⑥'[cz.mi]}「${esc(it.m[cz.mi])}」</div>`:''}`;
-  const prompt=`<div class="qprompt">空所に入る${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${typed?`<span class="chip">${esc(bw[0])}${'・'.repeat(Math.max(0,bw.length-1))}（${bw.length}字）</span>`:''}</div>${sent}`;
+  const sent=`<p class="cloze ${c}"${en}>${esc(done?f.pre:f.mpre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(done?f.post:f.mpost)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(cz.tr)}</div>${done&&cz.mi>=0?`<div class="hint" style="margin:8px 0 0">この用例は意味${'①②③④⑤⑥'[cz.mi]}「${esc(it.m[cz.mi])}」</div>`:''}`;
+  const prompt=`<div class="qprompt">空所に入る${SUBJ[S.subj].qw}は？${typed?(isEn()?'（英字で入力）':'（ひらがなで入力）'):''}</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${typed?`<span class="chip">${esc(bw[0])}${'・'.repeat(Math.max(0,bw.length-1))}（${bw.length}字）</span>`:''}</div>${sent}`;
   let body='';
-  if(typed){body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${isEn()?'英単語を入力':'ひらがなで入力'}" lang="${isEn()?'en':'ja'}"><button class="btn acc" type="submit">答え合わせ<small class="kbd">Enter</small></button></form>`;}
-  else{body=`<div class="choices">${sess.choices.map((x,i)=>{let cls='choice';if(done){if(x.id===it.id)cls+=' correct';else if(i===sess.picked)cls+=' wrong';else cls+=' dim';}
-    return `<button class="${cls}" data-pick="${i}"${done?' disabled':''}><span class="n">${i+1}</span><span class="txt ${c}">${esc(x.w)}</span></button>`;}).join('')}</div>`;}
+  if(typed){body=done?'':typeForm(isEn()?'英単語を入力':'ひらがなで入力',isEn()?'en':'ja');}
+  else{body=`<div class="choices">${sess.choices.map((x,i)=>choiceHtml(i,!done?'':x.id===it.id?'correct':i===sess.picked?'wrong':'dim',`<span class="txt ${c}"${en}>${esc(x.w)}</span>`)).join('')}</div>`;}
   let after='';
-  if(done){after=`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}${ok?'':'　正答: '+esc(f.hit)+(f.hit.toLowerCase()!==bw.toLowerCase()?'（'+esc(bw)+'）':'')}${typed&&sess.typedAns&&!ok?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small class="kbd">Enter</small></button></div>`;}
-  return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
+  if(done){after=`<div class="detail">${wordHtml(it)}${detailHtml(it)}</div>${bandHtml(ok,(ok?'正解':'不正解')+(ok?'':'　正答: '+esc(f.hit)+(f.hit.toLowerCase()!==bw.toLowerCase()?'（'+esc(bw)+'）':''))+(typed&&sess.typedAns&&!ok?'　あなたの答え: '+esc(sess.typedAns):''),!typed)}`;}
+  return progHtml(sess)+`<div class="card q" tabindex="-1">${prompt}</div>${body}${after}`;}
+// 入力式の解答欄。スマホ幅でも入力欄と「答え合わせ」を1行に並べる（キーボードに隠れないように）
+const typeForm=(ph,lang)=>`<form class="typeform" data-submit><input type="text" id="ans" aria-label="答えを入力" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="${ph}" lang="${lang}"><button class="btn acc" type="submit">答え合わせ<small class="kbd" aria-hidden="true">Enter</small></button></form>`;
 
-function viewTypeY(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,done=sess.picked!==null,ok=sess.picked===true;
-  const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
-  const prompt=`<div class="qprompt">この漢字の読みは？（現代仮名遣いで。歴史的仮名遣いでも正解）</div>${chipsHtml(it)}${wordHtml(it)}`,more=readings(it).more;
-  const body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ひらがなで入力" lang="ja"><button class="btn acc" type="submit">答え合わせ<small class="kbd">Enter</small></button></form>`;
-  const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.rd||it.m[0])}${more.length?'（別の読み: '+esc(more.join('・'))+'）':''}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small class="kbd">Enter</small></button></div>`:'';
-  return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
+function viewTypeY(){const sess=S.session,it=sess.items[sess.i],done=sess.picked!==null,ok=sess.picked===true;
+  const prompt=`<div class="qprompt">この漢字の読みは？（ひらがなで入力。現代仮名遣いで。歴史的仮名遣いでも正解）</div>${chipsHtml(it)}${wordHtml(it)}`,more=readings(it).more;
+  const body=done?'':typeForm('ひらがなで入力','ja');
+  const after=done?`<div class="detail">${wordHtml(it)}${detailHtml(it)}</div>${bandHtml(ok,(ok?'正解':'不正解')+'　読み: '+esc(it.rd||it.m[0])+(more.length?'（別の読み: '+esc(more.join('・'))+'）':'')+(!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''),false)}`:'';
+  return progHtml(sess)+`<div class="card q" tabindex="-1">${prompt}</div>${body}${after}`;}
 
-function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(r=>r.ok).length,wrong=sess.res.filter(r=>!r.ok).map(r=>r.it),pct=n?Math.round(ok/n*100):0,c=SUBJ[S.subj].cls;
-  const r=52,circ=2*Math.PI*r;
+// 結果。主ボタン（塗り）は、誤答があれば「間違えたn語をもう一度」、全問正解なら「次のn問へ」。
+// 「次のn問へ」は、これまでの回に出た語を除いて出題する（除くと0語になるときは「同じ設定でもう一度」）
+function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(r=>r.ok).length,wrong=sess.res.filter(r=>!r.ok).map(r=>r.it),pct=n?Math.round(ok/n*100):0,c=SUBJ[S.subj].cls,en=enAttr();
+  const r=52,circ=2*Math.PI*r,nx=nextItems(sess),t=store.days[today()]||0;
   return `<section class="panel"><div class="score">
-    <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(circ*pct/100).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="24" font-weight="700" fill="var(--fg)" font-family="var(--sans)">${pct}%</text></svg>
-    <div><div class="big num">${ok} / ${n} 問</div><div class="sm">${pct===100?'全問正解。次は範囲を広げましょう。':pct>=80?'あと一歩。間違えた語を復習しましょう。':'間違えた語は「苦手」に登録されました。もう一度挑戦。'}</div></div></div>
-    <div class="row">${wrong.length?`<button class="btn acc" data-retry="wrong">間違えた ${wrong.length} 語をもう一度</button>`:''}<button class="btn" data-retry="same">同じ設定でもう一度</button><button class="btn ghost" data-quit>ホームへ</button></div></section>
-    ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 10px">今回間違えた語</h2><ul class="wlist">${wrong.map(it=>`<li><span class="w ${c}">${esc(it.w)}${it.k?`<small style="font-weight:400;color:var(--muted);margin-left:6px">${esc(it.k)}</small>`:''}</span><span class="m">${esc(it.m.join('／'))}</span></li>`).join('')}</ul>`:''}`;}
+    <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--ok)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(circ*pct/100).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="var(--fg)" font-family="var(--sans)">${pct}%</text></svg>
+    <div>${pct===100?'<span class="perfect">全問正解</span>':''}<div class="big num">${ok} / ${n} 問</div><div class="sm">${pct===100?'次は範囲を広げましょう。':pct>=80?'あと一歩。間違えた語を復習しましょう。':'間違えた語は「苦手」に登録されました。もう一度挑戦。'}</div><div class="sm num">今日 ${t} 問・連続 ${streak()} 日</div></div></div>
+    <div class="row">${wrong.length?`<button class="btn acc" data-retry="wrong">間違えた ${wrong.length} 語をもう一度</button>`:''}<button class="btn${wrong.length?'':' acc'}" data-retry="same">${nx?'次の '+nx.length+' 問へ':'同じ設定でもう一度'}</button><button class="btn text" data-quit>ホームへ</button></div></section>
+    ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 4px">今回間違えた語 <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">押すと解説が開きます</span></h2><ul class="wlist res">${wrong.map(it=>`<li><details><summary><span class="w ${c}"${en}>${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}</span><span class="m">${mmHtml(it.m)}</span></summary><div class="vdet">${detailHtml(it)}</div></details></li>`).join('')}</ul>`:''}`;}
 
 // 単語帳。検索欄（#q）は残し、絞り込み・件数・一覧（#lbody）だけを差し替える（入力のたびに検索欄を作り直すと、日本語の変換入力が壊れる）
-function viewList(){return `<input type="search" id="q" placeholder="語・意味で検索" value="${esc(S.list.q)}" autocomplete="off">
+function viewList(){return `<input type="search" id="q" aria-label="語・意味で検索" placeholder="語・意味で検索" value="${esc(S.list.q)}" autocomplete="off" enterkeyhint="search">
   <div id="lbody">${listBody()}</div>`;}
 function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase();
   let items=DATA[S.subj].filter(it=>L.st==='all'||status(it)===L.st).filter(it=>L.lv==='all'||it.lv===+L.lv);
   if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')+' '+(it.rel||[]).map(x=>x[0]+' '+x[2]).join(' ')+' '+(it.num||'')).toLowerCase().includes(q));
   const total=items.length;items=items.slice(0,L.shown);
   const chip=(k,v,lab)=>`<button class="fchip" data-f="${k}" data-v="${v}" aria-pressed="${String(L[k])===v}">${lab}</button>`;
-  return `<div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${SUBJ[S.subj].fixLv||SUBJ[S.subj].yomi?'':chip('lv','all','全'+lvKind(S.subj))+Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
+  // 絞り込みは「状態」と「レベル・章・分野」の2段に分ける。分け方が6個を超える教材（古文常識など）は選択欄にする
+  const lvs=SUBJ[S.subj].fixLv||SUBJ[S.subj].yomi?[]:Object.keys(SUBJ[S.subj].lv),kind=lvKind(S.subj);
+  const lvF=!lvs.length?'':lvs.length>6?`<select data-fsel="lv" aria-label="${kind}で絞り込み"><option data-f="lv" value="all"${L.lv==='all'?' selected':''}>全${kind}</option>${lvs.map(l=>`<option data-f="lv" value="${l}"${String(L.lv)===l?' selected':''}>${esc(SUBJ[S.subj].lv[l])}</option>`).join('')}</select>`
+    :chip('lv','all','全'+kind)+lvs.map(l=>chip('lv',l,esc(SUBJ[S.subj].lv[l]))).join('');
+  return `<div class="filters"><div class="fgrp"><span class="fl">状態</span>${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}</div>${lvF?`<div class="fgrp"><span class="fl">${kind}</span>${lvF}</div>`:''}</div>
   <div class="count num">全 ${total} 語中 ${items.length} 語を表示</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
-    return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${esc(it.m.join('／'))}</span></button>
+    return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="sr">${STATUS[st]}</span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}<span${enAttr()}>${esc(it.w)}</span>${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${mmHtml(it.m)}</span></button>
     ${open?`<div class="vdet">${detailHtml(it)}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>
   ${total>items.length?`<div class="row" style="margin-top:12px"><button class="btn" data-more>さらに表示（残り ${total-items.length} 語）</button></div>`:''}`
   :'<div class="empty">該当する語がありません</div>'}`;}
 // 単語帳の一覧だけを描き直す（単語帳を開いていなければ、画面全体を描く）
-function renderList(){const b=$('#lbody');if(b&&!S.session&&S.tab==='list')b.innerHTML=listBody();else render();}
+// 描き直したあと、押していた行・絞り込みにフォーカスを戻す（キーボードで続けて操作できるように）
+function renderList(){const b=$('#lbody');if(!(b&&!S.session&&S.tab==='list')){render();return;}
+  const a=document.activeElement,d=a&&b.contains(a)?a.dataset:null,sel=!d?'':d.open?`[data-open="${CSS.escape(d.open)}"]`:d.f?`[data-f="${d.f}"][data-v="${d.v}"]`:d.fsel?'[data-fsel]':'';
+  b.innerHTML=listBody();const n=sel&&b.querySelector(sel);if(n)try{n.focus({preventScroll:true});}catch(e){}}
 
-function viewStats(){const c=SUBJ[S.subj].cls;
-  const subjBlock=s=>{const cc=counts(s),all=DATA[s],rc=SUBJ[s].book?countOf(BOOKREL):null;const lvn=Object.keys(SUBJ[s].lv).length>1&&!Object.values(SUBJ[s].lv).some(x=>/\d/.test(x));const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
-    return `<div class="panel"><h2>${esc(SUBJ[s].name)} <span class="sub">${cc.total}語</span></h2>
-    <div class="bar"><i class="ok" style="width:${cc.ok/cc.total*100}%"></i><i class="learning" style="width:${cc.learning/cc.total*100}%"></i><i class="weak" style="width:${cc.weak/cc.total*100}%"></i></div>
-    <div class="legend" style="margin-bottom:6px"><span class="ok">習得 ${cc.ok}</span><span class="learning">学習中 ${cc.learning}</span><span class="weak">苦手 ${cc.weak}</span><span>未学習 ${cc.new}</span></div>
+// 成績。上から: 学習の記録（今日・連続・累計と直近14日）→ 選択中の教材の内訳と苦手ワード → ほかの教材（タブと同じ順に1行ずつ。押すと内訳が開く）→ データ管理（折りたたみ）
+function viewStats(){const c=SUBJ[S.subj].cls,cur=baseOf(S.subj);
+  const body=s=>{const cc=counts(s),all=DATA[s],rc=SUBJ[s].book?countOf(BOOKREL):null;const lvn=Object.keys(SUBJ[s].lv).length>1&&!Object.values(SUBJ[s].lv).some(x=>/\d/.test(x));const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
+    return `<div class="legend" style="margin-bottom:6px"><span class="ok">習得 ${cc.ok}</span><span class="learning">学習中 ${cc.learning}</span><span class="weak">苦手 ${cc.weak}</span><span>未学習 ${cc.new}</span></div>
     ${rc?`<p class="hint" style="margin:0 0 6px">関連語 ${rc.total}語：習得 ${rc.ok}・学習中 ${rc.learning}・苦手 ${rc.weak}・未学習 ${rc.new}</p>`:''}
-    ${lvs.map(l=>`<div class="lvbar"><span class="lab">${lvn?l.n+' ':''}${esc(l.lab)}</span><div class="track"><i style="width:${l.a?l.o/l.a*100:0}%"></i></div><span class="v num">${l.o}/${l.a}</span></div>`).join('')}</div>`;};
-  // 14日間の回答数
+    ${lvs.map(l=>`<div class="lvbar"><span class="lab">${lvn?l.n+' ':''}${esc(l.lab)}</span><div class="track"><i style="width:${l.a?l.o/l.a*100:0}%"></i></div><span class="v num">${l.o}/${l.a}</span></div>`).join('')}`;};
+  const barOf=cc=>`<div class="bar" aria-hidden="true"><i class="ok" style="width:${cc.ok/cc.total*100}%"></i><i class="learning" style="width:${cc.learning/cc.total*100}%"></i><i class="weak" style="width:${cc.weak/cc.total*100}%"></i></div>`;
+  const openBlock=s=>{const cc=counts(s);return `<div class="panel"><h2>${esc(SUBJ[s].name)} <span class="sub">${cc.total}語</span></h2>${barOf(cc)}${body(s)}</div>`;};
+  const lineBlock=s=>{const cc=counts(s);return `<details class="panel"><summary><h2>${esc(SUBJ[s].name)} <span class="sub">${cc.total}語</span></h2>${barOf(cc)}<span class="pc">${cc.total?Math.round(cc.ok/cc.total*100):0}%</span></summary>${body(s)}</details>`;};
+  // 14日間の回答数。スマホ幅では図の基準の幅を小さくして、文字が小さくなりすぎないようにする
   const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({k:today(d),d,n:store.days[today(d)]||0});}
-  const max=Math.max(1,...days.map(x=>x.n)),W=560,H=120,pad=22,bw=(W-pad*2)/14;
-  const bars=days.map((x,i)=>{const h=x.n/max*(H-40);const bx=pad+i*bw+3;return `<rect x="${bx.toFixed(1)}" y="${(H-24-h).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${x.n?'var(--accent)':'var(--line)'}"/>${x.n?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${(H-28-h).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.n}</text>`:''}${i%2===1?`<text x="${(bx+(bw-6)/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${x.d.getMonth()+1}/${x.d.getDate()}</text>`:''}`;}).join('');
+  const narrow=window.innerWidth<=560,max=Math.max(1,...days.map(x=>x.n)),W=narrow?340:560,H=narrow?130:120,pad=narrow?6:22,bw=(W-pad*2)/14,fs=narrow?11:10,gap=narrow?4:6;
+  const bars=days.map((x,i)=>{const h=x.n/max*(H-44);const bx=pad+i*bw+gap/2;return `<rect x="${bx.toFixed(1)}" y="${(H-24-h).toFixed(1)}" width="${(bw-gap).toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${x.n?'var(--accent-fill)':'var(--line)'}"/>${x.n?`<text x="${(bx+(bw-gap)/2).toFixed(1)}" y="${(H-28-h).toFixed(1)}" text-anchor="middle" font-size="${fs}" fill="var(--muted)">${x.n}</text>`:''}${i%2===1?`<text x="${(bx+(bw-gap)/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="${fs}" fill="var(--muted)">${x.d.getMonth()+1}/${x.d.getDate()}</text>`:''}`;}).join('');
   const isWeak=it=>status(it)==='weak',wHead=DATA[S.subj].filter(isWeak),wRel=relOf(S.subj).filter(isWeak);
   const weak=wHead.concat(wRel).map(it=>({it,r:store.prog[it.id]})).sort((a,b)=>b.r.x-a.r.x||a.r.c-b.r.c).slice(0,15);
-  const total=Object.values(store.days).reduce((a,b)=>a+b,0);
-  return `<div class="sgrid">${Object.keys(SUBJ).filter(k=>!SUBJ[k].base).map(subjBlock).join('')}</div>
-  <section class="panel"><h2>学習の記録 <span class="sub">直近14日 ／ 累計 ${total} 問 ／ 連続 ${streak()} 日</span></h2>
-    <svg class="act" viewBox="0 0 ${W} ${H}" role="img" aria-label="直近14日間の回答数"><line x1="${pad}" y1="${H-24}" x2="${W-pad}" y2="${H-24}" stroke="var(--line)"/>${bars}</svg></section>
+  const total=Object.values(store.days).reduce((a,b)=>a+b,0),t=store.days[today()]||0;
+  // 教材の並びはタブと同じ（選択中の教材だけ先頭に出す）
+  const subjs=GROUPS.flatMap(g=>g.subs.filter(k=>SUBJ[k]&&!SUBJ[k].base));
+  return `<section class="panel"><h2>学習の記録 <span class="sub">直近14日</span></h2>
+    <div class="sum3"><div><div class="lab">今日</div><div class="val num">${t}<small>問</small></div></div><div><div class="lab">連続</div><div class="val num">${streak()}<small>日</small></div></div><div><div class="lab">累計</div><div class="val num" data-total>${total}<small>問</small></div></div></div>
+    <svg class="act" viewBox="0 0 ${W} ${H}" role="img" aria-label="直近14日間の回答数"><line x1="${pad}" y1="${H-24}" x2="${W-pad}" y2="${H-24}" stroke="var(--line)"/>${bars}</svg>
+    ${days.some(x=>x.n)?'':'<p class="hint" style="margin:8px 0 0">学習すると、ここに日ごとの回答数が出ます。</p>'}</section>
+  <div class="sgrid">${openBlock(cur)}
   <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15${SUBJ[S.subj].book?`（見出し語 ${wHead.length}語・関連語 ${wRel.length}語）`:''}</span></h2>
-    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}">${esc(it.w)}</span>${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${esc(it.m.join('／'))}</span><span class="num" style="color:var(--bad);font-size:.8rem">✕${r.x}　◯${r.c}</span></li>`).join('')}</ul>
+    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}"${enAttr()}>${esc(it.w)}</span>${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${mmHtml(it.m)}</span><span class="num wn"><span class="wx">✕${r.x}</span><span class="wo">◯${r.c}</span></span></li>`).join('')}</ul>
     ${wHead.concat(wRel).some(it=>askable(it,'quiz'))?'<div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>':''}`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
-  <section class="panel"><h2>バックアップ <span class="sub">別の端末へ記録を移す</span></h2>
+  ${subjs.filter(k=>k!==cur).map(lineBlock).join('')}</div>
+  <details class="panel dm" data-dm${S.dm||S.confirm?' open':''}><summary><h2>データ管理 <span class="sub">バックアップ・記録のリセット</span></h2></summary>
+    <h3>バックアップ <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">別の端末へ記録を移す</span></h3>
     <div class="row"><button class="btn" data-export>記録をコピー</button></div>
     <p class="hint" style="margin:10px 0 6px">コピーした文字列を別の端末の下の欄に貼り付けて「復元」を押すと、記録が引き継がれます。</p>
-    <textarea id="imp" placeholder="ここに貼り付け"></textarea>
+    <textarea id="imp" aria-label="記録の貼り付け欄" placeholder="ここに貼り付け"></textarea>
     <div class="row" style="margin-top:8px"><button class="btn" data-import>復元（既存の記録と統合）</button></div>
-    <div class="msg" id="msg">${esc(S.msg)}</div></section>
-  <section class="panel"><h2 class="danger">記録のリセット</h2>
-    ${S.confirm?`<div class="confirm"><span>${esc(SUBJ[S.subj].name)}の学習記録${SUBJ[S.subj].book?'（関連語を含む）':''}をすべて消します。元に戻せません。</span><button class="btn bad" data-reset="yes" style="padding:8px 14px">消す</button><button class="btn ghost" data-reset="no" style="padding:8px 14px">やめる</button></div>`
-    :`<div class="row"><button class="btn ghost danger" data-reset="ask">${esc(SUBJ[S.subj].name)}の記録を消す</button></div>`}</section>`;}
+    <div class="msg" id="msg" role="status">${esc(S.msg)}</div>
+    <h3 class="danger">記録のリセット</h3>
+    ${S.confirm?`<div class="confirm"><span>${esc(SUBJ[S.subj].name)}の学習記録${SUBJ[S.subj].book?'（関連語を含む）':''}をすべて消します。元に戻せません。</span><button class="btn bad sm" data-reset="yes">消す</button><button class="btn ghost sm" data-reset="no">やめる</button></div>`
+    :`<div class="row"><button class="btn ghost danger" data-reset="ask">${esc(SUBJ[S.subj].name)}の記録を消す</button></div>`}</details>`;}
 
 /* ---- events ---- */
-function setSubj(k){if(k!==S.subj){S.list.q='';S.list.st='all';}S.list.shown=PAGE;S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.confirm=false;S.list.open=null;S.list.lv='all';render();}
+function setSubj(k){if(k!==S.subj){S.list.q='';S.list.st='all';}S.list.shown=PAGE;S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.zero=false;S.confirm=false;S.list.open=null;S.list.lv='all';render();}
 document.querySelector('.switch').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(!b)return;const g=b.dataset.group;const last=(store.prefs.last||{})[g];leave(()=>setSubj(last&&SUBJ[last]?last:g));});
 document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-subj]');if(!b)return;const k=b.dataset.subj;leave(()=>setSubj(k));});
-document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const tab=b.dataset.tab;leave(()=>{S.tab=tab;S.session=null;S.msg='';S.confirm=false;render();});});
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const tab=b.dataset.tab;leave(()=>{S.tab=tab;S.session=null;S.msg='';S.zero=false;S.confirm=false;render();});});
 const view=$('#view');
-view.addEventListener('change',e=>{const s=e.target.closest('[data-pref]');if(s){setPref(s.dataset.pref,s.value);document.querySelectorAll('[data-czn]').forEach(x=>{x.textContent=clozeNote();});}});
+view.addEventListener('change',e=>{const fs=e.target.closest('[data-fsel]');if(fs){S.list[fs.dataset.fsel]=fs.value;S.list.shown=PAGE;renderList();return;}
+  const s=e.target.closest('[data-pref]');if(!s)return;const prev=prefsOf().range;setPref(s.dataset.pref,s.value);
+  // 設定を変えたら、0語の案内は消す
+  S.zero=false;const z=$('[data-zero]');if(z)z.remove();
+  if(s.dataset.pref==='range'&&chapSync(prev,s.value)){const p=prefsOf(),f=$('#o-from'),t=$('#o-to');if(f)f.value=p.from;if(t)t.value=p.to;}
+  document.querySelectorAll('[data-czn]').forEach(x=>{x.innerHTML=clozeNote();});});
 // 単語帳の検索。日本語の変換中（compositionstart〜compositionend）は一覧を変えず、確定したときに反映する。
 // 確定の知らせと input の順はブラウザによって違うので、どちらが先でも確定した文字で絞り込む。変換中の印は入力欄そのものに付ける（入力欄が作り直されたら消える）
 const onSearch=q=>{if(S.list.q===q.value)return;S.list.q=q.value;S.list.shown=PAGE;renderList();};
@@ -1492,38 +1735,42 @@ view.addEventListener('click',e=>{
   if(b=h('[data-leave]')){const act=S.leave;S.leave=null;if(b.dataset.leave==='yes'&&act){S.session=null;saveSess();act();}else redraw();return;}
   if(b=h('[data-resume]')){if(b.dataset.resume==='yes')resume();else{S.resume=null;try{localStorage.removeItem(SKEY);}catch(x){}render();}return;}
   if(h('[data-more]')){S.list.shown+=PAGE;renderList();return;}
-  if(h('[data-flip]')){S.session.flipped=true;render();return;}
-  if(b=h('[data-ans]')){answer(b.dataset.ans==='1');next();return;}
+  if(h('[data-flip]')){flip();return;}
+  if(b=h('[data-ans]')){if(!canJudge(S.session))return;answer(b.dataset.ans==='1');next();return;}
+  if(h('[data-jump]')){const t=$('#tables');if(t)try{t.scrollIntoView({block:'start',behavior:'smooth'});t.focus({preventScroll:true});}catch(x){}return;}
   if(b=h('[data-pick]')){const sess=S.session;if(sess.picked!==null)return;sess.picked=+b.dataset.pick;answer(sess.choices[sess.picked].id===sess.items[sess.i].id);render();return;}
   if(h('[data-next]')){next();return;}
-  if(b=h('[data-retry]')){const sess=S.session;if(b.dataset.retry==='wrong'){start(sess.mode,shuffle(sess.res.filter(r=>!r.ok).map(r=>r.it)));}else{start(sess.mode);}return;}
-  if(b=h('[data-f]')){S.list[b.dataset.f]=b.dataset.v;S.list.shown=PAGE;renderList();return;}
+  if(b=h('[data-retry]')){const sess=S.session,seen=sess.seen.concat(sess.items.map(it=>it.id));
+    if(b.dataset.retry==='wrong'){start(sess.mode,shuffle(sess.res.filter(r=>!r.ok).map(r=>r.it)),seen);}else{const nx=nextItems(sess);if(nx)start(sess.mode,nx,seen);else start(sess.mode);}return;}
+  if((b=h('[data-f]'))&&b.dataset.v!==undefined){S.list[b.dataset.f]=b.dataset.v;S.list.shown=PAGE;renderList();return;}
   if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;renderList();return;}
   if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);renderList();}return;}
-  if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){sync();forget(DATA[S.subj].concat(relOf(S.subj)).map(it=>it.id));save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
-  if(h('[data-export]')){sync();const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
+  if(b=h('[data-reset]')){S.dm=true;if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){sync();forget(DATA[S.subj].concat(relOf(S.subj)).map(it=>it.id));save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
+  if(h('[data-export]')){S.dm=true;sync();const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();}catch(x){fallback();}return;}
   // バックアップの取り込み。形を確かめてから取り込む: 記録は {c,x,s,t} がどれも0以上の数値のものだけ（余分な欄は落とす）、
   // 日別の回答数は「年-月-日」の日付と0以上の数値の組だけ。おかしな項目は捨てて、取り込んだ件数と捨てた件数を知らせる。
   // 取り込みの優先は、2つのタブの記録を合わせるときと同じ（merge）
-  if(h('[data-import]')){const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!isObj(j)||!isObj(j.prog))throw 0;const prog={},days={};let bad=0;
+  if(h('[data-import]')){S.dm=true;const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!isObj(j)||!isObj(j.prog))throw 0;const prog={},days={};let bad=0;
       for(const id in j.prog){const r=j.prog[id];if(validRec(r))prog[id]={c:r.c,x:r.x,s:r.s,t:r.t};else bad++;}
       if(isObj(j.days)){for(const d in j.days){if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&isNum(j.days[d]))days[d]=j.days[d];else bad++;}}else if(j.days!=null)bad++;
       sync();const n=merge(migrate({v:j.v,prog,days}),true);save();S.msg=n+' 語の記録を取り込みました。'+(bad?'形の正しくない '+bad+' 件は読み飛ばしました。':'');}
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
 // 「使い方」の開け閉め（toggle は泡立たないので、捕捉の段階で受ける）。閉じたら次からは閉じて出す
-view.addEventListener('toggle',e=>{const d=e.target;if(!d.matches||!d.matches('details[data-howto]'))return;S.howto=d.open;
+view.addEventListener('toggle',e=>{const d=e.target;if(!d.matches)return;if(d.matches('details[data-dm]')){S.dm=d.open;return;}if(!d.matches('details[data-howto]'))return;
+  if(d.hasAttribute('data-init')){d.removeAttribute('data-init');if(d.open)return;}S.howto=d.open;
   if(!d.open&&store.prefs.howto!=='closed'){store.prefs.howto='closed';save();}},true);
-view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
+view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('.card[data-flip]')){e.preventDefault();flip();}});
 view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i];const ok=sess.mode==='typeY'?yomiOk(it_,v):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
 // 回答のキー操作。Ctrl・Alt・Meta を押しながらの操作（ブラウザのタブ切り替えや「戻る」）と、入力欄にいるときの操作は、回答に使わない
 document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length||S.leave)return;if(e.ctrlKey||e.altKey||e.metaKey)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
-    if(e.key===' '){e.preventDefault();if(!sess.flipped){sess.flipped=true;render();}return;}
-    if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();answer(false);next();return;}
-    if(e.key==='ArrowRight'||e.key==='2'){e.preventDefault();answer(true);next();return;}
+    if(e.key===' '){e.preventDefault();flip();return;}
+    // 「まだ／覚えた」は、めくってから（表面では受け付けない）
+    if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();if(canJudge(sess)){answer(false);next();}return;}
+    if(e.key==='ArrowRight'||e.key==='2'){e.preventDefault();if(canJudge(sess)){answer(true);next();}return;}
   }else{
     if((sess.mode==='clozeT'||sess.mode==='typeY')&&sess.picked===null)return;
     if(/^[1-4]$/.test(e.key)&&sess.picked===null&&sess.choices){const i=+e.key-1;sess.picked=i;answer(sess.choices[i].id===sess.items[sess.i].id);render();return;}

@@ -148,7 +148,7 @@ test('(e) 初めての利用者は、最初の保存から v が最新で入る�
 test('移行のあとも、回答すると記録が増えて保存される', async () => {
   const page = await H.open(browser, repo.html, JSON.stringify({ prog: { [OLD[0]]: rec(0) }, days: {}, prefs: { subj: 'yomi' } }));
   await page.click('[data-start="flash"]');
-  await page.click('[data-ans="1"]'); // 1問目を「覚えた」
+  await H.ans(page, 1); // 1問目を「覚えた」
   const s = await H.stored(page);
   assert.equal(s.v, LATEST);
   assert.deepEqual(s.prog[to(OLD[0])], rec(0));
@@ -177,6 +177,7 @@ test('保存データが壊れていても、空の記録で起動する', async
 test('(f) 古い版のバックアップを取り込むと、移行されてから入る', async () => {
   const page = await H.open(browser, repo.html, null);
   await page.click('.tabs [data-tab="stats"]');
+  await H.dm(page);
   await page.fill('#imp', JSON.stringify({ prog: { [OLD[6]]: rec(6), 'e:abandon': OTHER }, days: { '2026-10-01': 4 } }));
   await page.click('[data-import]');
   assert.match(await page.textContent('#msg'), /^2 語の記録を取り込みました/);
@@ -191,6 +192,7 @@ test('(f) 古い版のバックアップを取り込むと、移行されてか�
 test('(f) 取り込むデータの版より新しい移行だけが当たる', async () => {
   const page = await H.open(browser, swap.html, null);
   await page.click('.tabs [data-tab="stats"]');
+  await H.dm(page);
   const imp = async j => { await page.fill('#imp', JSON.stringify(j)); await page.click('[data-import]'); };
   await imp({ v: LATEST, prog: { 'e:swap-a': A }, days: {} }); // 1つ前の版の書き出し → 入れ替えが当たる
   assert.deepEqual((await H.stored(page)).prog, { 'e:swap-b': A });
@@ -202,6 +204,7 @@ test('(f) 取り込むデータの版より新しい移行だけが当たる', a
 test('(f) 書き出したバックアップに v が入り、取り込み直しても動かない', async () => {
   const page = await H.open(browser, swap.html, JSON.stringify({ prog: { 'e:swap-a': A }, days: { '2026-11-01': 1 }, prefs: {} }));
   await page.click('.tabs [data-tab="stats"]');
+  await H.dm(page);
   await page.click('[data-export]');
   const out = JSON.parse(await page.inputValue('#imp'));
   assert.equal(out.v, X);

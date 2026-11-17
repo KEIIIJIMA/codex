@@ -69,7 +69,8 @@ const stored = async page => JSON.parse(await raw(page));
 // 成績タブの科目ごとの数: { 科目名: { 習得, 学習中, 苦手, 未学習 } }
 async function statCounts(page) {
   await page.click('.tabs [data-tab="stats"]');
-  return page.$$eval('.sgrid .panel', ps => Object.fromEntries(ps.map(p => {
+  // .sgrid には、選択中の教材の苦手ワードの枠も入っている（凡例が無い）。教材の枠だけを数える
+  return page.$$eval('.sgrid .panel', ps => Object.fromEntries(ps.filter(p => p.querySelector('.legend')).map(p => {
     const name = p.querySelector('h2').firstChild.textContent.trim(), c = {};
     p.querySelectorAll('.legend span').forEach(s => { const m = s.textContent.match(/^(\S+) (\d+)$/); if (m) c[m[1]] = +m[2]; });
     return [name, c];
@@ -82,4 +83,16 @@ async function quit(page) {
   if (await page.locator('[data-leave="yes"]').count()) await page.click('[data-leave="yes"]');
 }
 
-module.exports = { ROOT, KEY, BAK, quit, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };
+// フラッシュカードで1問答える: 表面なら「答えを見る」でめくってから、「覚えた」（ok）か「まだ」を押す。
+// めくった直後は判定ボタンが押せないので、押せるようになるのを待つ（click が待つ）
+async function ans(page, ok = true) {
+  if (await page.locator('.actions [data-flip]').count()) await page.click('.actions [data-flip]');
+  await page.click(`[data-ans="${ok ? 1 : 0}"]`);
+}
+
+// 成績タブの「データ管理」（バックアップ・記録のリセット）は折りたたみの中にある。閉じていれば開く
+async function dm(page) {
+  if (await page.locator('details[data-dm]').count() && !(await page.$eval('details[data-dm]', d => d.open))) await page.click('details[data-dm] > summary');
+}
+
+module.exports = { ROOT, KEY, BAK, quit, ans, dm, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };

@@ -40,7 +40,7 @@ async function sessionIds(page, n) {
     assert.equal((await page.textContent('.prog .num')).trim(), `${i + 1} / ${n}`);
     const w = (await page.textContent('.card .word')).trim(), kEl = await page.$('.card .kanji'), k = kEl ? (await kEl.textContent()).trim() : '';
     ids.push('k:' + w + (k ? '|' + k : ''));
-    await page.click('[data-ans="1"]');
+    await H.ans(page, 1);
   }
   return ids;
 }
@@ -120,7 +120,7 @@ test('英語のレベル別タブ（基礎・標準・発展・最難関）は�
   await page.click('.tabs [data-tab="home"]');
   await page.click('[data-start="flash"]');
   const asked = [];
-  for (let i = 0; i < 10; i++) { asked.push((await page.textContent('.card .word')).trim()); await page.click('[data-ans="1"]'); }
+  for (let i = 0; i < 10; i++) { asked.push((await page.textContent('.card .word')).trim()); await H.ans(page, 1); }
   assert.deepEqual(asked, lists[3].all.slice(0, 10));
   await done(page);
 });
@@ -205,7 +205,12 @@ test('フラッシュカード: Alt+←（ブラウザの「戻る」）や Ctrl
     assert.equal(await page.locator('.card.back').count(), 0, JSON.stringify(init) + ' で裏返った');
   }
   assert.deepEqual((await H.stored(page)).prog, {}, '回答が記録された');
-  await page.keyboard.press('ArrowLeft'); // 修飾キーなしなら「まだ」
+  // めくったあとも、修飾キーつきでは記録しない
+  await page.keyboard.press(' ');
+  await page.waitForFunction(() => { const b = document.querySelector('[data-ans="0"]'); return b && !b.disabled; });
+  for (const init of [{ key: 'ArrowLeft', altKey: true }, { key: '1', ctrlKey: true }, { key: '2', metaKey: true }]) { await key(page, init); assert.equal(await at(), '1', JSON.stringify(init) + ' で次のカードへ進んだ'); }
+  assert.deepEqual((await H.stored(page)).prog, {}, '回答が記録された');
+  await page.keyboard.press('ArrowLeft'); // 修飾キーなしなら「まだ」（めくってから）
   assert.equal(await at(), '2');
   const s = await H.stored(page);
   assert.deepEqual(Object.values(s.prog).map(r => [r.c, r.x]), [[0, 1]]);
