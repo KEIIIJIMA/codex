@@ -137,7 +137,7 @@ test('学習ホーム: 出題モードが出題設定より上で、1画面目�
   }
   await page.click('.switch [data-group="kobun"]');
   await page.click('.subtabs [data-subj="kobun"]');
-  assert.deepEqual(await page.$$eval('.modes .mode', bs => bs.map(x => x.dataset.start)), ['flash', 'quiz', 'quizR', 'cloze', 'clozeT']);
+  assert.deepEqual(await page.$$eval('.modes .mode', bs => bs.map(x => x.dataset.start)), ['flash', 'quiz', 'quizR', 'cloze', 'clozeT', 'keigo', 'exm']); // 敬語の種類・用例の意味は第4段階で足した形式（基本の5つの後ろに並ぶ）
   assert.equal(await count(page, '[data-jump]'), 0);
   await page.click('.subtabs [data-subj="bunpo"]');
   assert.match(await page.innerText('[data-jump]'), /一覧表（\d+表）/);
@@ -391,7 +391,7 @@ test('2つのタブ: 片方で進行中の学習は、もう片方に「前回�
 test('保存データの prefs や days が null でも起動する', async () => {
   for (const bad of [{ prefs: null }, { days: null }, { prefs: null, days: null }, { prefs: 'x', days: [] }]) {
     const page = await H.open(browser, b.html, JSON.stringify(Object.assign({ v: LATEST, prog: { [D.kobun[0].id]: { c: 1, x: 0, s: 1, t: 1 } }, days: {}, prefs: {} }, bad)), PHONE);
-    assert.equal(await count(page, '.modes .mode'), 5, JSON.stringify(bad));
+    assert.equal(await count(page, '.modes .mode'), 7, JSON.stringify(bad)); // 基本の5つ＋敬語の種類・用例の意味
     await page.click('[data-start="flash"]');
     await H.ans(page, 1);
     const s = await H.stored(page);
