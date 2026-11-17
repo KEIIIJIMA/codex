@@ -121,6 +121,8 @@ select,input[type=text],input[type=search],textarea{width:100%;font:inherit;colo
 .word.en{font-family:var(--serif-en);font-size:clamp(2.1rem,7vw,3.1rem);font-weight:600;letter-spacing:-.01em}
 .kanji{font-family:var(--serif-ja);color:var(--muted);font-size:1.05rem;margin-top:6px}
 .tap{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:.78rem;color:var(--muted)}
+/* キーボード操作の案内（.kbd）は、タッチ操作の端末では出さない */
+@media (hover:none) and (pointer:coarse){.kbd{display:none!important}}
 .back{animation:rise .22s ease-out both}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .back .word.ja{font-size:1.6rem}.back .word.en{font-size:1.7rem}
@@ -284,7 +286,7 @@ footer.about{margin-top:36px;font-size:.78rem;color:var(--muted);text-align:cent
     <button role="tab" data-tab="stats" aria-selected="false">成績</button>
   </nav>
   <main id="view" aria-live="polite"></main>
-  <footer class="about">収録: 古文 <span id="n-kobun"></span>語 / 英単語 <span id="n-eigo"></span>語。学習記録はこの端末のブラウザにだけ保存されます。</footer>
+  <footer class="about"></footer>
 </div>
 <script>
 /*DATA*/
@@ -336,6 +338,12 @@ for(const k of ['kobun','eigo','book'])(DATA[k]||[]).forEach(it=>{if(!it.exs&&it
 DATA.kobun.sort((a,b)=>a.w.localeCompare(b.w,'ja'));
 const TAGS={};for(const s in DATA){const t=new Set();DATA[s].forEach(it=>it.tags.forEach(x=>t.add(x)));TAGS[s]=[...t];}
 const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
+// 教材の分け方（レベル・章・分野・時代…）。出題範囲・単語帳の絞り込みのラベルに使う。「レベル」の教材だけ、出題範囲に「レベル1: 」を付ける
+const LVK={kobun:'レベル',eigo:'レベル',book:'章',yomi:'分類',joshiki:'分野',bungaku:'時代',waka:'種類',bunpo:'分野'};
+const lvKind=k=>LVK[baseOf(k)]||'レベル';
+// 出題範囲の絞り込み（タグ）のラベル。本の印のタグは、意味が分かる名前にする
+const TAGLAB={'マーカー':'本でマーカーが付いている語','チェックリスト':'チェックリストの語','まとめ':'まとめの項目','作者':'作者の項目'};
+const tagLab=t=>TAGLAB[t]||('分野: '+t);
 
 /* ---- storage ---- */
 // 保存データの版 v（無ければ0）より新しい移行を番号順に当て、記録を新しいIDへ付け替える。
@@ -423,7 +431,7 @@ function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(
 // list.shown … 単語帳に出す語数（PAGE 語ずつ「さらに表示」で増やす）   leave … 学習の途中で離れようとしたときの確認（確認のあとに行う操作）
 // resume … 前回の途中のセッション（読み込み直後に「続きから」を出す）
 const PAGE=200;
-const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',leave:null,resume:null};
+const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',leave:null,resume:null,howto:null};
 const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart',rel:'no',from:'',to:''},store.prefs[S.subj]||{});
 function setPref(k,v){store.prefs[S.subj]=Object.assign(prefsOf(),{[k]:v});save();}
 
@@ -696,7 +704,7 @@ function leaveHtml(){return `<div class="confirm" role="alert" style="margin:0 0
 function resumeHtml(){const r=S.resume,n=r.items.length;
   return `<section class="panel"><h2>前回の続き <span class="sub">${esc(SUBJ[r.subj].name)}・${MODES[r.mode]}（全${n}問）</span></h2><div class="confirm" style="margin-top:0"><span>学習が途中で止まっています。</span><button class="btn acc" data-resume="yes" style="padding:8px 14px">続きから（${r.res.length+1}問目）</button><button class="btn ghost" data-resume="no" style="padding:8px 14px">やめる</button></div></section>`;}
 function wordHtml(it,cls,k=it.k){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${k?`<div class="kanji">${esc(k)}</div>`:''}`;}
-function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
+function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.filter(t=>t!==lvName(it)).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 /* ---- 古文常識の図（本の図を参考に描き直した略図） ---- */
 const FIGS={
  clock(it){const E=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'],C=160,pt=(a,r)=>[C+r*Math.sin(a*Math.PI/180),C-r*Math.cos(a*Math.PI/180)];
@@ -752,9 +760,10 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
   const rc=SUBJ[S.subj].book?countOf(BOOKREL):null,relLab=k=>rc?`<div class="lab">関連語 ${rc[k]}</div>`:'';
   const czn=SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<span class="d" data-czn>${esc(clozeNote())}</span>`;
   const pct=k=>c.total?(c[k]/c.total*100):0;
-  const tagOpts=TAGS[S.subj].map(t=>`<option value="tag:${esc(t)}"${p.range==='tag:'+t?' selected':''}>分野: ${esc(t)}</option>`).join('');
+  const tagOpts=TAGS[S.subj].map(t=>`<option value="tag:${esc(t)}"${p.range==='tag:'+t?' selected':''}>${esc(tagLab(t))}</option>`).join('');
   const sel=(v)=>p.range===v?' selected':'';
-  return `${S.resume?resumeHtml():''}
+  const fresh=!Object.keys(store.prog).length;
+  return `${S.resume?resumeHtml():''}${fresh?firstHtml():''}${howtoHtml(fresh)}
   <section class="tiles">
     <div class="tile"><div class="lab">収録語数</div><div class="val num">${c.total}<small>語</small></div>${relLab('total')}</div>
     <div class="tile ok"><div class="lab">習得</div><div class="val num">${c.ok}<small>語</small></div>${relLab('ok')}</div>
@@ -771,7 +780,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
         <option value="notok"${sel('notok')}>未習得のみ（苦手＋学習中＋未学習）</option>
         <option value="weak"${sel('weak')}>苦手のみ</option>
         <option value="new"${sel('new')}>未学習のみ</option>
-        ${SUBJ[S.subj].fixLv?'':Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${SUBJ[S.subj].book||SUBJ[S.subj].yomi||SUBJ[S.subj].joshiki?'':'レベル'+l+': '}${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
+        ${SUBJ[S.subj].fixLv?'':Object.keys(SUBJ[S.subj].lv).map(l=>`<option value="lv${l}"${sel('lv'+l)}>${lvKind(S.subj)==='レベル'?'レベル'+l+': ':''}${esc(SUBJ[S.subj].lvd[l])}</option>`).join('')}
         <option value="all"${sel('all')}>すべて</option>
         ${tagOpts}</select></div>
       <div class="opt"><label for="o-count">問題数</label><select id="o-count" data-pref="count">
@@ -788,24 +797,61 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
     ${S.msg?`<p class="hint" style="color:var(--bad);margin:10px 0 0">${esc(S.msg)}</p>`:''}
   </section>
   <section class="modes">
-    <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">語を見て意味を思い出し、めくって確認。「覚えた／まだ」を自分で判定します。</span></button>
-    <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'}</span><span class="d">読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。</span></button>
-    ${SUBJ[S.subj].yomi||(SUBJ[S.subj].joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)))?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。</span></button>`:''}
-    ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${isEn()?'例文':'用例'}の空所に入る${SUBJ[S.subj].qw}を4つから選ぶ。文脈で語を使う力を試します。</span>${czn}</button>
-    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">空所に入る${SUBJ[S.subj].qw}を自分で入力。${S.subj==='kobun'?'ひらがなで解答。':'活用形か原形のどちらでも正解。'}綴りまで定着させます。</span>${czn}</button>`}
-    <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">意味から語を引く逆方向。${S.subj==='kobun'?'和歌・文法問題の語彙力に。':'作文・空所補充の語彙力に。'}</span></button>
+    <button class="mode" data-start="flash"><span class="k">FLASHCARD</span><span class="t">フラッシュカード</span><span class="d">${modeDesc('flash')}</span></button>
+    <button class="mode" data-start="quiz"><span class="k">QUIZ A</span><span class="t">4択：${SUBJ[S.subj].yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'}</span><span class="d">${modeDesc('quiz')}</span></button>
+    ${SUBJ[S.subj].yomi||(SUBJ[S.subj].joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)))?`<button class="mode" data-start="typeY"><span class="k">TYPE</span><span class="t">読みを入力</span><span class="d">${modeDesc('typeY')}</span></button>`:''}
+    ${SUBJ[S.subj].yomi||SUBJ[S.subj].noCloze?'':`<button class="mode" data-start="cloze"><span class="k">CLOZE A</span><span class="t">空所補充：4択</span><span class="d">${modeDesc('cloze')}</span>${czn}</button>
+    <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">${modeDesc('clozeT')}</span>${czn}</button>`}
+    <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">${modeDesc('quizR')}</span></button>
   </section>
   ${SUBJ[S.subj].tables?`<section class="panel"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${SUBJ[S.subj].tables.map((t,i)=>{const im=t.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[t.img];if(!t.html&&!im)return'';
     return `<details class="refd"><summary>${esc(t.title)}</summary>${t.html?`<div class="tblwrap">${t.html}</div>`:''}${im?`<div class="tblwrap"><img class="refimg" src="${im}" alt="${esc(t.title)}（本の表）"></div><p class="cap">本の表の写真。横にスクロールして見られます。</p>`:''}</details>`;}).join('')}</section>`:''}
-  <p class="hint">キーボード操作: Space で裏返す、← まだ ／ → 覚えた、1〜4 で選択、Enter で答え合わせ・次へ。</p>
-  <div class="share"><b>${SUBJ.book?'このページについて':'共有について'}</b>${SUBJ.book?'このページは個人用です。URLを他の人に渡さないでください。':'このページのURLをそのまま友人や生徒に渡せます。'}学習記録（習得・苦手）は開いた端末のブラウザごとに保存され、他の人には見えません。別の端末へ移すときは「成績」タブのバックアップを使ってください。</div>`;}
+  <p class="hint kbd">キーボード操作: Space で裏返す、← まだ ／ → 覚えた、1〜4 で選択、Enter で答え合わせ・次へ。</p>
+  <div class="share"><b>このページについて</b>学習記録（習得・苦手）は、この端末のブラウザの中に保存され、他の人には見えません。別の端末へは「成績」タブのバックアップで移せます。iPhone では、Safari の共有ボタンから「ホーム画面に追加」して開くと、記録が消えにくくなります。</div>`;}
+// 出題モードの説明文（科目ごと）。古文330は古文単語と同じ。無い科目・モードは古文単語の文を使う
+const FLASH_D='「覚えた／まだ」を自分で判定します。';
+const MODE_D={
+  kobun:{flash:'語を見て意味を思い出し、めくって確認。'+FLASH_D,quiz:'読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。',
+    cloze:'用例の空所に入る語を4つから選ぶ。文脈で語を使う力を試します。',clozeT:'空所に入る語をひらがなで入力。活用した形でも終止形でも正解。語形まで定着させます。',
+    quizR:'意味から語を引く逆方向。和歌・文法問題の語彙力に。'},
+  eigo:{flash:'語を見て意味を思い出し、めくって確認。'+FLASH_D,quiz:'読解で問われる基本形。選んだ瞬間に正誤と用例を表示します。',
+    cloze:'例文の空所に入る単語を4つから選ぶ。文脈で語を使う力を試します。',clozeT:'空所に入る単語を自分で入力。活用形か原形のどちらでも正解。綴りまで定着させます。',
+    quizR:'意味から語を引く逆方向。作文・空所補充の語彙力に。'},
+  yomi:{flash:'漢字を見て読みを思い出し、めくって確認。'+FLASH_D,quiz:'漢字の正しい読みを4つから選ぶ。選んだ瞬間に正誤と意味を表示します。',
+    typeY:'漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。',quizR:'読みから正しい漢字を選ぶ逆方向。似た字を見分ける力に。'},
+  joshiki:{flash:'古文常識の語を見て、意味や当時の習わしを思い出し、めくって確認。'+FLASH_D,quiz:'古文常識の語の意味を4つから選ぶ。選んだ瞬間に正誤と解説を表示します。',
+    typeY:'漢字の読みをひらがなで入力します。入試と同じく現代仮名遣いで答えます。',quizR:'説明から古文常識の語を選ぶ逆方向。読解で場面をつかむ力に。'},
+  bungaku:{flash:'作品名・作者名を見て、時代・ジャンル・作者などを思い出し、めくって確認。'+FLASH_D,quiz:'作品・作者について、時代・ジャンル・作者などの説明を4つから選ぶ。選んだ瞬間に正誤と解説を表示します。',
+    typeY:'作品名・作者名の読みをひらがなで入力します。現代仮名遣いで答えます。',quizR:'説明から作品・作者を選ぶ逆方向。文学史の選択問題の形です。'},
+  waka:{flash:'枕詞・掛詞・縁語・歌枕などを見て、かかる語や意味を思い出し、めくって確認。'+FLASH_D,quiz:'枕詞がかかる語や、掛詞・縁語・歌枕・修辞の用語の意味を4つから選ぶ。選んだ瞬間に正誤と解説を表示します。',
+    typeY:'歌枕などの漢字の読みをひらがなで入力します。現代仮名遣いで答えます。',quizR:'かかる語や意味から、枕詞・掛詞などを選ぶ逆方向。和歌の修辞を見抜く力に。'},
+  bunpo:{flash:'助動詞・助詞・活用の名前を見て、意味・接続・活用を思い出し、めくって確認。'+FLASH_D,quiz:'助動詞・助詞の意味や、活用の形を4つから選ぶ。選んだ瞬間に正誤と接続・活用の解説を表示します。',
+    typeY:'漢字の読みをひらがなで入力します。現代仮名遣いで答えます。',quizR:'意味や活用の形から、助動詞・助詞などを選ぶ逆方向。文法問題の識別に。'}};
+MODE_D.book=MODE_D.kobun;
+const modeDesc=mode=>{const d=MODE_D[baseOf(S.subj)]||MODE_D.kobun;return esc(d[mode]||MODE_D.kobun[mode]);};
+// アプリ内の「使い方」。記録が空のとき（初めて開いたとき）は開いて出す。一度閉じたら prefs.howto='closed' を保存し、次からは閉じて出す。
+// 同じページの中では、開け閉めした状態（S.howto）を描き直しても保つ
+function howtoHtml(fresh){const open=S.howto!=null?S.howto:(fresh&&store.prefs.howto!=='closed');
+  const kobun=GROUPS[0].subs.filter(k=>SUBJ[k]).map(k=>SUBJ[k].name).join('・');
+  const P=(h,t)=>`<p style="margin:8px 0 0"><b>${h}</b>　${t}</p>`;
+  return `<section class="panel"><details class="refd" data-howto${open?' open':''}><summary>使い方</summary><div class="hint" style="margin:0;font-size:.84rem;color:var(--fg)">
+    ${P('教科と教材','上の「古文／英語」で教科を、その下のタブで教材を選びます（タブは横に送ると続きがあります）。古文は'+esc(kobun)+'、英語は英単語（全レベルとレベル別）。')}
+    ${P('出題設定','出題範囲・問題数・出題順を選んでから、下の出題モードのボタンで始めます。設定は教材ごとに記憶されます。「おまかせ」は苦手と未学習の語を優先して出します。')}
+    ${P('出題モード','フラッシュカードは、めくって意味を確かめ「覚えた／まだ」を自分で付けます。4択は「語 → 意味」と「意味 → 語」の両方向。空所補充は、用例の空所に入る語を選ぶ・書く形です（古文単語・古文330・英単語）。読みを入力は、漢字の読みをひらがなで答えます（読み・古文常識など）。')}
+    ${P('習得と苦手','続けて2回正解すると「習得」。それまでに一度でも間違えた語は「苦手」、正解したがまだ2回続いていない語は「学習中」です。苦手の語も、続けて2回正解すると習得になります。フラッシュカードの「覚えた」は正解、「まだ」は不正解として数えます。')}
+    ${P('単語帳と成績','単語帳では語を検索して一覧で見られます。語を開くと意味や用例を確かめて、「苦手に登録」「習得済みにする」「記録を消す」ができます。成績では、教材ごとの習得の割合、直近14日の回答数、苦手ワードを見られます。')}
+    ${P('バックアップ','学習記録はこの端末のブラウザにだけ保存されます。別の端末へ移すときや控えを取るときは、成績タブの「記録をコピー」で文字列をコピーし、別の端末の欄に貼り付けて「復元」を押します。')}
+    ${P('ホーム画面に追加','iPhone では、Safari の共有ボタンから「ホーム画面に追加」を選び、追加したアイコンから開くと、記録が消えにくくなります（Safari は、しばらく開かないページの保存データを消すことがあります）。')}
+  </div></details></section>`;}
+// 記録が空のときだけ、ホームの上部に出す一言
+const firstHtml=()=>`<section class="panel" data-first><h2>はじめに</h2><p class="hint" style="margin:0 0 12px;font-size:.86rem;color:var(--fg)">上のタブで教材を選び、まずは「フラッシュカード」で語をめくってみましょう。間違えた語は自動で「苦手」に入ります。</p><div class="row"><button class="btn acc" data-start-first>フラッシュカードで始める</button></div></section>`;
 
 function viewFlash(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length;
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
-  if(!sess.flipped)return head+`<div class="card flip" data-flip tabindex="0" role="button" aria-label="めくって意味を見る">${chipsHtml(it)}${wordHtml(it)}<div class="tap">タップ / Space で意味を表示</div></div>
-    <div class="actions"><button class="btn bad" data-ans="0">まだ<small>← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small>→ / 2</small></button></div>`;
+  if(!sess.flipped)return head+`<div class="card flip" data-flip tabindex="0" role="button" aria-label="めくって意味を見る">${chipsHtml(it)}${wordHtml(it)}<div class="tap">タップ<span class="kbd"> / Space </span>で意味を表示</div></div>
+    <div class="actions"><button class="btn bad" data-ans="0">まだ<small class="kbd">← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small class="kbd">→ / 2</small></button></div>`;
   return head+`<div class="card back">${chipsHtml(it)}${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions"><button class="btn bad" data-ans="0">まだ<small>← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small>→ / 2</small></button></div>`;}
+    <div class="actions"><button class="btn bad" data-ans="0">まだ<small class="kbd">← / 1</small></button><button class="btn ok" data-ans="1">覚えた<small class="kbd">→ / 2</small></button></div>`;}
 
 function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,toM=sess.mode==='quiz',c=SUBJ[S.subj].cls;
   if(!sess.choices)sess.choices=makeChoices(it,sess.mode,S.subj);
@@ -818,7 +864,7 @@ function viewQuiz(){const sess=S.session,it=sess.items[sess.i],n=sess.items.leng
   let after='';
   if(picked!==null){const ok=sess.choices[picked].id===it.id;
     after=`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}${ok?'':'　正答: '+esc(toM?it.m[0]:it.w)}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`;}
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small class="kbd">Enter</small></button></div>`;}
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div><div class="choices">${choices}</div>${after}`;}
 
 function curCloze(sess){const it=sess.items[sess.i];sess.cz=sess.cz||{};
@@ -833,20 +879,20 @@ function viewCloze(){const sess=S.session,it=sess.items[sess.i],n=sess.items.len
   const sent=`<p class="cloze ${c}">${esc(done?f.pre:f.mpre)}<span class="blank ${done?(ok?'ok':'ng'):''}">${done?esc(f.hit):'＿＿＿＿'}</span>${esc(done?f.post:f.mpost)}</p><div class="tr" style="color:var(--muted);margin-top:6px">${esc(cz.tr)}</div>${done&&cz.mi>=0?`<div class="hint" style="margin:8px 0 0">この用例は意味${'①②③④⑤⑥'[cz.mi]}「${esc(it.m[cz.mi])}」</div>`:''}`;
   const prompt=`<div class="qprompt">空所に入る${SUBJ[S.subj].qw}は？</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${typed?`<span class="chip">${esc(bw[0])}${'・'.repeat(Math.max(0,bw.length-1))}（${bw.length}字）</span>`:''}</div>${sent}`;
   let body='';
-  if(typed){body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${isEn()?'英単語を入力':'ひらがなで入力'}" lang="${isEn()?'en':'ja'}"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;}
+  if(typed){body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${isEn()?'英単語を入力':'ひらがなで入力'}" lang="${isEn()?'en':'ja'}"><button class="btn acc" type="submit">答え合わせ<small class="kbd">Enter</small></button></form>`;}
   else{body=`<div class="choices">${sess.choices.map((x,i)=>{let cls='choice';if(done){if(x.id===it.id)cls+=' correct';else if(i===sess.picked)cls+=' wrong';else cls+=' dim';}
     return `<button class="${cls}" data-pick="${i}"${done?' disabled':''}><span class="n">${i+1}</span><span class="txt ${c}">${esc(x.w)}</span></button>`;}).join('')}</div>`;}
   let after='';
   if(done){after=`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}${ok?'':'　正答: '+esc(f.hit)+(f.hit.toLowerCase()!==bw.toLowerCase()?'（'+esc(bw)+'）':'')}${typed&&sess.typedAns&&!ok?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`;}
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small class="kbd">Enter</small></button></div>`;}
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
 
 function viewTypeY(){const sess=S.session,it=sess.items[sess.i],n=sess.items.length,done=sess.picked!==null,ok=sess.picked===true;
   const head=`<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div><button data-quit>中断</button></div>`;
   const prompt=`<div class="qprompt">この漢字の読みは？（現代仮名遣いで。歴史的仮名遣いでも正解）</div>${chipsHtml(it)}${wordHtml(it)}`,more=readings(it).more;
-  const body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ひらがなで入力" lang="ja"><button class="btn acc" type="submit">答え合わせ<small>Enter</small></button></form>`;
+  const body=done?'':`<form class="typeform" data-submit><input type="text" id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ひらがなで入力" lang="ja"><button class="btn acc" type="submit">答え合わせ<small class="kbd">Enter</small></button></form>`;
   const after=done?`<div class="verdict ${ok?'ok':'ng'}">${ok?'正解':'不正解'}　読み: ${esc(it.rd||it.m[0])}${more.length?'（別の読み: '+esc(more.join('・'))+'）':''}${!ok&&sess.typedAns?'　あなたの答え: '+esc(sess.typedAns):''}</div><div class="detail">${wordHtml(it)}${detailHtml(it)}</div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small>Enter</small></button></div>`:'';
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn acc" data-next>次へ<small class="kbd">Enter</small></button></div>`:'';
   return head+`<div class="card" style="min-height:0;padding:22px 24px">${prompt}</div>${body}${after}`;}
 
 function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(r=>r.ok).length,wrong=sess.res.filter(r=>!r.ok).map(r=>r.it),pct=n?Math.round(ok/n*100):0,c=SUBJ[S.subj].cls;
@@ -865,7 +911,7 @@ function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase()
   if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')+' '+(it.rel||[]).map(x=>x[0]+' '+x[2]).join(' ')+' '+(it.num||'')).toLowerCase().includes(q));
   const total=items.length;items=items.slice(0,L.shown);
   const chip=(k,v,lab)=>`<button class="fchip" data-f="${k}" data-v="${v}" aria-pressed="${String(L[k])===v}">${lab}</button>`;
-  return `<div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${SUBJ[S.subj].fixLv||SUBJ[S.subj].yomi?'':chip('lv','all','全レベル')+Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
+  return `<div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${SUBJ[S.subj].fixLv||SUBJ[S.subj].yomi?'':chip('lv','all','全'+lvKind(S.subj))+Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
   <div class="count num">全 ${total} 語中 ${items.length} 語を表示</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
     return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${esc(it.m.join('／'))}</span></button>
@@ -876,12 +922,12 @@ function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase()
 function renderList(){const b=$('#lbody');if(b&&!S.session&&S.tab==='list')b.innerHTML=listBody();else render();}
 
 function viewStats(){const c=SUBJ[S.subj].cls;
-  const subjBlock=s=>{const cc=counts(s),all=DATA[s],rc=SUBJ[s].book?countOf(BOOKREL):null;const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
+  const subjBlock=s=>{const cc=counts(s),all=DATA[s],rc=SUBJ[s].book?countOf(BOOKREL):null;const lvn=Object.keys(SUBJ[s].lv).length>1&&!Object.values(SUBJ[s].lv).some(x=>/\d/.test(x));const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
     return `<div class="panel"><h2>${esc(SUBJ[s].name)} <span class="sub">${cc.total}語</span></h2>
     <div class="bar"><i class="ok" style="width:${cc.ok/cc.total*100}%"></i><i class="learning" style="width:${cc.learning/cc.total*100}%"></i><i class="weak" style="width:${cc.weak/cc.total*100}%"></i></div>
     <div class="legend" style="margin-bottom:6px"><span class="ok">習得 ${cc.ok}</span><span class="learning">学習中 ${cc.learning}</span><span class="weak">苦手 ${cc.weak}</span><span>未学習 ${cc.new}</span></div>
     ${rc?`<p class="hint" style="margin:0 0 6px">関連語 ${rc.total}語：習得 ${rc.ok}・学習中 ${rc.learning}・苦手 ${rc.weak}・未学習 ${rc.new}</p>`:''}
-    ${lvs.map(l=>`<div class="lvbar"><span class="lab">${l.n} ${esc(l.lab)}</span><div class="track"><i style="width:${l.a?l.o/l.a*100:0}%"></i></div><span class="v num">${l.o}/${l.a}</span></div>`).join('')}</div>`;};
+    ${lvs.map(l=>`<div class="lvbar"><span class="lab">${lvn?l.n+' ':''}${esc(l.lab)}</span><div class="track"><i style="width:${l.a?l.o/l.a*100:0}%"></i></div><span class="v num">${l.o}/${l.a}</span></div>`).join('')}</div>`;};
   // 14日間の回答数
   const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({k:today(d),d,n:store.days[today(d)]||0});}
   const max=Math.max(1,...days.map(x=>x.n)),W=560,H=120,pad=22,bw=(W-pad*2)/14;
@@ -921,6 +967,7 @@ view.addEventListener('input',e=>{if(e.target.id!=='q'||e.isComposing||e.target.
 view.addEventListener('click',e=>{
   const t=e.target;const h=(sel)=>t.closest(sel);let b;
   if(b=h('[data-start]')){start(b.dataset.start);return;}
+  if(h('[data-start-first]')){start('flash');return;}
   if(h('[data-start-weak]')){sync();const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
   if(h('[data-quit]')){leave(()=>{S.session=null;S.tab='home';render();});return;}
   if(b=h('[data-leave]')){const act=S.leave;S.leave=null;if(b.dataset.leave==='yes'&&act){S.session=null;saveSess();act();}else redraw();return;}
@@ -947,6 +994,9 @@ view.addEventListener('click',e=>{
       sync();const n=merge(migrate({v:j.v,prog,days}),true);save();S.msg=n+' 語の記録を取り込みました。'+(bad?'形の正しくない '+bad+' 件は読み飛ばしました。':'');}
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
+// 「使い方」の開け閉め（toggle は泡立たないので、捕捉の段階で受ける）。閉じたら次からは閉じて出す
+view.addEventListener('toggle',e=>{const d=e.target;if(!d.matches||!d.matches('details[data-howto]'))return;S.howto=d.open;
+  if(!d.open&&store.prefs.howto!=='closed'){store.prefs.howto='closed';save();}},true);
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
 view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i];const ok=sess.mode==='typeY'?yomiOk(it_,v):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
 // 回答のキー操作。Ctrl・Alt・Meta を押しながらの操作（ブラウザのタブ切り替えや「戻る」）と、入力欄にいるときの操作は、回答に使わない
@@ -965,8 +1015,8 @@ window.addEventListener('storage',e=>{if(e.key===KEY)sync();});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
 window.__tangoTest={render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
-$('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
-{if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語'+(DATA.joshiki?'／古文常識 '+DATA.joshiki.length+'語':'')+'／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
+// フッターの収録内容。教材の一覧（GROUPS）から、タブと同じ名前・順で、語数はデータから数える（英語のレベル別タブは英単語に含まれるので出さない）
+$('.about').textContent='収録: '+GROUPS.flatMap(g=>g.subs.filter(k=>SUBJ[k]&&!SUBJ[k].base)).map(k=>SUBJ[k].name+' '+DATA[k].length+'語'+(SUBJ[k].book?'（関連語 '+BOOKREL.length+'語）':'')).join('／')+'。学習記録はこの端末のブラウザにだけ保存されます。';
 if(!SUBJ[S.subj])S.subj='kobun';
 function boot(d){try{if(d&&d.S){S.subj=d.S.subj||S.subj;S.tab=d.S.tab||S.tab;if(d.S.session)S.session=d.S.session;}}catch(e){}if(!S.session)S.resume=loadSess();render();}
 try{if(window.claude&&window.claude.hot&&window.claude.hot.snapshot)window.claude.hot.snapshot(()=>({S:{subj:S.subj,tab:S.tab,session:S.session}}));}catch(e){}

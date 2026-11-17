@@ -37,9 +37,10 @@ function build(opts = {}) {
 
 // 保存データを先に入れてから、完成版を開く。
 //   stored: キー tango-drill-v1 に入れる文字列（null なら何も入れない＝初めての利用者）
+//   ctxOpts: ブラウザの文脈の設定（例: スマホを模す { viewport, hasTouch: true, isMobile: true }）
 // 戻り値の page.errors にページ内のエラーがたまる。
-async function open(browser, html, stored) {
-  const ctx = await browser.newContext();
+async function open(browser, html, stored, ctxOpts) {
+  const ctx = await browser.newContext(ctxOpts || {});
   // 「記録をコピー」は、クリップボードが使えないとき入力欄に書き出す。テストではその経路を使う
   await ctx.addInitScript(() => { try { Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }); } catch (e) {} });
   const page = await ctx.newPage();
