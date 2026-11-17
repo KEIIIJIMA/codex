@@ -337,6 +337,51 @@ test('版が上がるとき、消した印のIDも、記録と同じ対応で付
   await done(page);
 });
 
+test('版が上がるとき、2つのIDが1つにまとまっても、まとめ先に前からあった記録は消した印で消えない（取り込み・ほかのタブの保存のあとも残る）', async () => {
+  // 試験用の移行（版 X: old-a と old-b を abandon にまとめる）
+  const fold = H.build({ migrations: [...H.repoMigrations(), { v: X, map: { 'e:old-a': 'e:abandon', 'e:old-b': 'e:abandon' } }] });
+  assert.equal(fold.status, 0, fold.out);
+  const D = 1700000000000, KEEP = { c: 7, x: 2, s: 2, t: D - 1000 };
+  // old-a は消してある。abandon の記録は消していない（消した印より前の時刻）
+  const before = { v: LATEST, prog: { 'e:abandon': KEEP }, days: {}, prefs: PREFS, del: { 'e:old-a': D } };
+  const [A, B] = await pair({}, PREFS, {}, fold.html);
+  await A.evaluate(([k, v]) => localStorage.setItem(k, v), [H.KEY, JSON.stringify(before)]);
+  await A.reload(); await A.waitForSelector('#view > *');
+  await B.reload(); await B.waitForSelector('#view > *');
+  let s = await H.stored(A);
+  assert.equal(s.v, X);
+  assert.deepEqual(s.prog, { 'e:abandon': KEEP });
+  // 無関係の1語を取り込む（合わせる処理が走る）
+  assert.match(await imp(A, { prog: { 'e:zzz-other': OTHER }, days: {} }), /1 語の記録を取り込みました/);
+  s = await H.stored(A);
+  assert.deepEqual(s.prog['e:abandon'], KEEP);
+  // もう片方のページが答えて保存しても残る
+  await answer(B, 1);
+  s = await H.stored(B);
+  assert.deepEqual(s.prog['e:abandon'], KEEP);
+  await answer(A, 1);
+  assert.deepEqual((await H.stored(A)).prog['e:abandon'], KEEP);
+  await done(A, B);
+
+  // まとめ先に記録が無ければ、消した印は付け替わって残る（消した記録は戻らない）。
+  // 消したあとに付いた記録（印より新しい）が移ってきたときは、記録も印も残る
+  const R = { c: 1, x: 0, s: 1, t: D + 5 };
+  let page = await H.open(browser, fold.html, JSON.stringify({ v: LATEST, prog: {}, days: {}, prefs: PREFS, del: { 'e:old-a': D } }));
+  assert.deepEqual((await H.stored(page)).del, { 'e:abandon': D });
+  await done(page);
+  page = await H.open(browser, fold.html, JSON.stringify({ v: LATEST, prog: { 'e:old-b': R }, days: {}, prefs: PREFS, del: { 'e:old-a': D } }));
+  s = await H.stored(page);
+  assert.deepEqual(s.prog, { 'e:abandon': R });
+  assert.deepEqual(s.del, { 'e:abandon': D });
+  await done(page);
+  // 消したのに保存データに残っていた記録（印より前の時刻）は、まとめる前に捨てる（まとめ先で生き返らない。印も残る）
+  page = await H.open(browser, fold.html, JSON.stringify({ v: LATEST, prog: { 'e:old-a': KEEP }, days: {}, prefs: PREFS, del: { 'e:old-a': D } }));
+  s = await H.stored(page);
+  assert.deepEqual(s.prog, {});
+  assert.deepEqual(s.del, { 'e:abandon': D });
+  await done(page);
+});
+
 test('何も消していなければ、保存データに余分な欄は増えない', async () => {
   const page = await openWith({});
   await answer(page, 2);

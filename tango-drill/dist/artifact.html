@@ -863,11 +863,16 @@ const STATUS={new:'未学習',learning:'学習中',weak:'苦手',ok:'習得'};
 // 1つの移行は同時の付け替え（新しい prog を作ってから差し替えるので、a→b と b→a が同じ移行にあれば入れ替わる）。
 // 対応表に無いIDはそのまま。付け替え先が重なったら回答数（c＋x）の多いほうを残す。
 // 消した印（del。下の「保存データの形」）のIDも、同じ対応で付け替える。
+// ただし、印は「そのIDで消した記録」だけに効かせる。2つのIDが1つにまとまるとき、まとめ先に別のIDから来た記録（消していない記録）が
+// 残っていたら、その印は捨てる（残すと、次に合わせる処理が走ったときに、消した覚えのない記録が消える）。
+// そのために、消したのに残っていた記録（印の時刻以前）は付け替える前に捨てておく（これで、付け替えたあとに印の時刻以前の記録があれば、別のIDから来た記録だとわかる）
 function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),n=r=>r?(r.c||0)+(r.x||0):-1;let prog=j.prog||{},del=isObj(j.del)?j.del:null;
+  if(del&&MIGRATIONS.some(m=>m.v>from)){const np={};for(const id in prog)if(!(prog[id]&&del[id]>=(+prog[id].t||0)))np[id]=prog[id];prog=np;}
   for(const m of MIGRATIONS){if(m.v<=from)continue;const np={};
     for(const id in prog){const to=has(m.map,id)?m.map[id]:id;if(to===null)continue;if(!has(np,to)||n(prog[id])>n(np[to]))np[to]=prog[id];}
     prog=np;
-    if(del){const nd={};for(const id in del){const to=has(m.map,id)?m.map[id]:id;if(to!==null&&!(nd[to]>=del[id]))nd[to]=del[id];}del=nd;}}
+    if(del){const nd={};for(const id in del){const to=has(m.map,id)?m.map[id]:id;if(to!==null&&!(nd[to]>=del[id]))nd[to]=del[id];}
+      for(const id in nd)if(prog[id]&&nd[id]>=(+prog[id].t||0))delete nd[id];del=nd;}}
   j.prog=prog;if(del)j.del=del;j.v=VER;return j;}
 // 保存データの形（キー tango-drill-v1 に、全体を1つの JSON で入れる）
 //   prog  {ID:{c:正答数, x:誤答数, s:連続正解数, t:最後に答えた時刻}}     days {日付:その日の回答数}     prefs 設定     v 版（移行の番号）
