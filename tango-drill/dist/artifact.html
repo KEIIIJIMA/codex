@@ -1079,6 +1079,9 @@ function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnPropert
 // 保存データの形（キー tango-drill-v1 に、全体を1つの JSON で入れる）
 //   prog  {ID:{c:正答数, x:誤答数, s:連続正解数, t:最後に答えた時刻, g:復習の段階, d:次に出す日}}     days {日付:その日の回答数}     prefs 設定     v 版（移行の番号）
 //         g・d は後から足した欄で、無くてもよい（古い版の記録・古いバックアップ）。無い記録は、読むたびに s と t から換算する（下の sched）。保存データは書き換えない
+// 利用者が編集した意味・メモは、別のキー tango-drill-v1-edits に {v:版, edits:{…}} の形で入れる（覚えている内容では store.edits に持つ）。
+// 本体のキーと分けるのは、この欄を知らない古い版のページが本体のキーを書き直しても、編集が消えないようにするため。
+// 公開前の作業中の版は本体のキーの中に edits を入れていたので、読み込み時に別のキーへ移す（項目ごとに更新の新しいほう）。本体のキーには書かない
 //   edits {ID:{m:[意味…], n:メモ, t:更新時刻}}。利用者が書き換えた意味（m）と追記したメモ（n）。どちらか片方だけでもよい。
 //         編集を消したときは {t:時刻, del:1} を残す（2つのタブで開いているとき、もう片方の古い編集が戻らないように）。一度も編集していなければ、この欄は無い。
 //         学習記録（prog）とは別もので、「記録のリセット」では消さない。出題（選択肢・正誤の判定・空所補充）には使わず、表示だけに使う
@@ -1088,8 +1091,15 @@ const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o),isNum=v=>typeof v==='
 // 記録の形の検査: c・x・s・t がどれも0以上の数値
 const validRec=r=>isObj(r)&&isNum(r.c)&&isNum(r.x)&&isNum(r.s)&&isNum(r.t);
 // lastRaw … 最後に読んだ（または書いた）保存内容の文字列。同じなら読み直さない
-let lastRaw=null,saveWarned=false;
+let lastRaw=null,lastERaw=null,editsReady=false,saveWarned=false;
+const EKEY=KEY+'-edits';
 let store=load();
+// 別のキーの編集を読み、覚えている内容に合わせる（項目ごとに新しいほう）。古い版の内容は、IDの移行を当ててから合わせる。移行したら true
+function syncEdits(){let raw,j;try{raw=localStorage.getItem(EKEY);}catch(e){return false;}
+  if(raw==null||raw===lastERaw)return false;lastERaw=raw;
+  try{j=JSON.parse(raw);}catch(e){return false;}
+  if(!isObj(j)||!isObj(j.edits))return false;
+  const old=(+j.v||0)<VER;mergeEdits(old?migrate({v:j.v,prog:{},edits:j.edits}).edits:j.edits);return old;}
 // 読み込み。古い版の記録は、元の内容を BAK に退避してから移行し、すぐ保存する。記録が空なら v を最新にするだけ
 function load(){let raw=null,j=null;try{raw=localStorage.getItem(KEY);j=JSON.parse(raw);}catch(e){}
   if(!j||!j.prog)return{prog:{},days:{},prefs:{},v:VER};
@@ -1099,7 +1109,10 @@ function load(){let raw=null,j=null;try{raw=localStorage.getItem(KEY);j=JSON.par
   if(j.edits!==undefined&&!isObj(j.edits))delete j.edits;
   if((+j.v||0)<VER){try{if(Object.keys(j.prog).length)localStorage.setItem(BAK,raw);}catch(e){}migrate(j);put(j);}
   return j;}
-function put(o){try{const raw=JSON.stringify(o);localStorage.setItem(KEY,raw);lastRaw=raw;return true;}catch(e){warnSave();return false;}}
+// 本体のキーには edits を除いて書く。編集は別のキーに書く（内容が変わったときだけ。起動時の合わせが済むまでは書かない）
+function put(o){try{const raw=JSON.stringify(Object.assign({},o,{edits:undefined}));localStorage.setItem(KEY,raw);lastRaw=raw;
+    if(editsReady&&o===store&&isObj(o.edits)&&Object.keys(o.edits).length){const er=JSON.stringify({v:VER,edits:o.edits});if(er!==lastERaw){localStorage.setItem(EKEY,er);lastERaw=er;}}
+    return true;}catch(e){warnSave();return false;}}
 // 保存。直前に、いまの保存内容を読んで合わせる（2つのタブで開いていても、片方の記録がもう片方を上書きして消さないように）。保存できたら true
 function save(){sync();return put(store);}
 // 保存できなかったとき（容量の不足、プライベートブラウズなど）は、画面に一度だけ知らせる（閉じたあとは、もう出さない）
@@ -1110,7 +1123,7 @@ function warnSave(){if(saveWarned)return;saveWarned=true;const v=document.getEle
 // いまの保存内容を読み、覚えている内容に合わせる。記録を変える操作の前、出題を始める前、保存の直前、ほかのタブが保存したとき（storage イベント）に呼ぶ。
 // 古い版のタブが書いた内容は、移行してから合わせる。新しい版の内容なら、版を下げない。
 // 合わせるのは学習記録（prog・days・del）だけ。出題設定（prefs）は、このタブの画面に出ている内容のままにする（保存データでは、後から保存したタブの設定が残る）
-function sync(){let raw,j;try{raw=localStorage.getItem(KEY);}catch(e){return;}
+function sync(){let raw,j;if(editsReady)syncEdits();try{raw=localStorage.getItem(KEY);}catch(e){return;}
   if(raw==null||raw===lastRaw)return;lastRaw=raw;
   try{j=JSON.parse(raw);}catch(e){return;}
   if(!isObj(j)||!isObj(j.prog))return;
@@ -1157,6 +1170,8 @@ function setEdit(id,o){sync();const a=rawEdit(id),t=Math.max(Date.now(),a?a.t+1:
   if(o&&(o.m||o.n)){if(!isObj(store.edits))store.edits={};const e={t};if(o.m)e.m=o.m;if(o.n)e.n=o.n;store.edits[id]=e;}
   else if(a&&!a.del)store.edits[id]={t,del:1};
   return save();}
+// 起動時: 本体のキーに残っていた edits（作業中の版の形）と、別のキーの編集を合わせる。本体に残っていた・移行した、なら書き直す（本体からは消える）
+(function(){const legacy=store.edits;delete store.edits;mergeEdits(legacy);const old=syncEdits();editsReady=true;if(isObj(legacy)||old)put(store);})();
 // 項目 id の記録を消した時刻（消していなければ0）
 const delAt=id=>{const d=isObj(store.del)?store.del[id]:0;return isNum(d)?d:0;};
 // 記録を消す。消した印を残す
@@ -2120,7 +2135,7 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
     if((e.key==='Enter'||e.key===' ')&&sess.picked!==null){e.preventDefault();next();return;}
   }});
 // ほかのタブ（同じ保存データを使う、ほかのウィンドウ）が保存したら、その内容を取り込む。画面は描き直さない（入力中の文字や、開いた表を消さないため）。次に描くときに反映される
-window.addEventListener('storage',e=>{if(e.key===KEY)sync();});
+window.addEventListener('storage',e=>{if(e.key===KEY||e.key===EKEY)sync();});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
 window.__tangoTest={GEN,genModes,setsuOf,formQs,keigoKind,authorOf,spanOf,seiSet,familyOf,prepQs,exmIdx,posCls:it=>posCls(it),editOf,status,schedOf,todayPlan,resultSum,session:()=>S.session,render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};

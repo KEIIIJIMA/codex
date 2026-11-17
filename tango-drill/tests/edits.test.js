@@ -24,6 +24,9 @@ const SOME = { 'e:zzz-nothing': { c: 1, x: 0, s: 1, t: 1 } };
 const INDEX = { range: 'all', count: '10', order: 'index' };
 const save = (o = {}) => JSON.stringify(Object.assign({ v: LATEST, prog: SOME, days: {}, prefs: { subj: 'kobun', kobun: INDEX } }, o));
 const openWith = (o, ctx, html = b.html) => H.open(browser, html, save(o), ctx);
+const EKEY = H.KEY + '-edits';
+// 保存してある編集（別のキー tango-drill-v1-edits の edits。無ければ undefined）
+const eds = async page => { const r = await H.raw(page, EKEY); return r ? JSON.parse(r).edits : undefined; };
 const count = (page, sel) => page.locator(sel).count();
 // 表示されている意味（意味ごとの用例は除く）
 const means = (page, root = '.card.back') => page.$$eval(root + ' > .means li', ls => ls.map(l => { const c = l.cloneNode(true); c.querySelectorAll('.ex').forEach(x => x.remove()); return c.textContent.trim(); }));
@@ -53,7 +56,7 @@ test('裏面の「意味・メモを編集」: 元の意味が1行に1つ入っ�
   // キャンセルでは何も変わらない
   await page.fill('#ed-m', 'x'); await page.click('[data-ed="cancel"]');
   assert.deepEqual(await means(page), it.m);
-  assert.equal((await H.stored(page)).edits, undefined);
+  assert.equal(await eds(page), undefined);
   // 書き換え＋行の追加＋メモ（前後の空白と空行は除く）
   await edit(page, ['  自分の言葉の意味  ', '', '足した意味'], ' 語呂で覚える\n2行目 ');
   assert.deepEqual(await means(page), ['自分の言葉の意味', '足した意味']);
@@ -63,7 +66,7 @@ test('裏面の「意味・メモを編集」: 元の意味が1行に1つ入っ�
   // 元の意味は「元の意味を見る」で確かめられる
   await page.click('.orig summary');
   assert.deepEqual(await page.$$eval('.orig .means li', ls => ls.map(l => l.textContent.trim())), it.m);
-  const e = (await H.stored(page)).edits[it.id];
+  const e = (await eds(page))[it.id];
   assert.deepEqual([e.m, e.n], [['自分の言葉の意味', '足した意味'], '語呂で覚える\n2行目']);
   assert.ok(e.t > T0);
   assert.equal(await fits(page), true);
@@ -98,7 +101,7 @@ test('元に戻す（確認あり）。空にして保存しても元に戻る�
   await page.click('[data-edit]'); await page.click('[data-ed="revert"]'); await page.click('[data-ed="revert-yes"]');
   assert.deepEqual(await means(page), it.m);
   assert.equal(await count(page, '[data-edmark]') + await count(page, '[data-memo]'), 0);
-  let e = (await H.stored(page)).edits[it.id];
+  let e = (await eds(page))[it.id];
   assert.deepEqual([e.del, e.m, e.n], [1, undefined, undefined]); // 消した印（もう片方のタブに伝えるため）
   // もう一度編集して、空にして保存 → 元の表示
   await edit(page, ['二度目'], 'メモ2');
@@ -106,13 +109,13 @@ test('元に戻す（確認あり）。空にして保存しても元に戻る�
   await edit(page, [], '');
   assert.deepEqual(await means(page), it.m);
   assert.equal(await count(page, '[data-edmark]'), 0);
-  assert.equal((await H.stored(page)).edits[it.id].del, 1);
+  assert.equal((await eds(page))[it.id].del, 1);
   // 元と同じ意味のまま保存: 編集として残さない。メモだけなら、意味は元のままでメモだけ残る
   await edit(page);
   assert.equal(await count(page, '[data-edmark]'), 0);
   await edit(page, undefined, 'メモだけ');
   assert.deepEqual(await means(page), it.m);
-  e = (await H.stored(page)).edits[it.id];
+  e = (await eds(page))[it.id];
   assert.deepEqual([e.m, e.n, e.del], [undefined, 'メモだけ', undefined]);
   assert.equal(await count(page, '.orig'), 0, '意味を変えていないのに「元の意味を見る」が出ている');
   await done(page);
@@ -148,7 +151,7 @@ test('edits の無い古いデータ、形のおかしい edits でも動く（�
     await back(page);
     assert.deepEqual(await means(page), D.kobun[0].m);
     await edit(page, ['あたらしい'], '');
-    assert.deepEqual((await H.stored(page)).edits[a].m, ['あたらしい']);
+    assert.deepEqual((await eds(page))[a].m, ['あたらしい']);
     await done(page);
   }
   const page = await openWith({ edits: { [a]: { m: 'もじれつ', t: 1 }, [bb]: { m: ['よい'], t: 2 }, [c]: { m: [1, 2], n: 'x', t: 3 }, [d]: { n: 'メモ' }, zzz: null, 'k:無い語': { n: 'のこす', t: 9 } } });
@@ -208,7 +211,7 @@ test('2つのタブ: 片方の編集・取り消しが、もう片方に伝わ�
   // B: 別の語を編集して保存しても、A の編集は消えない。B の画面にも A の編集が出る
   await B.click('.tabs [data-tab="list"]');
   await B.click(`[data-open="${it2.id}"]`); await edit(B, ['Bの意味']);
-  let s = await H.stored(B);
+  let s = { edits: await eds(B) };
   assert.deepEqual([s.edits[it.id].m, s.edits[it2.id].m], [['Aの意味'], ['Bの意味']]);
   await B.click(`[data-open="${it.id}"]`);
   assert.deepEqual(await means(B, '.vdet'), ['Aの意味']);
@@ -217,7 +220,7 @@ test('2つのタブ: 片方の編集・取り消しが、もう片方に伝わ�
   await back(A);
   assert.deepEqual(await means(A), it.m);
   await H.ans(A, true); await H.quit(A); // A が保存しても、消した編集は戻らない
-  s = await H.stored(A);
+  s = { edits: await eds(A) };
   assert.equal(s.edits[it.id].del, 1);
   assert.deepEqual(s.edits[it2.id].m, ['Bの意味']);
   // 同じ語を両方で編集: 後から保存したほう
@@ -233,7 +236,7 @@ test('IDの移行: 付け替えは編集にも当てる。無くなった項目�
   const mb = H.build({ migrations: H.repoMigrations().concat([{ v: LATEST + 1, map: { 'k:むかしの見出し': to, 'k:消えた語': null, 'k:別の旧名': keep } }]) });
   assert.equal(mb.status, 0, mb.out);
   const page = await openWith({ edits: { 'k:むかしの見出し': { m: ['引き継ぐ意味'], n: 'メモ', t: 5 }, 'k:消えた語': { n: '消える', t: 6 }, 'k:別の旧名': { n: '古いほう', t: 1 }, [keep]: { n: '新しいほう', t: 2 } } }, undefined, mb.html);
-  const s = await H.stored(page);
+  const s = Object.assign(await H.stored(page), { edits: await eds(page) });
   assert.equal(s.v, LATEST + 1);
   assert.deepEqual(Object.keys(s.edits).sort(), [to, keep].sort());
   assert.deepEqual(s.edits[to], { m: ['引き継ぐ意味'], n: 'メモ', t: 5 });
@@ -256,22 +259,22 @@ test('バックアップ: 書き出しに編集が入り、別の端末に取り
   await q.click('.tabs [data-tab="stats"]'); await H.dm(q);
   await q.fill('#imp', txt); await q.click('[data-import]');
   assert.match(await q.textContent('#msg'), /編集した意味・メモ 1 件を取り込みました/);
-  assert.deepEqual((await H.stored(q)).edits[a], { m: ['控えの意味'], n: '控えのメモ', t: T0 });
+  assert.deepEqual((await eds(q))[a], { m: ['控えの意味'], n: '控えのメモ', t: T0 });
   assert.equal((await q.textContent('[data-edcount]')).trim(), '1件');
   // 古い控え（edits なし）: 編集はそのまま残る
   await q.fill('#imp', JSON.stringify({ v: LATEST, prog: { [c]: { c: 1, x: 0, s: 1, t: 5 } }, days: {} })); await q.click('[data-import]');
   assert.match(await q.textContent('#msg'), /^1 語の記録を取り込みました。$/);
-  assert.deepEqual((await H.stored(q)).edits[a].m, ['控えの意味']);
+  assert.deepEqual((await eds(q))[a].m, ['控えの意味']);
   // 形のおかしい編集は読み飛ばす
   await q.fill('#imp', JSON.stringify({ v: LATEST, prog: {}, days: {}, edits: { [bb]: { m: ['よい'], t: T0 + 5 }, [c]: { m: 'だめ', t: 1 }, x: 3 } })); await q.click('[data-import]');
   assert.match(await q.textContent('#msg'), /編集した意味・メモ 1 件を取り込みました。形の正しくない 2 件は読み飛ばしました/);
-  let s = await H.stored(q);
+  let s = { edits: await eds(q) };
   assert.deepEqual([s.edits[bb].m, s.edits[c]], [['よい'], undefined]);
   // 全部消したあとでも、控えから戻せる
   await q.click('[data-edreset="ask"]'); await q.click('[data-edreset="yes"]');
   assert.equal((await q.textContent('[data-edcount]')).trim(), '0件');
   await q.fill('#imp', txt); await q.click('[data-import]');
-  s = await H.stored(q);
+  s = { edits: await eds(q) };
   assert.deepEqual(s.edits[a].m, ['控えの意味']);
   assert.equal((await q.textContent('[data-edcount]')).trim(), '1件');
   await done(q);
@@ -282,16 +285,16 @@ test('記録のリセットでは編集は消えない。「編集した意味�
   const page = await openWith({ prog: { [a]: { c: 1, x: 0, s: 1, t: 5 } }, edits: { [a]: { m: ['のこる'], t: T0 }, [e1]: { n: 'えいご', t: T0 } } });
   await page.click('.tabs [data-tab="stats"]'); await H.dm(page);
   await page.click('[data-reset="ask"]'); await page.click('[data-reset="yes"]');
-  let s = await H.stored(page);
+  let s = Object.assign(await H.stored(page), { edits: await eds(page) });
   assert.equal(s.prog[a], undefined);
   assert.deepEqual(s.edits[a].m, ['のこる']);
   assert.equal((await page.textContent('[data-edcount]')).trim(), '2件');
   await page.click('[data-edreset="ask"]');
   assert.match(await page.textContent('.dm .confirm'), /（2件）をすべて消して/);
   await page.click('[data-edreset="no"]');
-  assert.deepEqual((await H.stored(page)).edits[a].m, ['のこる']);
+  assert.deepEqual((await eds(page))[a].m, ['のこる']);
   await page.click('[data-edreset="ask"]'); await page.click('[data-edreset="yes"]');
-  s = await H.stored(page);
+  s = { edits: await eds(page) };
   assert.deepEqual([s.edits[a].del, s.edits[e1].del], [1, 1]);
   assert.equal(await count(page, '[data-edreset]'), 0);
   await page.click('.tabs [data-tab="list"]');
@@ -307,7 +310,7 @@ test('長さの上限（意味・メモ各2000字）。単語帳の検索は利�
   await page.click('.vdet [data-edit]');
   await page.evaluate(() => { document.querySelector('#ed-m').value = 'あ'.repeat(1500) + '\n' + 'い'.repeat(1500) + '\nひとつめ'; document.querySelector('#ed-n').value = 'ん'.repeat(2500); });
   await page.click('.edbox [type="submit"]');
-  const e = (await H.stored(page)).edits[it.id];
+  const e = (await eds(page))[it.id];
   assert.ok(e.m.join('\n').length <= 2000 && e.m.length === 1 && e.n.length === 2000);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, '長い文字で横スクロールが出た');
   await page.click('.vdet [data-edit]'); await page.fill('#ed-m', 'ゆにーくな意味'); await page.fill('#ed-n', 'ごろあわせメモ'); await page.click('.edbox [type="submit"]');
@@ -343,7 +346,7 @@ test('全教材で編集できる（関連語を含む）。スマホ幅390・32
     assert.equal(await fits(page), true, k);
     await H.quit(page);
   }
-  const ids = Object.keys((await H.stored(page)).edits);
+  const ids = Object.keys(await eds(page));
   assert.equal(ids.length, subs.length);
   assert.ok(ids.some(id => id.startsWith('br:')), '関連語の編集が無い');
   await done(page);
@@ -360,4 +363,42 @@ test('全教材で編集できる（関連語を含む）。スマホ幅390・32
     await p.click('.tabs [data-tab="stats"]'); await H.dm(p); await p.click('[data-edreset="ask"]'); await chk('データ管理');
     await done(p);
   }
+});
+
+test('編集は別のキー（tango-drill-v1-edits）に保存する。edits を知らない古い版が本体のキーを上書きしても、編集は残る', async () => {
+  const it = D.kobun[0];
+  const page = await openWith({});
+  await back(page); await edit(page, ['消えない意味'], '消えないメモ'); await H.ans(page, true); await H.quit(page);
+  assert.equal((await H.stored(page)).edits, undefined, '本体のキーに edits が入っている');
+  assert.deepEqual((await eds(page))[it.id].m, ['消えない意味']);
+  // 古い版のページがすること: 本体のキーを、自分の知っている欄（prog・days・prefs・v）だけで書き直す
+  await page.evaluate(k => { const j = JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify({ prog: j.prog, days: j.days, prefs: j.prefs, v: j.v })); }, H.KEY);
+  await page.reload(); await page.waitForSelector('#view > *');
+  await back(page);
+  assert.deepEqual(await means(page), ['消えない意味']);
+  assert.match(await page.textContent('[data-memo]'), /消えないメモ/);
+  // 開いたままのページに対して、古い版が本体のキーを上書きしても（storage の知らせ・保存の前の読み直し）、編集は残る
+  await page.evaluate(k => { localStorage.setItem(k, JSON.stringify({ prog: {}, days: {}, prefs: {}, v: 0 })); }, H.KEY);
+  await H.ans(page, true); await H.quit(page);
+  assert.deepEqual((await eds(page))[it.id].m, ['消えない意味']);
+  // 本体のキーが消えても（記録が空）、編集は読める
+  await page.evaluate(k => localStorage.removeItem(k), H.KEY);
+  await page.reload(); await page.waitForSelector('#view > *');
+  await page.click('.tabs [data-tab="list"]');
+  assert.equal((await page.textContent(`[data-open="${it.id}"] .vm`)).trim(), '消えない意味');
+  await done(page);
+});
+
+test('作業中の形（本体のキーの中の edits）は、読み込み時に別のキーへ移す（項目ごとに新しいほう）。本体側からは消す', async () => {
+  const [a, bb, c] = D.kobun.slice(0, 3).map(x => x.id);
+  const page = await H.open(browser, b.html, null);
+  await page.evaluate(([k, ek, v, ev]) => { localStorage.setItem(k, v); localStorage.setItem(ek, ev); }, [H.KEY, EKEY,
+    save({ edits: { [a]: { m: ['本体・古い'], t: 5 }, [bb]: { m: ['本体・新しい'], t: 9 }, [c]: { n: '本体だけ', t: 1 } } }),
+    JSON.stringify({ v: LATEST, edits: { [a]: { m: ['別キー・新しい'], t: 7 }, [bb]: { t: 8, del: 1 } } })]);
+  await page.reload(); await page.waitForSelector('#view > *');
+  assert.equal((await H.stored(page)).edits, undefined);
+  const e = await eds(page);
+  assert.deepEqual([e[a].m, e[bb].m, e[c].n], [['別キー・新しい'], ['本体・新しい'], '本体だけ']);
+  assert.deepEqual((await H.stored(page)).prog, SOME); // 学習記録はそのまま
+  await done(page);
 });
