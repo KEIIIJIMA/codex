@@ -142,7 +142,8 @@ test('学習ホーム: 出題モードが出題設定より上で、1画面目�
   await page.click('.subtabs [data-subj="bunpo"]');
   assert.match(await page.innerText('[data-jump]'), /一覧表（\d+表）/);
   await page.click('[data-jump]');
-  await page.waitForFunction(() => { const r = document.querySelector('#tables').getBoundingClientRect(); return r.top >= 0 && r.top < window.innerHeight / 2; });
+  // 一覧表の枠が、固定ヘッダーのすぐ下に来る（ヘッダーに隠れない）
+  await page.waitForFunction(() => { const r = document.querySelector('#tables').getBoundingClientRect(), h = document.querySelector('.top').getBoundingClientRect().bottom; return r.top >= h && r.top < window.innerHeight / 2; });
   await done(page);
 });
 
