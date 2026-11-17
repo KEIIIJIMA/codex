@@ -53,7 +53,8 @@ test('全項目で問題を作る: 正答は1つ、選択肢は3つ以上で重�
         if (ok.length !== 1 || ok[0].t !== q.ans) E('正答が1つでない');
         if (new Set(ts).size !== ts.length || ts.some(t => !t || !String(t).trim())) E('選択肢が重なる・空');
         if (ts.length < 3 || ts.length > 4) E('選択肢の数');
-        if (mode === 'gSetsu') { const parts = s => s.split(/[・／]/); if (ds.some(d => d.includes('文末') || parts(d).some(x => parts(q.ans).some(y => x.includes(y) || y.includes(x))))) E('正答と重なる接続'); if (/に接続|[然用止体]形接続/.test(q.html)) E('設問に接続が出ている'); }
+        if (mode === 'gSetsu') { const parts = s => s.split(/[・／]/); if (ds.some(d => d.includes('文末') || parts(d).some(x => parts(q.ans).some(y => x.includes(y) || y.includes(x))))) E('正答と重なる接続'); if (/に接続|[然用止体]形接続/.test(q.html)) E('設問に接続が出ている');
+          const ctx = (it.note || '') + it.m.join(''); if (ds.some(d => parts(d).some(p => ctx.includes(p)))) E('注に出てくる形が誤答（き＝未然形にも付く、べし＝ラ変型には連体形）'); }
         if (mode === 'gKatsu') { const a = atoms(q.ans); if (ts.includes('○') || ds.some(d => atoms(d).some(x => a.includes(x)))) E('同じ形を含む誤答'); }
         if (mode === 'keigo' && ts.join() !== '尊敬語,謙譲語,丁寧語') E('3つの種類でない');
         if (mode === 'author') { const ps = q.ans.split('・'); if (ds.some(d => d.split('・').some(p => ps.includes(p)) || /[?？ら撰]$|未詳/.test(d)) || /[?？]|未詳/.test(q.ans)) E('作者が紛れる'); }
@@ -314,4 +315,29 @@ test('スマホ幅390・320、ライト・ダーク: 新しい形式の出題と
       await done(page);
     }
   }
+});
+
+test('設定「解答前の漢字・分野」: 隠すと、フラッシュカードの表面と4択（語→意味）の設問に漢字表記と分野のタグを出さない（解答後は出す）。既定は出す', async () => {
+  const page = await openAt('kobun', undefined, { kobun: { range: 'tag:敬語', count: '10', order: 'index' } });
+  const front = async () => ({ k: await count(page, '.card .kanji'), tags: (await texts(page, '.card .chip')).includes('敬語') });
+  await page.click('[data-start="flash"]');
+  assert.deepEqual(await front(), { k: 1, tags: true }); // 既定（収録順の先頭の敬語は「うけたまはる（承る）」）
+  await H.quit(page);
+  await page.selectOption('#o-hidek', 'yes');
+  assert.equal((await H.stored(page)).prefs.hideK, 'yes');
+  await page.click('[data-start="flash"]');
+  assert.deepEqual(await front(), { k: 0, tags: false });
+  assert.ok((await texts(page, '.card .chip')).length >= 2, '品詞・レベルまで消えた');
+  await page.click('.actions [data-flip]');
+  assert.deepEqual(await front(), { k: 1, tags: true }); // 裏面には出す
+  await H.quit(page);
+  await page.click('[data-start="quiz"]');
+  assert.deepEqual(await front(), { k: 0, tags: false });
+  await H.pick(page, true);
+  assert.equal(await count(page, '.card.q .kanji'), 1); // 解答後は設問にも出す
+  await H.quit(page);
+  // 英語の教材には、この設定を出さない
+  await page.click('.switch [data-group="eigo"]');
+  assert.equal(await count(page, '#o-hidek'), 0);
+  await done(page);
 });

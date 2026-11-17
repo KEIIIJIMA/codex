@@ -1503,7 +1503,8 @@ const noPar=s=>{let p;do{p=s;s=s.replace(GPAR,'');}while(s!==p);return s;}; // �
 const useLab=it=>it.m.map(m=>noPar(m.replace(/※[^（(]*/g,'')).trim()).filter(Boolean).slice(0,6).join('・');
 // 文法「何に付くか」: 接続欄（k＝「未然形に接続」）から。意味ごとに接続が違う語（「／」で併記）と、接続欄の無い語は対象外。
 // 誤答は、ほかの語の接続のうち、正答と重なる部分の無いもの（「未然形」に対する「サ変の未然形・四段の已然形」「未然形／已然形」は出さない）。
-// 「文末」は誤答に使わない（文末に置く語は、活用形の言い方でも説明できてしまうため）。正答が「文末」のときは「終止形」を誤答にしない
+// 「文末」は誤答に使わない（文末に置く語は、活用形の言い方でも説明できてしまうため）。正答が「文末」のときは「終止形」を誤答にしない。
+// その語の注や意味に出てくる形も誤答にしない（「き」の注「カ変・サ変には未然形にも付く」、終止形接続の語の注「ラ変型活用語の場合は連体形」）
 const setsuOf=memo(it=>{if(!it.id.startsWith('bunpo:'))return null;const m=/^(.+)に接続$/.exec(it.k||'');return m&&!m[1].includes('／')?m[1]:null;});
 const setsuClash=(a,b)=>a.split(/[・／]/).some(x=>b.split(/[・／]/).some(y=>x.includes(y)||y.includes(x)));
 // 文法「活用形」: 助動詞は注の「活用（未然／連用／終止／連体／已然／命令）: …。」、活用の項目は意味の1つ目が6つの形の並びのもの。
@@ -1567,7 +1568,8 @@ const prepQs=memo(it=>{const qs=[];if(!it.id.startsWith('e:'))return qs;const he
   return qs;});
 const GEN={
   gSetsu:{name:'文法：何形に付くか',d:'助動詞・助詞が何に付くか（接続）を選ぶ。',subj:['bunpo'],ok:it=>!!setsuOf(it),
-    make(it,subj){const a=setsuOf(it),all=[...new Set(DATA[subj].map(setsuOf).filter(Boolean))],ds=sample(all.filter(x=>x!==a&&!setsuClash(x,a)&&!x.includes('文末')&&!(a.includes('文末')&&x.includes('終止形'))),3);
+    make(it,subj){const a=setsuOf(it),all=[...new Set(DATA[subj].map(setsuOf).filter(Boolean))],ctx=(it.note||'')+it.m.join(''),
+        ds=sample(all.filter(x=>x!==a&&!setsuClash(x,a)&&!x.includes('文末')&&!(a.includes('文末')&&x.includes('終止形'))&&!x.split(/[・／]/).some(p=>ctx.includes(p))),3);
       return{html:qHead('この語は、何に付く？（接続）',it)+`<p class="word ja">${esc(it.w)}</p><div class="kanji">${esc(useLab(it))}</div>`,opts:shuffle([{t:a,ok:true}].concat(ds.map(t=>({t})))),ans:a};}},
   gKatsu:{name:'文法：活用形',d:'助動詞や活用の種類の「連体形は？」などを選ぶ。',subj:['bunpo'],ok:it=>formQs(it).length>0,
     make(it){const q=sample(formQs(it),1)[0];
@@ -1676,7 +1678,10 @@ const mmHtml=ms=>ms.map((m,j)=>{const ps=String(m).split('・');return `<span cl
 // 選択肢の番号。解答後は、正答を「✓」、選んだ誤答を「✕」に替え、読み上げ用の文字を添える
 function choiceHtml(i,state,inner){const mark=state==='correct'?'✓':state==='wrong'?'✕':i+1,sr=state==='correct'?'<span class="sr">正答</span>':state==='wrong'?'<span class="sr">あなたの答え</span>':'';
   return `<button class="choice${state?' '+state:''}" data-pick="${i}"${state?' disabled':''}><span class="n">${mark}</span>${inner}${sr}</button>`;}
-function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.filter(t=>t!==lvName(it)).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
+// noTags … 分野のタグ（心情・敬語など）を出さない（設定「解答前の漢字・分野」が「隠す」のときの、解答前の表示）
+function chipsHtml(it,noTags){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${noTags?'':it.tags.filter(t=>t!==lvName(it)).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
+// 設定「解答前の漢字・分野」: 隠す（hideK='yes'）なら、フラッシュカードの表面と 4択（語→意味）の設問に、漢字表記と分野のタグを出さない（解答後・裏面には出す）。全教材で共通。既定は出す
+const hideK=()=>store.prefs.hideK==='yes';
 /* ---- 古文常識の図（本の図を参考に描き直した略図） ---- */
 const FIGS={
  clock(it){const E=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'],C=160,pt=(a,r)=>[C+r*Math.sin(a*Math.PI/180),C-r*Math.cos(a*Math.PI/180)];
@@ -1832,6 +1837,7 @@ function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.d
     <div class="opts two">
       <div class="opt"><label for="o-tmode">「今日の学習」の形式</label><select id="o-tmode" data-pref="tmode">${modes.map(([k,t])=>`<option value="${k}"${k===tm?' selected':''}>${t}</option>`).join('')}</select></div>
       <div class="opt"><label for="o-goal">1日の目標（全教材で共通）</label><select id="o-goal" data-gpref="goal">${GOALS.map(n=>`<option value="${n}"${n===g?' selected':''}>${n}問</option>`).join('')}</select></div>
+      ${isEn()?'':`<div class="opt"><label for="o-hidek">解答前の漢字・分野（全教材で共通）</label><select id="o-hidek" data-gpref="hideK"><option value="no"${hideK()?'':' selected'}>出す</option><option value="yes"${hideK()?' selected':''}>隠す（かなの見出しだけで答える）</option></select></div>`}
       ${isEn()?`<div class="opt"><label for="o-tr">空所補充の和訳</label><select id="o-tr" data-gpref="trAfter"><option value="no"${store.prefs.trAfter==='yes'?'':' selected'}>解答前から出す</option><option value="yes"${store.prefs.trAfter==='yes'?' selected':''}>解答後に出す（和訳に頼らず解く）</option></select></div>`:''}</div>
   </section>
   ${tables.length?`<section class="panel" id="tables" tabindex="-1"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${tables.map(t=>`<details class="refd"><summary>${esc(t.title)}</summary><div class="tblwrap">${t.html}</div></details>`).join('')}</section>`:''}
@@ -1882,7 +1888,7 @@ const firstHtml=()=>`<section class="panel" data-first><h2>はじめに</h2><p c
 
 // フラッシュカード。表面は「答えを見る」だけ（カードのタップでもめくれる）。「まだ／覚えた」は、めくってから同じ位置に出す
 function viewFlash(){const sess=S.session,it=sess.items[sess.i],head=progHtml(sess);
-  if(!sess.flipped)return head+`<div class="card flip" data-flip tabindex="0" role="button">${chipsHtml(it)}${wordHtml(it)}<div class="tap">タップ<span class="kbd"> / Space </span>で意味を表示</div></div>
+  if(!sess.flipped)return head+`<div class="card flip" data-flip tabindex="0" role="button">${chipsHtml(it,hideK())}${wordHtml(it,'',hideK()?'':it.k)}<div class="tap">タップ<span class="kbd"> / Space </span>で意味を表示</div></div>
     <div class="actions one"><button class="btn acc" data-flip>答えを見る<small class="kbd" aria-hidden="true">Space</small></button></div>`;
   const lock=canJudge(sess)?'':' disabled';
   return head+`<div class="card back" tabindex="-1">${chipsHtml(it)}${wordHtml(it)}${detailHtml(it)}</div>
@@ -1890,7 +1896,7 @@ function viewFlash(){const sess=S.session,it=sess.items[sess.i],head=progHtml(se
 
 function viewQuiz(){const sess=S.session,it=sess.items[sess.i],toM=sess.mode==='quiz',c=SUBJ[S.subj].cls;
   if(!sess.choices)sess.choices=makeChoices(it,sess.mode,S.subj);
-  const prompt=toM?`<div class="qprompt">${SUBJ[S.subj].yomi?'この漢字の読みは？':isEn()?'この単語の意味は？':'この語の意味は？'}</div>${chipsHtml(it)}${wordHtml(it,'',qKanji(it))}`
+  const prompt=toM?`<div class="qprompt">${SUBJ[S.subj].yomi?'この漢字の読みは？':isEn()?'この単語の意味は？':'この語の意味は？'}</div>${chipsHtml(it,hideK()&&sess.picked===null)}${wordHtml(it,'',hideK()&&sess.picked===null?'':qKanji(it))}`
     :`<div class="qprompt">${SUBJ[S.subj].yomi?'この読みの漢字は？':'この意味を表す'+SUBJ[S.subj].qw+'は？'}</div><div class="chips"><span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span></div><p class="word gloss">${esc(hideWord(it).join('　／　'))}</p>`;
   const picked=sess.picked;
   // 語→意味の選択肢は、意味ごとの塊（.mm）に分け、塊の途中で折り返さないようにする（区切りの「／」は前の塊に付ける）
