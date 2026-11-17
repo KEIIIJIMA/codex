@@ -95,4 +95,25 @@ async function dm(page) {
   if (await page.locator('details[data-dm]').count() && !(await page.$eval('details[data-dm]', d => d.open))) await page.click('details[data-dm] > summary');
 }
 
-module.exports = { ROOT, KEY, BAK, quit, ans, dm, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };
+// 端末の日付を days 日ずらす（今の時刻からの差。負なら過去）。ページの Date を差し替える。再読み込みのあとも同じずれで始まる。
+// 復習の間隔（日をあけると出る・同じ日は段階が上がらない）のテストに使う
+async function clock(page, days) {
+  const set = ms => {
+    const R = window.__RealDate || (window.__RealDate = Date);
+    window.__dateOff = ms;
+    if (window.Date === R) window.Date = class extends R { constructor(...a) { if (a.length) super(...a); else super(R.now() + window.__dateOff); } static now() { return R.now() + window.__dateOff; } };
+  };
+  await page.context().addInitScript(set, days * 864e5);
+  await page.evaluate(set, days * 864e5);
+}
+// 端末のローカル日付（'YYYY-MM-DD'）。days 日後
+function ymd(days = 0) { const d = new Date(Date.now() + days * 864e5); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+// 4択で1問答える: 正答（ok）か、正答でない選択肢を押す（「次へ」は押さない）。
+// 間違えた語は同じセットにもう一度出て問題数が増えるので、正誤を問わないテストは正答を押して進める
+async function pick(page, ok = true) {
+  const i = await page.evaluate(want => { const s = window.__tangoTest.session(), it = s.items[s.i]; return s.choices.findIndex(x => (x.id === it.id) === want); }, ok);
+  await page.click(`[data-pick="${i}"]`);
+}
+
+module.exports = { pick, clock, ymd, ROOT, KEY, BAK, quit, ans, dm, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };

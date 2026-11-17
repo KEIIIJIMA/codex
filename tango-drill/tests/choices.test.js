@@ -31,7 +31,7 @@ test.after(async () => { if (browser) await browser.close(); H.cleanup(); });
 test.afterEach(async () => { for (const c of browser ? browser.contexts() : []) await c.close(); });
 const done = async page => { assert.deepEqual(page.errors, [], 'ページ内でエラーが出た'); await page.context().close(); };
 
-const WEAK = { c: 0, x: 1, s: 0, t: 1 };
+const WEAK = { c: 0, x: 2, s: 0, t: 1 }; // 苦手＝誤答2回以上（第4段階で決め方が変わった）
 // 科目 subj を開いた状態で始める。o.prefs は出題設定、o.weak は苦手にしておく項目ID
 function openAt(subj, o = {}) {
   const prog = {};
@@ -270,7 +270,7 @@ test('語→意味: 選択肢の文に見出し語が出ない。回答後の解
     assert.deepEqual(cs.filter(c => re.test(c)), [], id + ': 選択肢に見出し語が出ている');
     if (masked) assert.ok(cs.includes(masked), id + ': ' + cs.join(' ｜ '));
     if (subj === 'eigo') assert.deepEqual(cs.filter(c => /[（(][^）)]*[A-Za-z]/.test(c)), [], id + ': 英語のかっこ書きが残っている');
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     assert.ok((await page.textContent('.detail')).includes(orig), id + ': 回答後の解説が元の文でない');
     await done(page);
   }
@@ -286,13 +286,13 @@ test('文法: 訳が同じ語（る・らる、す・さす・しむ、つ・ぬ
       const n = await total(page);
       assert.equal(n, D.bunpo.filter(it => it.lv === +lv.slice(2)).length);
       for (let round = 0; round < 2; round++) {
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) { // 正答を押して進める（誤答は同じセットにもう一度出て、問題数が変わるため）
           const cs = await texts(page, '.choice .txt');
           assert.equal(new Set(cs).size, 4, `${mode}: 同じ選択肢がある ${cs.join(' ｜ ')}`);
           if (mode === 'quizR') for (const g of groups) assert.ok(cs.filter(c => g.includes(c)).length <= 1, `訳が同じ語が並んだ: ${cs.join(' ')}`);
           // 語→意味: かっこ書き（訳語）を除いた用法の並びが同じ選択肢が無い（使役／尊敬 が2つ、など）
           else assert.equal(new Set(cs.map(noParen)).size, 4, `用法が同じ選択肢がある: ${cs.join(' ｜ ')}`);
-          await page.click('[data-pick="0"]');
+          await H.pick(page);
           await page.click('[data-next]');
         }
         await page.click('[data-retry="same"]');
@@ -315,7 +315,7 @@ test('意味→語: 設問文の伏せ字は、見出し語が語として出て
   assert.equal(await total(page), bunpo.length);
   for (const [id, want] of bunpo) { // 収録順に出る
     assert.equal(await page.textContent('.card .word'), want, id);
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     await page.click('[data-next]');
   }
   await done(page);
@@ -334,7 +334,7 @@ test('意味→語: 設問文の伏せ字は、見出し語が語として出て
   const want = new Map(kobun);
   for (let i = 0; i < kobun.length; i++) {
     const q = await page.textContent('.card .word'), cs = await texts(page, '.choice .txt');
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     const w = await page.textContent('.detail .word'), it = D.kobun.find(x => x.w === w), chk = want.get(it.id);
     assert.ok(chk, w + ' は出題していない');
     assert.ok(cs.includes(w));
@@ -412,7 +412,7 @@ test('意味→語と空所補充では、回答するまで漢字表記と分�
       assert.equal(chips.length, mode === 'clozeT' ? 3 : 2, `${id} ${mode}: ${chips.join(' ')}`);
       assert.deepEqual(chips.filter(c => it.tags.includes(c)), [], `${id} ${mode}: 分野タグが出ている`);
       // 回答後: 解説に漢字表記が出る
-      if (mode === 'clozeT') { await page.fill('#ans', 'x'); await page.click('.typeform button'); } else await page.click('[data-pick="0"]');
+      if (mode === 'clozeT') { await page.fill('#ans', 'x'); await page.click('.typeform button'); } else await H.pick(page);
       assert.equal(await page.textContent('.detail .kanji'), it.k, `${id} ${mode}: 回答後の漢字表記`);
       await done(page);
     }
@@ -429,7 +429,7 @@ test('語→意味: 意味が漢字表記そのものの語（かち＝徒歩）
     assert.equal(await total(page), 1);
     assert.equal(await count(page, '.card .kanji'), 0, id + ': 回答前に漢字表記が出ている');
     assert.ok((await texts(page, '.choice .txt')).includes(k), id);
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     assert.equal(await page.textContent('.detail .kanji'), k, id);
     await done(page);
   }

@@ -18,7 +18,7 @@ const done = async page => { assert.deepEqual(page.errors, [], 'ページ内で�
 // 指定の語だけを「苦手」にして、その科目の「読みを入力」を始める（出題は指定の語だけになる）
 async function startY(subj, ids) {
   const prog = {};
-  ids.forEach(id => { prog[id] = { c: 0, x: 1, s: 0, t: 1 }; });
+  ids.forEach(id => { prog[id] = { c: 0, x: 2, s: 0, t: 1 }; });
   const prefs = { subj, [subj]: { range: 'weak', count: 'all', order: 'index' } };
   const page = await H.open(browser, b.html, JSON.stringify({ v: LATEST, prog, days: {}, prefs }));
   await page.click('[data-start="typeY"]');
@@ -35,7 +35,9 @@ async function answerAll(page, answers) {
     out[w] = (await page.textContent('.verdict')).replace(/\s+/g, ' ').trim();
     await page.click('[data-next]');
   }
-  assert.match(await page.textContent('#view'), new RegExp(n + ' 問'));
+  // 間違えた語は、同じセットの最後にもう一度出る（出し直しが残っていれば、そこで中断する）
+  if (await page.locator('.prog').count()) { assert.equal(await page.locator('.again').count(), 1); await H.quit(page); }
+  else assert.match(await page.textContent('#view'), new RegExp(n + ' 問'));
   return out;
 }
 // 判定だけを直接確かめる（アプリの中の判定の関数を呼ぶ）

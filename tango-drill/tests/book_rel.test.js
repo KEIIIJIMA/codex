@@ -21,12 +21,13 @@ const relIds = s => Object.keys(s.prog).filter(id => id.startsWith('br:'));
 const relTotal = page => page.evaluate(() => window.__tangoTest.BOOKREL.length); // 関連語の総数
 
 test('関連語だけを出題して「まだ」と答えると、ホームの苦手の数と成績の苦手ワードに出て、記録を消すと消える', async () => {
-  const page = await open({ 'b:1': { c: 0, x: 2, s: 0, t: 1 }, 'e:abandon': { c: 0, x: 1, s: 0, t: 1 } });
+  const page = await open({ 'b:1': { c: 0, x: 5, s: 0, t: 1 }, 'e:abandon': { c: 0, x: 1, s: 0, t: 1 } });
   const REL = await relTotal(page);
   assert.ok(REL >= 300, '関連語が ' + REL + ' 語しかない');
   assert.match(await tile(page, '.weak'), /^苦手1語関連語0$/);
   await page.click('[data-start="flash"]');
-  for (let i = 0; i < 10; i++) await H.ans(page, 0);
+  // 10語すべてを「まだ」。間違えた語は同じセットにもう一度出る（2回まで）ので、終わるまで「まだ」を押す（1語につき3回の誤答＝苦手）
+  while (await page.locator('.prog').count()) await H.ans(page, 0);
   assert.match(await page.textContent('#view'), /0 \/ 10 問/);
   assert.equal((await page.$$('.wlist > li')).length, 10);
   await H.quit(page);
