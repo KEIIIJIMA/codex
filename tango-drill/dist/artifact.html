@@ -130,6 +130,21 @@ h1,h2,h3{margin:0;text-wrap:balance;line-height:1.3}
 .tsub{margin:8px 0 0}
 .opts.two{grid-template-columns:repeat(2,1fr)}
 @media (max-width:560px){.opts.two{grid-template-columns:1fr}}
+/* 意味・メモの編集 */
+.edrow{display:flex;justify-content:flex-end;margin-top:12px}
+.edrow .btn{flex:none;font-size:.85rem;font-weight:500;color:var(--muted);padding:8px 14px}
+.edbox{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);text-align:left}
+.edbox label{display:block;font-size:.75rem;color:var(--muted);margin:0 0 4px;letter-spacing:.04em}
+.edbox textarea{display:block;font-family:inherit;line-height:1.5;margin-bottom:10px;background:var(--surface);resize:vertical}
+.edbox .row .btn{flex:1 1 90px}
+.edmsg{margin:0 0 10px;font-size:.85rem;color:var(--bad)}
+.edmark{margin-top:8px;display:flex;gap:4px 10px;align-items:baseline;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.edb{font-weight:700;color:var(--warn-ink);background:var(--warn-soft);border-radius:6px;padding:1px 8px}
+.orig{flex:1 1 12em;min-width:0}
+.orig summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+.orig .means{margin-top:0}
+.note.memo{white-space:pre-wrap;overflow-wrap:anywhere}
+.card.back .edrow,.card.back .edbox,.card.back .confirm{align-self:stretch}
 .again{margin:-4px 0 8px;font-size:.8rem;font-weight:700;color:var(--warn-ink)}
 .rsum{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:var(--surface2);font-size:.9rem}
 .rsum p{margin:0}.rsum p+p{margin-top:4px}
@@ -1051,10 +1066,17 @@ function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnPropert
     prog=np;
     if(del){const nd={};for(const id in del){const to=has(m.map,id)?m.map[id]:id;if(to!==null&&!(nd[to]>=del[id]))nd[to]=del[id];}
       for(const id in nd)if(prog[id]&&nd[id]>=(+prog[id].t||0))delete nd[id];del=nd;}}
+  // 利用者が編集した意味・メモ（edits）も、同じ対応で付け替える。付け替え先が重なったら、更新の新しいほうを残す。項目が無くなった（null）ものは捨てる
+  if(isObj(j.edits))for(const m of MIGRATIONS){if(m.v<=from)continue;const ne={};
+    for(const id of Object.keys(j.edits)){const to=has(m.map,id)?m.map[id]:id,e=j.edits[id];if(to===null)continue;if(!has(ne,to)||(+(e&&e.t)||0)>(+(ne[to]&&ne[to].t)||0))ne[to]=e;}
+    j.edits=ne;}
   j.prog=prog;if(del)j.del=del;j.v=VER;return j;}
 // 保存データの形（キー tango-drill-v1 に、全体を1つの JSON で入れる）
 //   prog  {ID:{c:正答数, x:誤答数, s:連続正解数, t:最後に答えた時刻, g:復習の段階, d:次に出す日}}     days {日付:その日の回答数}     prefs 設定     v 版（移行の番号）
 //         g・d は後から足した欄で、無くてもよい（古い版の記録・古いバックアップ）。無い記録は、読むたびに s と t から換算する（下の sched）。保存データは書き換えない
+//   edits {ID:{m:[意味…], n:メモ, t:更新時刻}}。利用者が書き換えた意味（m）と追記したメモ（n）。どちらか片方だけでもよい。
+//         編集を消したときは {t:時刻, del:1} を残す（2つのタブで開いているとき、もう片方の古い編集が戻らないように）。一度も編集していなければ、この欄は無い。
+//         学習記録（prog）とは別もので、「記録のリセット」では消さない。出題（選択肢・正誤の判定・空所補充）には使わず、表示だけに使う
 //   del   {ID:記録を消した時刻}。記録を消した印。2つのタブで開いているとき、もう片方が覚えている古い記録と合わせても、
 //         消した記録が戻らないようにするためのもの（その時刻以前の記録は捨てる）。一度も消していなければ、この欄は無い
 const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o),isNum=v=>typeof v==='number'&&isFinite(v)&&v>=0;
@@ -1069,11 +1091,12 @@ function load(){let raw=null,j=null;try{raw=localStorage.getItem(KEY);j=JSON.par
   j=Object.assign({prog:{},days:{},prefs:{}},j);lastRaw=raw;
   // 欄が null や配列など、形のおかしい保存データでも起動できるように、空のオブジェクトに置き換える
   for(const k of ['prog','days','prefs'])if(!isObj(j[k]))j[k]={};
+  if(j.edits!==undefined&&!isObj(j.edits))delete j.edits;
   if((+j.v||0)<VER){try{if(Object.keys(j.prog).length)localStorage.setItem(BAK,raw);}catch(e){}migrate(j);put(j);}
   return j;}
-function put(o){try{const raw=JSON.stringify(o);localStorage.setItem(KEY,raw);lastRaw=raw;}catch(e){warnSave();}}
-// 保存。直前に、いまの保存内容を読んで合わせる（2つのタブで開いていても、片方の記録がもう片方を上書きして消さないように）
-function save(){sync();put(store);}
+function put(o){try{const raw=JSON.stringify(o);localStorage.setItem(KEY,raw);lastRaw=raw;return true;}catch(e){warnSave();return false;}}
+// 保存。直前に、いまの保存内容を読んで合わせる（2つのタブで開いていても、片方の記録がもう片方を上書きして消さないように）。保存できたら true
+function save(){sync();return put(store);}
 // 保存できなかったとき（容量の不足、プライベートブラウズなど）は、画面に一度だけ知らせる（閉じたあとは、もう出さない）
 function warnSave(){if(saveWarned)return;saveWarned=true;const v=document.getElementById('view');if(!v)return;
   const n=document.createElement('div');n.id='savewarn';n.className='note';n.setAttribute('role','alert');n.style.margin='0 0 16px';
@@ -1087,7 +1110,7 @@ function sync(){let raw,j;try{raw=localStorage.getItem(KEY);}catch(e){return;}
   try{j=JSON.parse(raw);}catch(e){return;}
   if(!isObj(j)||!isObj(j.prog))return;
   if((+j.v||0)<VER)migrate(j);else if(+j.v>(+store.v||0))store.v=j.v;
-  merge(j);}
+  merge(j);mergeEdits(j.edits);}
 // 2つの記録のうち b を残すか: 回答数（c＋x）の多いほう。同数なら新しいほう（それも同じなら連続正解・正答の多いほう。どのタブでも同じ結果にするための決め）
 const nAns=r=>(+r.c||0)+(+r.x||0);
 const bWins=(a,b)=>(nAns(b)-nAns(a)||(+b.t||0)-(+a.t||0)||(+b.s||0)-(+a.s||0)||(+b.c||0)-(+a.c||0))>0;
@@ -1104,6 +1127,31 @@ function merge(o,restore){let n=0;const del={};
   if(isObj(o.days))for(const d in o.days)if(isNum(o.days[d])&&!(store.days[d]>=o.days[d]))store.days[d]=o.days[d];
   if(Object.keys(del).length)store.del=del;
   return n;}
+/* ---- 利用者が編集した意味・メモ ---- */
+// 形の検査をして、正しい形に直したものを返す（おかしければ null）。意味は空でない文字列の配列、メモは空でない文字列。どちらも EDMAX 字まで
+const EDMAX=2000;
+function cleanEdit(e){if(!isObj(e)||!isNum(e.t))return null;if(e.del)return{t:e.t,del:1};const o={t:e.t};
+  if(e.m!==undefined){if(!Array.isArray(e.m)||!e.m.length||e.m.some(x=>typeof x!=='string'||!x.trim())||e.m.join('\n').length>EDMAX)return null;o.m=e.m.slice();}
+  if(e.n!==undefined){if(typeof e.n!=='string'||!e.n.trim()||e.n.length>EDMAX)return null;o.n=e.n;}
+  return o.m||o.n?o:null;}
+const rawEdit=id=>isObj(store.edits)&&Object.prototype.hasOwnProperty.call(store.edits,id)?cleanEdit(store.edits[id]):null;
+// 項目 id の編集（無い・消した・形がおかしい、なら null）
+const editOf=id=>{const e=rawEdit(id);return e&&!e.del?e:null;};
+// 表示に使う意味（編集していれば利用者の意味、していなければ元の意味）
+const mOf=it=>{const e=editOf(it.id);return e&&e.m?e.m:it.m;};
+const editCount=()=>isObj(store.edits)?Object.keys(store.edits).filter(id=>editOf(id)).length:0;
+// 保存内容の edits を、覚えている内容に合わせる: 項目ごとに、更新の新しいほうを残す（消した印も同じ）。取り込んだ編集の数を返す。
+// restore（バックアップの復元）のときは、控えの「消した印」は取り込まず、こちらで消した項目も控えの編集で戻す
+function mergeEdits(src,restore){let n=0;if(!isObj(src))return n;
+  for(const id of Object.keys(src)){if(id==='__proto__')continue;let b=cleanEdit(src[id]);if(!b||(restore&&b.del))continue;const a=rawEdit(id);
+    if(a&&b.t<=a.t){if(!(restore&&a.del))continue;b=Object.assign({},b,{t:a.t+1});}
+    if(!isObj(store.edits))store.edits={};store.edits[id]=b;if(!b.del)n++;}
+  return n;}
+// 編集を保存する（o＝{m,n}。どちらも無ければ編集を消す）。保存できたら true
+function setEdit(id,o){sync();const a=rawEdit(id),t=Math.max(Date.now(),a?a.t+1:0);
+  if(o&&(o.m||o.n)){if(!isObj(store.edits))store.edits={};const e={t};if(o.m)e.m=o.m;if(o.n)e.n=o.n;store.edits[id]=e;}
+  else if(a&&!a.del)store.edits[id]={t,del:1};
+  return save();}
 // 項目 id の記録を消した時刻（消していなければ0）
 const delAt=id=>{const d=isObj(store.del)?store.del[id]:0;return isNum(d)?d:0;};
 // 記録を消す。消した印を残す
@@ -1148,7 +1196,7 @@ function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(
 // list.shown … 単語帳に出す語数（PAGE 語ずつ「さらに表示」で増やす）   leave … 学習の途中で離れようとしたときの確認（確認のあとに行う操作）
 // resume … 前回の途中のセッション（読み込み直後に「続きから」を出す）
 const PAGE=200;
-const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',zero:false,dm:false,leave:null,resume:null,howto:null};
+const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',zero:false,dm:false,leave:null,resume:null,howto:null,edit:null,edConfirm:false,resOpen:null};
 const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart',rel:'no',from:'',to:''},isObj(store.prefs[S.subj])?store.prefs[S.subj]:{});
 function setPref(k,v){store.prefs[S.subj]=Object.assign(prefsOf(),{[k]:v});save();}
 // 古文330の章 lv の番号の範囲 [最初, 最後]（文字列）。章は番号と1対1（2章＝No.51〜150）
@@ -1208,7 +1256,7 @@ function start(mode,items,seen){sync();const p=prefsOf(); // 出題する語は�
   items=items.filter(modeOk);
   // 0語のときの案内は、出題モードの一覧のすぐ上に出し、見える位置まで送る（押したボタンの近く）
   if(!items.length){S.zero=true;S.tab='home';S.session=null;render();const z=$('[data-zero]');if(z)try{z.scrollIntoView({block:'center'});}catch(e){}return;}
-  S.msg='';S.zero=false;S.leave=null;S.resume=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null,seen:seen||[],pre:preOf(items)};saveSess();render();}
+  S.msg='';S.zero=false;S.leave=null;S.resume=null;S.edit=null;S.resOpen=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null,seen:seen||[],pre:preOf(items)};saveSess();render();}
 // 始める前の状態（結果の「今回習得n語」を数えるのに使う）
 const preOf=items=>{const o={};for(const it of items)o[it.id]=status(it);return o;};
 // 結果画面の「次のn問へ」: いまの出題設定で、これまでの回に出た語を除いて選ぶ（収録順なら続きの語が出る）。除くと0語になるなら null（同じ設定でもう一度）
@@ -1446,7 +1494,7 @@ function answer(ok){const sess=S.session,it=sess.items[sess.i],m=sess.mode;recor
   if(!ok&&sess.items.filter(x=>x===it).length<=REASK)sess.items.splice(Math.min(sess.items.length,sess.i+3+Math.floor(Math.random()*3)),0,it);
   saveSess();
   if(m!=='flash')say(ok?'正解':'不正解。正答は '+(m==='quiz'?it.m[0]:m==='typeY'?(it.rd||it.m[0]):it.w));}
-function next(){const sess=S.session;S.leave=null;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';say('');render();const a=$('#ans');if(a)a.focus();}
+function next(){const sess=S.session;S.leave=null;S.edit=null;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';say('');render();const a=$('#ans');if(a)a.focus();}
 // フラッシュカードをめくる。めくった直後（GUARD ミリ秒）は「まだ／覚えた」を受け付けない（「答えを見る」と同じ位置に出るので、2回押しで記録されないように）
 const GUARD=300;
 function flip(){const sess=S.session;if(!sess||sess.mode!=='flash'||sess.flipped||sess.i>=sess.items.length)return;sess.flipped=true;sess.flipAt=Date.now();render();}
@@ -1549,12 +1597,17 @@ function seiHtml(s){const c=CONF[s.conf]||CONF['中'];
   ${/\?/.test(s.book||'')?`<p class="sei-b">本の年表の「${esc(s.book)}」の「?」は、成立年に諸説があることを示します。</p>`:''}</div>`;}
 // 用例の中の見出し語（空所補充で空所にする部分）を強調する。見つからない用例（「〜」「・」のある見出し語、活用形が見つからない文）はそのまま出す
 function exHtml(it,sent){const f=/^(k|b|e):/.test(it.id)?findForm(it,sent):null;return f?esc(f.pre)+'<b class="hit">'+esc(f.hit)+'</b>'+esc(f.post):esc(sent);}
-function detailHtml(it){const c=SUBJ[S.subj].cls,en=enAttr();
-  const per=it.exs&&it.exs.length===it.m.length;
+// 利用者が意味を編集していれば、その意味を出す（「編集済み」の印と、元の意味を確かめる折りたたみを添える）。意味ごとの用例は元の意味に対応するものなので、
+// 編集した意味には付けず、下にまとめて出す。メモは意味の下。利用者の文字は必ず esc() を通す
+function detailHtml(it){const c=SUBJ[S.subj].cls,en=enAttr(),ed=editOf(it.id),em=ed&&ed.m,ms=em||it.m;
+  const per=!em&&it.exs&&it.exs.length===it.m.length;
+  const exl=per?[]:em&&it.exs&&it.exs.length?it.exs:it.ex?[[it.ex,it.tr]]:[];
   // 説明文の意味（古文常識・文学史の項目、1つだけで20字以上の意味）は、訳語と同じ太字にせず細字の本文にする。文法・和歌の短い意味は太字のまま
-  const desc=/^(j|bungaku):/.test(it.id)||(it.m.length===1&&[...it.m[0]].length>=20);
-  return `<ol class="means${per?' per':''}${desc?' desc':''}">${it.m.map((m,i)=>`<li><span>${desc?esc(m):mmHtml([m])}${per?`<span class="ex sm"><span class="q ${c}"${en}>${exHtml(it,it.exs[i][0])}</span><span class="tr">${esc(it.exs[i][1])}</span></span>`:''}</span></li>`).join('')}</ol>
-  ${it.ex&&!per?`<div class="ex"><div class="q ${c}"${en}>${exHtml(it,it.ex)}</div><div class="tr">${esc(it.tr)}</div></div>`:''}
+  const desc=/^(j|bungaku):/.test(it.id)||(ms.length===1&&[...ms[0]].length>=20);
+  return `<ol class="means${per?' per':''}${desc?' desc':''}">${ms.map((m,i)=>`<li><span>${desc?esc(m):mmHtml([m])}${per?`<span class="ex sm"><span class="q ${c}"${en}>${exHtml(it,it.exs[i][0])}</span><span class="tr">${esc(it.exs[i][1])}</span></span>`:''}</span></li>`).join('')}</ol>
+  ${ed?`<div class="edmark" data-edmark><span class="edb">編集済み</span>${em?`<details class="orig"><summary>元の意味を見る</summary><ol class="means desc">${it.m.map(m=>`<li><span>${esc(m)}</span></li>`).join('')}</ol></details>`:''}</div>`:''}
+  ${ed&&ed.n?`<div class="note memo" data-memo><b>メモ</b>${esc(ed.n)}</div>`:''}
+  ${exl.map(e=>`<div class="ex"><div class="q ${c}"${en}>${exHtml(it,e[0])}</div><div class="tr">${esc(e[1])}</div></div>`).join('')}
   ${it.rd&&!it.yomi?`<div class="der"><b>読み</b>${esc(it.rd)}${it.alt&&it.alt!==it.rd?'（歴史的仮名遣い：'+esc(it.alt)+'）':''}</div>`:''}
   ${it.fig&&FIGS[it.fig]?`<div class="figbox">${FIGS[it.fig](it)}</div>`:''}
   ${it.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[it.img]?`<figure class="ill"><img src="${JOSHIKI_IMG[it.img]}" alt="${esc(it.w)}の挿絵"></figure>`:''}
@@ -1562,7 +1615,27 @@ function detailHtml(it){const c=SUBJ[S.subj].cls,en=enAttr();
   ${it.sei?seiHtml(it.sei):''}
   ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(bareW(x[0]))}</span>${noteW(x[0])?`<span class="rp">${esc(noteW(x[0]))}</span>`:''}<span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
   ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}
-  ${it.page?`<div class="der" data-page><b>本のページ</b>p.${esc(it.page)}</div>`:''}`;}
+  ${it.page?`<div class="der" data-page><b>本のページ</b>p.${esc(it.page)}</div>`:''}
+  ${editHtml(it)}`;}
+// 意味・メモの編集。「編集」を押すと、その場に編集欄が開く（S.edit＝{id, revert:元に戻す確認中, msg:保存できなかった知らせ}）。
+// 意味は1行に1つ。空にして保存すると編集を消す（元の表示に戻る）。元の意味と同じ内容なら、意味の編集としては残さない
+function editHtml(it){const ed=editOf(it.id),E=S.edit&&S.edit.id===it.id?S.edit:null,id=esc(it.id);
+  if(!E)return `<div class="edrow"><button type="button" class="btn ghost sm" data-edit="${id}">意味・メモを編集</button></div>`;
+  if(E.revert)return `<div class="confirm" role="alert" data-edconfirm><span>編集した意味とメモを消して、元の意味に戻します。</span><button type="button" class="btn bad sm" data-ed="revert-yes">元に戻す</button><button type="button" class="btn ghost sm" data-ed="revert-no">やめる</button></div>`;
+  const ms=ed&&ed.m||it.m;
+  return `<form class="edbox" data-edform="${id}"><label for="ed-m">意味（1行に1つ。書き換えたり、行を足したりできます）</label><textarea id="ed-m" maxlength="${EDMAX}" rows="${Math.min(8,Math.max(2,ms.length+1))}">${esc(ms.join('\n'))}</textarea>
+    <label for="ed-n">メモ（語呂・注意点など。意味の下に出ます）</label><textarea id="ed-n" maxlength="${EDMAX}" rows="2">${esc(ed&&ed.n||'')}</textarea>
+    ${E.msg?`<p class="edmsg" role="alert">${esc(E.msg)}</p>`:''}
+    <div class="row"><button class="btn acc sm" type="submit">保存</button><button type="button" class="btn ghost sm" data-ed="cancel">キャンセル</button>${ed?'<button type="button" class="btn ghost sm danger" data-ed="revert">元に戻す</button>':''}</div>
+    <p class="hint" style="margin:8px 0 0">この端末のブラウザに保存されます。4択の選択肢と正誤の判定は、元の意味のままです。</p></form>`;}
+// 編集欄の開け閉めのあとの描き直し。focus: 編集欄を開いたら意味の欄へ、閉じたら「編集」のボタンへ（キーボードで続けて操作できるように）
+function reEdit(id){if(!S.session&&S.tab==='list')renderList();else redraw();
+  const f=S.edit&&!S.edit.revert?$('#ed-m'):S.edit?$('[data-ed="revert-no"]'):id?document.querySelector('[data-edit="'+CSS.escape(id)+'"]'):null;if(f)try{f.focus();}catch(e){}}
+// 編集欄の内容を保存する
+function saveEdit(it){const lines=$('#ed-m').value.split('\n').map(x=>x.trim()).filter(Boolean),n=$('#ed-n').value.trim().slice(0,EDMAX);
+  while(lines.length&&lines.join('\n').length>EDMAX)lines.pop();
+  const same=lines.length===it.m.length&&lines.every((x,i)=>x===it.m[i]),o={};if(lines.length&&!same)o.m=lines;if(n)o.n=n;
+  if(setEdit(it.id,o)){S.edit=null;reEdit(it.id);}else{S.edit.msg='保存できませんでした。端末の空き容量が足りないか、プライベートブラウズで開いている可能性があります。';reEdit();}}
 // 本の番号（古文330・読み）。紙の本で引けるように、結果と苦手ワードの一覧に出す
 const numLab=it=>it.num?'No.'+it.num:'';
 
@@ -1677,7 +1750,7 @@ function howtoHtml(fresh){const open=S.howto!=null?S.howto:(fresh&&store.prefs.h
     ${P('出題モード','フラッシュカードは、めくって意味を確かめ「覚えた／まだ」を自分で付けます。4択は「語 → 意味」と「意味 → 語」の両方向。空所補充は、用例の空所に入る語を選ぶ・書く形です（古文単語・古文330・英単語）。読みを入力は、漢字の読みをひらがなで答えます（読み・古文常識など）。')}
     ${P('復習の間隔','正解した語は、翌日・3日後・7日後・14日後・30日後と、日をあけて復習に出ます。同じ日に何度正解しても、進むのは1回ぶんです。間違えると、翌日からやり直しになります。')}
     ${P('習得と苦手','日をあけて3回正解すると「習得」（習得した語も、日が来れば復習に出ます）。「苦手」は、一度正解したあとで間違えた語と、2回以上間違えた語です。初めて見た語を1回間違えただけなら「学習中」です。フラッシュカードの「覚えた」は正解、「まだ」は不正解として数えます。')}
-    ${P('単語帳と成績','単語帳では語を検索して一覧で見られます。語を開くと意味や用例を確かめて、「苦手に登録」「習得済みにする」「記録を消す」ができます。成績では、教材ごとの習得の割合、直近14日の回答数、苦手ワードを見られます。')}
+    ${P('単語帳と成績','単語帳では語を検索して一覧で見られます。語を開くと意味や用例を確かめて、「苦手に登録」「習得済みにする」「記録を消す」ができます。カードの裏面・解答後の解説・単語帳にある「意味・メモを編集」で、意味を書き換えたり、自分のメモ（語呂・注意点）を足したりできます。編集した内容はこの端末に保存され、「元に戻す」でいつでも元の意味に戻せます（4択の選択肢と正誤の判定は元の意味のままです）。成績では、教材ごとの習得の割合、直近14日の回答数、苦手ワードを見られます。')}
     ${P('バックアップ','学習記録はこの端末のブラウザにだけ保存されます。別の端末へ移すときや控えを取るときは、成績タブの「記録をコピー」で文字列をコピーし、別の端末の欄に貼り付けて「復元」を押します。')}
     ${P('ホーム画面に追加','iPhone では、Safari の共有ボタンから「ホーム画面に追加」を選び、追加したアイコンから開くと、記録が消えにくくなります（Safari は、しばらく開かないページの保存データを消すことがあります）。')}
   </div></details></section>`;}
@@ -1749,14 +1822,15 @@ function viewResult(){const sess=S.session,rs=resultSum(sess),n=rs.n,ok=rs.ok,wr
     <div>${pct===100?'<span class="perfect">全問正解</span>':''}<div class="big num">${ok} / ${n} 問</div><div class="sm">${pct===100?'次は範囲を広げましょう。':pct>=80?'あと一歩。間違えた語は明日また出ます。':'間違えた語は明日また出ます。もう一度挑戦。'}${rs.again?`（間違えた語の出し直し ${rs.again}回）`:''}</div><div class="sm num">今日 ${t} / ${goalOf()} 問・連続 ${streak()} 日</div></div></div>
     <div class="rsum" data-rsum><p><b>今回</b>習得 <b class="num">${rs.got}</b>語・学習中 <b class="num">${rs.learning}</b>語${rs.weak?`（うち苦手 ${rs.weak}語）`:''}${rs.kept?`・習得のまま ${rs.kept}語`:''}</p>${rs.due?`<p><b>次の復習</b>${rs.due}</p>`:''}</div>
     <div class="row">${wrong.length?`<button class="btn acc" data-retry="wrong">間違えた ${wrong.length} 語をもう一度</button>`:''}<button class="btn${wrong.length?'':' acc'}" data-retry="same">${nx?'次の '+nx.length+' 問へ':'同じ設定でもう一度'}</button><button class="btn text" data-quit>ホームへ</button></div></section>
-    ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 4px">今回間違えた語 <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">押すと解説が開きます</span></h2><ul class="wlist res">${wrong.map(it=>`<li><details><summary><span class="w ${c}"${en}>${esc(it.w)}${it.k||it.num?`<small>${numLab(it)}${it.k&&it.num?'　':''}${esc(it.k)}</small>`:''}</span><span class="m">${mmHtml(it.m)}</span></summary><div class="vdet">${detailHtml(it)}</div></details></li>`).join('')}</ul>`:''}`;}
+    ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 4px">今回間違えた語 <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">押すと解説が開きます</span></h2><ul class="wlist res">${wrong.map(it=>`<li><details${S.resOpen===it.id?' open':''}><summary><span class="w ${c}"${en}>${esc(it.w)}${it.k||it.num?`<small>${numLab(it)}${it.k&&it.num?'　':''}${esc(it.k)}</small>`:''}</span><span class="m">${mmHtml(mOf(it))}</span></summary><div class="vdet">${detailHtml(it)}</div></details></li>`).join('')}</ul>`:''}`;}
 
 // 単語帳。検索欄（#q）は残し、絞り込み・件数・一覧（#lbody）だけを差し替える（入力のたびに検索欄を作り直すと、日本語の変換入力が壊れる）
 function viewList(){return `<input type="search" id="q" aria-label="語・意味で検索" placeholder="語・意味で検索" value="${esc(S.list.q)}" autocomplete="off" enterkeyhint="search">
   <div id="lbody">${listBody()}</div>`;}
 function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase();
   let items=DATA[S.subj].filter(it=>L.st==='all'||status(it)===L.st).filter(it=>L.lv==='all'||it.lv===+L.lv);
-  if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')+' '+(it.rel||[]).map(x=>x[0]+' '+x[2]).join(' ')+' '+(it.num||'')).toLowerCase().includes(q));
+  const edTxt=it=>{const e=editOf(it.id);return e?' '+(e.m||[]).join(' ')+' '+(e.n||''):'';}; // 利用者の意味・メモも検索に当てる
+  if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+edTxt(it)+' '+(it.der||'')+' '+(it.rel||[]).map(x=>x[0]+' '+x[2]).join(' ')+' '+(it.num||'')).toLowerCase().includes(q));
   const total=items.length;items=items.slice(0,L.shown);
   const chip=(k,v,lab)=>`<button class="fchip" data-f="${k}" data-v="${v}" aria-pressed="${String(L[k])===v}">${lab}</button>`;
   // 絞り込みは「状態」と「レベル・章・分野」の2段に分ける。分け方が6個を超える教材（古文常識など）は選択欄にする
@@ -1766,7 +1840,7 @@ function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase()
   return `<div class="filters"><div class="fgrp"><span class="fl">状態</span>${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}</div>${lvF?`<div class="fgrp"><span class="fl">${kind}</span>${lvF}</div>`:''}</div>
   <div class="count num">全 ${total} 語中 ${items.length} 語を表示</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
-    return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="sr">${STATUS[st]}</span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}<span${enAttr()}>${esc(it.w)}</span>${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${mmHtml(it.m)}</span></button>
+    return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="sr">${STATUS[st]}</span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}<span${enAttr()}>${esc(it.w)}</span>${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${mmHtml(mOf(it))}</span></button>
     ${open?`<div class="vdet">${detailHtml(it)}${schedOf(it)?`<p class="hint" data-due style="margin:10px 0 0">次の復習: ${dueLab(schedOf(it).d)}（段階 ${schedOf(it).g} / ${GMAX}。3以上で習得）</p>`:''}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>
   ${total>items.length?`<div class="row" style="margin-top:12px"><button class="btn" data-more>さらに表示（残り ${total-items.length} 語）</button></div>`:''}`
   :'<div class="empty">該当する語がありません</div>'}`;}
@@ -1800,25 +1874,28 @@ function viewStats(){const c=SUBJ[S.subj].cls,cur=baseOf(S.subj);
     ${days.some(x=>x.n)?'':'<p class="hint" style="margin:8px 0 0">学習すると、ここに日ごとの回答数が出ます。</p>'}</section>
   <div class="sgrid">${openBlock(cur)}
   <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15${SUBJ[S.subj].book?`（見出し語 ${wHead.length}語・関連語 ${wRel.length}語）`:''}</span></h2>
-    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}"${enAttr()}>${esc(it.w)}</span>${it.num?`<span class="chip num">${numLab(it)}</span>`:''}${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${mmHtml(it.m)}</span><span class="num wn"><span class="wx">✕${r.x}</span><span class="wo">◯${r.c}</span></span></li>`).join('')}</ul>
+    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}"${enAttr()}>${esc(it.w)}</span>${it.num?`<span class="chip num">${numLab(it)}</span>`:''}${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${mmHtml(mOf(it))}</span><span class="num wn"><span class="wx">✕${r.x}</span><span class="wo">◯${r.c}</span></span></li>`).join('')}</ul>
     ${wHead.concat(wRel).some(it=>askable(it,'quiz'))?'<div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>':''}`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
   ${subjs.filter(k=>k!==cur).map(lineBlock).join('')}</div>
-  <details class="panel dm" data-dm${S.dm||S.confirm?' open':''}><summary><h2>データ管理 <span class="sub">バックアップ・記録のリセット</span></h2></summary>
+  <details class="panel dm" data-dm${S.dm||S.confirm||S.edConfirm?' open':''}><summary><h2>データ管理 <span class="sub">バックアップ・記録のリセット</span></h2></summary>
     <h3>バックアップ <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">別の端末へ記録を移す</span></h3>
     <div class="row"><button class="btn" data-export>記録をコピー</button></div>
     <p class="hint" style="margin:10px 0 6px">コピーした文字列を別の端末の下の欄に貼り付けて「復元」を押すと、記録が引き継がれます。</p>
     <textarea id="imp" aria-label="記録の貼り付け欄" placeholder="ここに貼り付け"></textarea>
     <div class="row" style="margin-top:8px"><button class="btn" data-import>復元（既存の記録と統合）</button></div>
     <div class="msg" id="msg" role="status">${esc(S.msg)}</div>
+    <h3>編集した意味・メモ <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem" data-edcount>${editCount()}件</span></h3>
+    ${S.edConfirm?`<div class="confirm"><span>全教材の、編集した意味とメモ（${editCount()}件）をすべて消して、元の意味に戻します。元に戻せません。学習記録は消えません。</span><button class="btn bad sm" data-edreset="yes">消す</button><button class="btn ghost sm" data-edreset="no">やめる</button></div>`
+    :editCount()?`<div class="row"><button class="btn ghost danger" data-edreset="ask">編集した意味・メモをすべて消す</button></div>`:'<p class="hint" style="margin:0">カードの裏面や単語帳の「意味・メモを編集」で書き換えた意味とメモは、ここに件数が出ます。記録のリセットでは消えません。</p>'}
     <h3 class="danger">記録のリセット</h3>
     ${S.confirm?`<div class="confirm"><span>${esc(SUBJ[S.subj].name)}の学習記録${SUBJ[S.subj].book?'（関連語を含む）':''}をすべて消します。元に戻せません。</span><button class="btn bad sm" data-reset="yes">消す</button><button class="btn ghost sm" data-reset="no">やめる</button></div>`
     :`<div class="row"><button class="btn ghost danger" data-reset="ask">${esc(SUBJ[S.subj].name)}の記録を消す</button></div>`}</details>`;}
 
 /* ---- events ---- */
-function setSubj(k){if(k!==S.subj){S.list.q='';S.list.st='all';}S.list.shown=PAGE;S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.zero=false;S.confirm=false;S.list.open=null;S.list.lv='all';render();}
+function setSubj(k){S.edit=null;S.edConfirm=false;if(k!==S.subj){S.list.q='';S.list.st='all';}S.list.shown=PAGE;S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.zero=false;S.confirm=false;S.list.open=null;S.list.lv='all';render();}
 document.querySelector('.switch').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(!b)return;const g=b.dataset.group;const last=(store.prefs.last||{})[g];leave(()=>setSubj(last&&SUBJ[last]?last:g));});
 document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-subj]');if(!b)return;const k=b.dataset.subj;leave(()=>setSubj(k));});
-document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const tab=b.dataset.tab;leave(()=>{S.tab=tab;S.session=null;S.msg='';S.zero=false;S.confirm=false;render();});});
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const tab=b.dataset.tab;leave(()=>{S.tab=tab;S.session=null;S.msg='';S.zero=false;S.confirm=false;S.edit=null;S.edConfirm=false;render();});});
 const view=$('#view');
 view.addEventListener('change',e=>{const fs=e.target.closest('[data-fsel]');if(fs){S.list[fs.dataset.fsel]=fs.value;S.list.shown=PAGE;renderList();return;}
   const gp=e.target.closest('[data-gpref]');if(gp){store.prefs[gp.dataset.gpref]=gp.value;save();render();return;}
@@ -1841,7 +1918,7 @@ view.addEventListener('click',e=>{
   if(h('[data-start-first]')){start('flash');return;}
   if(h('[data-start-today]')){sync();const tp=todayPlan();start(todayMode(),tp.rev.concat(tp.fresh));return;}
   if(h('[data-start-weak]')){sync();const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
-  if(h('[data-quit]')){leave(()=>{S.session=null;S.tab='home';render();});return;}
+  if(h('[data-quit]')){leave(()=>{S.session=null;S.edit=null;S.tab='home';render();});return;}
   if(b=h('[data-leave]')){const act=S.leave;S.leave=null;if(b.dataset.leave==='yes'&&act){S.session=null;saveSess();act();}else redraw();return;}
   if(b=h('[data-resume]')){if(b.dataset.resume==='yes')resume();else{S.resume=null;try{localStorage.removeItem(SKEY);}catch(x){}render();}return;}
   if(h('[data-more]')){S.list.shown+=PAGE;renderList();return;}
@@ -1853,10 +1930,17 @@ view.addEventListener('click',e=>{
   if(b=h('[data-retry]')){const sess=S.session,seen=sess.seen.concat(sess.items.map(it=>it.id));
     if(b.dataset.retry==='wrong'){start(sess.mode,shuffle(resultSum(sess).wrong),seen);}else{const nx=nextItems(sess);if(nx)start(sess.mode,nx,seen);else start(sess.mode);}return;}
   if((b=h('[data-f]'))&&b.dataset.v!==undefined){S.list[b.dataset.f]=b.dataset.v;S.list.shown=PAGE;renderList();return;}
-  if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;renderList();return;}
+  if(b=h('[data-open]')){S.edit=null;S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;renderList();return;}
   if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);renderList();}return;}
   if(b=h('[data-reset]')){S.dm=true;if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){sync();forget(DATA[S.subj].concat(relOf(S.subj)).map(it=>it.id));save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
-  if(h('[data-export]')){S.dm=true;sync();const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
+  if(b=h('[data-edit]')){S.edit={id:b.dataset.edit};if(S.session&&!unfinished())S.resOpen=b.dataset.edit;reEdit();return;}
+  if(b=h('[data-ed]')){const a=b.dataset.ed,E=S.edit;if(!E)return;const id=E.id;
+    if(a==='revert')E.revert=true;else{if(a==='revert-yes')setEdit(id,null);S.edit=null;}
+    reEdit(id);return;}
+  if(b=h('[data-edreset]')){S.dm=true;const a=b.dataset.edreset;if(a==='ask')S.edConfirm=true;else{S.edConfirm=false;
+      if(a==='yes'){sync();const t=Date.now();for(const id of Object.keys(store.edits||{})){const e=rawEdit(id);if(e&&!e.del)store.edits[id]={t:Math.max(t,e.t+1),del:1};}S.edit=null;S.msg=save()?'編集した意味・メモを消しました。':'';}}
+    render();return;}
+  if(h('[data-export]')){S.dm=true;sync();const txt=JSON.stringify(Object.assign({v:store.v,prog:store.prog,days:store.days},isObj(store.edits)?{edits:store.edits}:{}));const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();}catch(x){fallback();}return;}
   // バックアップの取り込み。形を確かめてから取り込む: 記録は {c,x,s,t} がどれも0以上の数値のものだけ（復習の段階と次の日 g・d は、形が正しければ残す。ほかの余分な欄は落とす）、
@@ -1865,7 +1949,9 @@ view.addEventListener('click',e=>{
   if(h('[data-import]')){S.dm=true;const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!isObj(j)||!isObj(j.prog))throw 0;const prog={},days={};let bad=0;
       for(const id in j.prog){const r=j.prog[id];if(validRec(r)){prog[id]={c:r.c,x:r.x,s:r.s,t:r.t};if(validG(r)){prog[id].g=r.g;prog[id].d=r.d;}}else bad++;}
       if(isObj(j.days)){for(const d in j.days){if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&isNum(j.days[d]))days[d]=j.days[d];else bad++;}}else if(j.days!=null)bad++;
-      sync();const n=merge(migrate({v:j.v,prog,days}),true);save();S.msg=n+' 語の記録を取り込みました。'+(bad?'形の正しくない '+bad+' 件は読み飛ばしました。':'');}
+      // 編集した意味・メモ（edits）は、形の正しいものだけ取り込む。古い控え（edits なし）はそのまま読める
+      let edits;if(isObj(j.edits)){edits={};for(const id of Object.keys(j.edits)){const e=cleanEdit(j.edits[id]);if(e&&id!=='__proto__')edits[id]=e;else bad++;}}else if(j.edits!=null)bad++;
+      sync();const mj=migrate(Object.assign({v:j.v,prog,days},edits?{edits}:{})),n=merge(mj,true),ne=mergeEdits(mj.edits,true);save();S.msg=n+' 語の記録を取り込みました。'+(ne?'編集した意味・メモ '+ne+' 件を取り込みました。':'')+(bad?'形の正しくない '+bad+' 件は読み飛ばしました。':'');}
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
 });
 // 「使い方」の開け閉め（toggle は泡立たないので、捕捉の段階で受ける）。閉じたら次からは閉じて出す
@@ -1873,9 +1959,10 @@ view.addEventListener('toggle',e=>{const d=e.target;if(!d.matches)return;if(d.ma
   if(d.hasAttribute('data-init')){d.removeAttribute('data-init');if(d.open)return;}S.howto=d.open;
   if(!d.open&&store.prefs.howto!=='closed'){store.prefs.howto='closed';save();}},true);
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('.card[data-flip]')){e.preventDefault();flip();}});
-view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i];const ok=sess.mode==='typeY'?yomiOk(it_,v):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
+view.addEventListener('submit',e=>{const ef=e.target.closest('[data-edform]');if(ef){e.preventDefault();const it=findAny(ef.dataset.edform);if(it)saveEdit(it);return;}
+  const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i];const ok=sess.mode==='typeY'?yomiOk(it_,v):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
 // 回答のキー操作。Ctrl・Alt・Meta を押しながらの操作（ブラウザのタブ切り替えや「戻る」）と、入力欄にいるときの操作は、回答に使わない
-document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length||S.leave)return;if(e.ctrlKey||e.altKey||e.metaKey)return;if(e.target.matches('input,textarea,select'))return;
+document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length||S.leave||S.edit)return;if(e.target.closest&&e.target.closest('[data-edit]'))return;if(e.ctrlKey||e.altKey||e.metaKey)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
     if(e.key===' '){e.preventDefault();flip();return;}
     // 「まだ／覚えた」は、めくってから（表面では受け付けない）
@@ -1890,7 +1977,7 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
 window.addEventListener('storage',e=>{if(e.key===KEY)sync();});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
-window.__tangoTest={status,schedOf,todayPlan,resultSum,session:()=>S.session,render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
+window.__tangoTest={editOf,status,schedOf,todayPlan,resultSum,session:()=>S.session,render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
 // フッターの収録内容。教材の一覧（GROUPS）から、タブと同じ名前・順で、語数はデータから数える（英語のレベル別タブは英単語に含まれるので出さない）
 $('.about').textContent='収録: '+GROUPS.flatMap(g=>g.subs.filter(k=>SUBJ[k]&&!SUBJ[k].base)).map(k=>SUBJ[k].name+' '+DATA[k].length+'語'+(SUBJ[k].book?'（関連語 '+BOOKREL.length+'語）':'')).join('／')+'。学習記録はこの端末のブラウザにだけ保存されます。';
 if(!SUBJ[S.subj])S.subj='kobun';
