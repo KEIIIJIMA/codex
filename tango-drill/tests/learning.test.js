@@ -382,7 +382,7 @@ test('今日の学習: 期限前の語（苦手・学習中）は数えない。
 
 test('初めての利用者にも「今日の学習」が出る（復習0語＋新出）。全教材で、ホームを開いてもエラーが出ない', async () => {
   const page = await H.open(browser, b.html, null, PHONE);
-  assert.equal((await page.innerText('[data-start-today]')).replace(/\s+/g, ''), '今日の学習を始める（復習0語＋新出8語）');
+  assert.equal((await page.innerText('[data-start-today]')).replace(/\s+/g, ''), '今日の学習を始める（復習0語＋新出20語）');
   for (const g of ['kobun', 'eigo']) {
     await page.click(`.switch [data-group="${g}"]`);
     const n = await count(page, '.subtabs [data-subj]');

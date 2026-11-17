@@ -613,8 +613,9 @@ function sched(r){if(validG(r))return{g:r.g,d:r.d};const g=r.s>=2?GOK:r.s>=1?1:0
 // 項目の復習の予定 {g,d}（記録が無ければ null）。期限が来ているか
 const schedOf=it=>{const r=store.prog[it.id];return r?sched(r):null;};
 const isDue=it=>{const s=schedOf(it);return !!s&&s.d<=today();};
-// 状態。習得＝段階3以上。苦手＝正解したことがあるのに落とした語（最後の回答が誤答）か、誤答が2回以上の語。初めて見た語の誤答1回は学習中
-function status(it){const r=store.prog[it.id];if(!r)return'new';if(sched(r).g>=GOK)return'ok';if(r.x>=2||(r.x>=1&&r.c>=1&&r.s===0))return'weak';return'learning';}
+// 状態。習得＝段階3以上。苦手＝誤答が2回以上の語か、正解したことがあるのに落とした語（段階0で、誤答の前に正解がある＝正答数が連続正解数より多い。
+// 同じセットの差し戻しで正解しても、日をあけて正解するまでは苦手のまま）。初めて見た語の誤答1回は学習中
+function status(it){const r=store.prog[it.id];if(!r)return'new';const g=sched(r).g;if(g>=GOK)return'ok';if(r.x>=2||(r.x>=1&&g===0&&r.c>r.s))return'weak';return'learning';}
 function record(it,ok){sync();const had=store.prog[it.id],r=had||{c:0,x:0,s:0,t:0},sc=had?sched(r):null,td=today();
   if(ok){r.c++;r.s++;if(!sc){r.g=1;r.d=addDays(td,IV[1]);}else if(sc.d<=td){r.g=Math.min(sc.g+1,GMAX);r.d=addDays(td,IV[r.g]);}else{r.g=sc.g;r.d=sc.d;}}
   else{r.x++;r.s=0;r.g=0;r.d=addDays(td,IV[0]);}

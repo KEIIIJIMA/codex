@@ -115,6 +115,25 @@ h1,h2,h3{margin:0;text-wrap:balance;line-height:1.3}
 .legend .weak::before{background:var(--bad);border:0;border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%)}
 .jump{display:inline-flex;align-items:center;min-height:44px;border:0;background:transparent;padding:0 4px;margin:-8px 0 8px;font-size:.88rem;font-weight:700;color:var(--accent)}
 .jump::after{content:"›";margin-left:6px;font-size:1.1em}
+/* 今日の学習（ホーム最上部）。目標の進み具合は --accent-fill、達成したら --ok */
+.tbox{padding:14px 16px 12px;margin-bottom:14px}
+.tbox h2{margin-bottom:8px}
+.goal{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted);margin-bottom:10px}
+.goal .track{flex:1;height:8px;background:var(--surface2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.goal .track i{display:block;height:100%;background:var(--accent-fill);border-radius:999px}
+.goal.done .track i{background:var(--ok)}
+.goal b{color:var(--fg)}
+.goal .gdone{font-size:.75rem;font-weight:700;color:var(--ok);background:var(--ok-soft);border-radius:6px;padding:1px 8px}
+.tstart{display:block;width:100%;text-wrap:balance}
+.tstart small{font-size:.82rem;font-weight:500;margin-top:2px}
+.tnone{margin:0;font-size:.88rem}
+.tsub{margin:8px 0 0}
+.opts.two{grid-template-columns:repeat(2,1fr)}
+@media (max-width:560px){.opts.two{grid-template-columns:1fr}}
+.again{margin:-4px 0 8px;font-size:.8rem;font-weight:700;color:var(--warn-ink)}
+.rsum{margin:0 0 14px;padding:10px 12px;border-radius:10px;background:var(--surface2);font-size:.9rem}
+.rsum p{margin:0}.rsum p+p{margin-top:4px}
+.rsum p>b:first-child{display:inline-block;min-width:5.2em;font-size:.78rem;color:var(--muted);letter-spacing:.04em}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;margin-bottom:16px}
 .panel h2{font-size:.95rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .panel h2 .sub{font-weight:400;color:var(--muted);font-size:.8rem}
@@ -1034,7 +1053,8 @@ function migrate(j){const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnPropert
       for(const id in nd)if(prog[id]&&nd[id]>=(+prog[id].t||0))delete nd[id];del=nd;}}
   j.prog=prog;if(del)j.del=del;j.v=VER;return j;}
 // 保存データの形（キー tango-drill-v1 に、全体を1つの JSON で入れる）
-//   prog  {ID:{c:正答数, x:誤答数, s:連続正解数, t:最後に答えた時刻}}     days {日付:その日の回答数}     prefs 設定     v 版（移行の番号）
+//   prog  {ID:{c:正答数, x:誤答数, s:連続正解数, t:最後に答えた時刻, g:復習の段階, d:次に出す日}}     days {日付:その日の回答数}     prefs 設定     v 版（移行の番号）
+//         g・d は後から足した欄で、無くてもよい（古い版の記録・古いバックアップ）。無い記録は、読むたびに s と t から換算する（下の sched）。保存データは書き換えない
 //   del   {ID:記録を消した時刻}。記録を消した印。2つのタブで開いているとき、もう片方が覚えている古い記録と合わせても、
 //         消した記録が戻らないようにするためのもの（その時刻以前の記録は捨てる）。一度も消していなければ、この欄は無い
 const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o),isNum=v=>typeof v==='number'&&isFinite(v)&&v>=0;
@@ -1092,10 +1112,33 @@ function forget(ids){const now=Date.now();for(const id of ids){const r=store.pro
 // 記録に付ける時刻。消した印より後にする（端末の時計がずれていても、消したあとの新しい記録が「消した記録」の扱いにならないように）
 const stamp=id=>Math.max(Date.now(),delAt(id)+1);
 function today(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function status(it){const r=store.prog[it.id];if(!r)return'new';if(r.s>=2)return'ok';if(r.x>0)return'weak';return'learning';}
-function record(it,ok){sync();const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};if(ok){r.c++;r.s++;}else{r.x++;r.s=0;}r.t=stamp(it.id);store.prog[it.id]=r;const d=today();store.days[d]=(store.days[d]||0)+1;save();}
-function setStatus(it,st){sync();if(st==='weak'){store.prog[it.id]={c:(store.prog[it.id]||{}).c||0,x:Math.max(1,(store.prog[it.id]||{}).x||0),s:0,t:stamp(it.id)};}
-  else if(st==='ok'){const r=store.prog[it.id]||{c:0,x:0,s:0,t:0};r.s=2;r.c++;r.t=stamp(it.id);store.prog[it.id]=r;}
+/* ---- 復習の間隔 ---- */
+// 記録の g（段階 0〜5）と d（次に出す日。端末のローカル日付 'YYYY-MM-DD'）で、日をあけて出し直す。
+//   正解 … 次に出す日が来ていれば段階を1つ上げ、IV[段階] 日後を次の日にする（1→3→7→14→30日後）。初めての語の正解は段階1（翌日）。
+//           次に出す日が来る前の正解は、段階も日も変えない（同じ日に何度正解しても1回ぶん。差し戻しの正解でも上がらない）
+//   誤答 … 段階0に戻し、翌日に出す
+//   習得 … 段階3以上（日をあけて3回正解）。習得した語も、次に出す日が来たら復習に出る
+// 古い版の記録（g・d が無い）は s と t から換算する: 連続正解2以上（以前の「習得」）→段階3・最後に答えた日の7日後、1→段階1・翌日、0→段階0・翌日。
+// g・d の形がおかしい記録も同じ換算にする（記録そのものは捨てない）
+const IV=[1,1,3,7,14,30],GMAX=5,GOK=3,DAY_RE=/^\d{4}-\d{2}-\d{2}$/;
+function addDays(day,n){const p=String(day).split('-');return today(new Date(+p[0],p[1]-1,+p[2]+n));}
+const dayDiff=(a,b)=>{const f=x=>{const p=x.split('-');return Date.UTC(+p[0],p[1]-1,+p[2]);};return Math.round((f(a)-f(b))/864e5);};
+const validG=r=>Number.isInteger(r.g)&&r.g>=0&&r.g<=GMAX&&typeof r.d==='string'&&DAY_RE.test(r.d);
+function sched(r){if(validG(r))return{g:r.g,d:r.d};const g=r.s>=2?GOK:r.s>=1?1:0;return{g,d:addDays(today(new Date(+r.t||0)),IV[g])};}
+// 項目の復習の予定 {g,d}（記録が無ければ null）。期限が来ているか
+const schedOf=it=>{const r=store.prog[it.id];return r?sched(r):null;};
+const isDue=it=>{const s=schedOf(it);return !!s&&s.d<=today();};
+// 状態。習得＝段階3以上。苦手＝誤答が2回以上の語か、正解したことがあるのに落とした語（段階0で、誤答の前に正解がある＝正答数が連続正解数より多い。
+// 同じセットの差し戻しで正解しても、日をあけて正解するまでは苦手のまま）。初めて見た語の誤答1回は学習中
+function status(it){const r=store.prog[it.id];if(!r)return'new';const g=sched(r).g;if(g>=GOK)return'ok';if(r.x>=2||(r.x>=1&&g===0&&r.c>r.s))return'weak';return'learning';}
+function record(it,ok){sync();const had=store.prog[it.id],r=had||{c:0,x:0,s:0,t:0},sc=had?sched(r):null,td=today();
+  if(ok){r.c++;r.s++;if(!sc){r.g=1;r.d=addDays(td,IV[1]);}else if(sc.d<=td){r.g=Math.min(sc.g+1,GMAX);r.d=addDays(td,IV[r.g]);}else{r.g=sc.g;r.d=sc.d;}}
+  else{r.x++;r.s=0;r.g=0;r.d=addDays(td,IV[0]);}
+  r.t=stamp(it.id);store.prog[it.id]=r;store.days[td]=(store.days[td]||0)+1;save();}
+// 単語帳からの手動の登録。苦手＝誤答2回ぶん・段階0（翌日に出る）。習得済み＝段階3（7日後に出る。すでに3以上ならそのまま）
+function setStatus(it,st){sync();const o=store.prog[it.id]||{c:0,x:0,s:0,t:0},td=today();
+  if(st==='weak'){store.prog[it.id]={c:o.c||0,x:Math.max(2,o.x||0),s:0,t:stamp(it.id),g:0,d:addDays(td,IV[0])};}
+  else if(st==='ok'){const g=Math.max(GOK,sched(o).g);store.prog[it.id]={c:(o.c||0)+1,x:o.x||0,s:Math.max(2,o.s||0),t:stamp(it.id),g,d:addDays(td,IV[g])};}
   else if(st==='new'){forget([it.id]);}save();}
 function countOf(list){const c={new:0,learning:0,weak:0,ok:0,total:0};list.forEach(it=>{c[status(it)]++;c.total++;});return c;}
 function counts(subj){return countOf(DATA[subj]);}
@@ -1129,22 +1172,35 @@ function pool(subj,range){let all=DATA[subj];
   if(/^lv\d+$/.test(range))return all.filter(it=>it.lv===+range.slice(2));
   if(range.startsWith('tag:')){const t=range.slice(4);return all.filter(it=>it.tags.includes(t));}
   return all.slice();}
-const RANK={weak:0,new:1,learning:2,ok:3};
 function order(items,mode){
   if(mode==='index')return items[0]&&items[0].num?items.slice().sort((a,b)=>a.num-b.num||(a.isRel?1:0)-(b.isRel?1:0)):items;
-  if(mode==='random')return shuffle(items);
-  shuffle(items);
-  return items.map((it,i)=>({it,k:RANK[status(it)]*1e6+((store.prog[it.id]||{}).t||0)/1e9+i*1e-3})).sort((a,b)=>a.k-b.k).map(x=>x.it);}
+  return shuffle(items);}
+// 出題の優先: 0 期限が来た復習 → 1 苦手 → 2 学習中 → 3 未学習 → 4 習得（期限が来ていない）
+function prio(it){const r=store.prog[it.id];if(!r)return 3;if(sched(r).d<=today())return 0;const s=status(it);return s==='weak'?1:s==='learning'?2:4;}
+// items から n 語を、復習と新出に配分して選ぶ。{rev:復習, fresh:新出, rest:習得（期限前）で埋めた分, due:期限が来ている語の数}
+//   復習 … 期限が来た語（期限の古い順）→ 苦手 → 学習中（どちらも答えてから日がたった順）。dueOnly なら期限が来た語だけ
+//   新出 … 未学習の語。全体の NEW_SHARE（4割）を新出に取っておき、復習が足りなければ新出で、新出が足りなければ復習で埋める
+//   keep … 同じ組の中の順を items の並びのままにする（収録順の出題）。指定しなければ、同じ条件の語は無作為の順
+const NEW_SHARE=.4;
+function plan(items,n,keep,dueOnly){const b=[[],[],[],[],[]];(keep?items:shuffle(items.slice())).forEach(it=>b[prio(it)].push(it));
+  if(!keep){const t=it=>+(store.prog[it.id]||{}).t||0;b[0].sort((x,y)=>{const a=schedOf(x).d,c=schedOf(y).d;return a<c?-1:a>c?1:t(x)-t(y);});for(const k of [1,2,4])b[k].sort((x,y)=>t(x)-t(y));}
+  const revAll=dueOnly?b[0]:b[0].concat(b[1],b[2]),nNew=Math.min(b[3].length,Math.max(Math.round(n*NEW_SHARE),n-revAll.length)),rev=revAll.slice(0,Math.max(0,n-nNew)),fresh=b[3].slice(0,nNew);
+  return{rev,fresh,rest:dueOnly?[]:b[4].slice(0,Math.max(0,n-rev.length-fresh.length)),due:b[0].length};}
+const planList=(items,n,keep)=>{const p=plan(items,n,keep);return p.rev.concat(p.fresh,p.rest);};
 // 出題する語を、設定 p（出題範囲 range・問題数 count・出題順 order）で選んで並べる。
-// おまかせ（苦手・未学習を優先）は、出題順がランダムや収録順でも、苦手→未学習→学習中→習得 の順に問題数ぶんを先に確保してから、出題順に並べ替える。
-// 確保するとき、同じ状態の語の中では、収録順なら収録順の先頭から、ランダムなら答えてから日がたった語を先に選ぶ。
+// 出題順が既定（復習→苦手→学習中→未学習）なら、どの出題範囲でも、復習と新出を配分して選び、その順に出す。
+// おまかせ（復習・苦手を優先）は、出題順がランダムや収録順でも、同じ配分で問題数ぶんを先に確保してから、出題順に並べ替える
+// （確保するとき、同じ状態の語の中では、収録順なら収録順の先頭から、ランダムなら答えてから日がたった語を先に選ぶ）。
 // それ以外の出題範囲は、出題順に並べた先頭から問題数ぶん
-function pick(items,p){const n=p.count==='all'?items.length:+p.count;
-  if(p.range!=='auto'||p.order==='smart'||n>=items.length)return order(items,p.order).slice(0,n);
+function pick(items,p){const n=Math.min(items.length,p.count==='all'?items.length:+p.count||0);
+  if(p.order==='smart')return planList(items,n);
+  if(p.range!=='auto'||n>=items.length)return order(items,p.order).slice(0,n);
   const byIndex=p.order==='index',inOrder=byIndex?order(items,'index'):null;
-  const pri=byIndex?inOrder.map((it,i)=>({it,k:RANK[status(it)],i})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.it):order(items,'smart');
-  const sel=new Set(pri.slice(0,n));
+  const sel=new Set(planList(byIndex?inOrder:items,n,byIndex));
   return byIndex?inOrder.filter(it=>sel.has(it)):shuffle([...sel]);}
+// 「今日の学習」の1セット: 期限が来た復習と新出だけ（出題範囲は教材の全体。古文330は番号・関連語の設定に従う）。形式は出題設定の tmode（無ければフラッシュカード）
+const todayMode=()=>{const m=prefsOf().tmode;return modesOf().some(x=>x[0]===m)?m:'flash';};
+function todayPlan(){const p=prefsOf(),mode=todayMode(),n=p.count==='all'?20:+p.count||20;return plan(pool(S.subj,'auto').filter(it=>askable(it,mode)),n,false,true);}
 // seen … 「次のn問へ」で続けてきた、これまでの回に出た語のID（次の回から除く）
 function start(mode,items,seen){sync();const p=prefsOf(); // 出題する語は、最新の記録（ほかのタブの回答を含む）で選ぶ
   const modeOk=it=>askable(it,mode);
@@ -1152,13 +1208,16 @@ function start(mode,items,seen){sync();const p=prefsOf(); // 出題する語は�
   items=items.filter(modeOk);
   // 0語のときの案内は、出題モードの一覧のすぐ上に出し、見える位置まで送る（押したボタンの近く）
   if(!items.length){S.zero=true;S.tab='home';S.session=null;render();const z=$('[data-zero]');if(z)try{z.scrollIntoView({block:'center'});}catch(e){}return;}
-  S.msg='';S.zero=false;S.leave=null;S.resume=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null,seen:seen||[]};saveSess();render();}
+  S.msg='';S.zero=false;S.leave=null;S.resume=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null,seen:seen||[],pre:preOf(items)};saveSess();render();}
+// 始める前の状態（結果の「今回習得n語」を数えるのに使う）
+const preOf=items=>{const o={};for(const it of items)o[it.id]=status(it);return o;};
 // 結果画面の「次のn問へ」: いまの出題設定で、これまでの回に出た語を除いて選ぶ（収録順なら続きの語が出る）。除くと0語になるなら null（同じ設定でもう一度）
 function nextItems(sess){const p=prefsOf(),ex=new Set(sess.seen.concat(sess.items.map(it=>it.id)));
   const rest=pool(S.subj,p.range).filter(it=>askable(it,sess.mode)&&!ex.has(it.id));return rest.length?pick(rest,p):null;}
 /* ---- 進行中のセッションの保存（再読み込みやページを閉じたあとで、続きから再開するため） ---- */
 // 学習記録とは別のキーに入れる（学習記録の保存データの形・移行・2つのタブの統合には関わらない）。
-//   {v:版, subj:教材, mode:出題形式, ids:[出題する語のID（出題順）], res:[答えた問題の正誤 1/0（出題順）], tab:書いたタブの印, at:書いた時刻}
+//   {v:版, subj:教材, mode:出題形式, ids:[出題する語のID（出題順）], res:[答えた問題の正誤 1/0（出題順）], pre:{ID:始める前の状態}, tab:書いたタブの印, at:書いた時刻}
+// ids には、間違えて差し戻した語が2回以上入ることがある（差し戻しは、答えた直後に ids へ入れてから書く）。pre は無くてもよい（古い版が書いたもの）
 // tab・at … 2つのタブで開いているとき、片方で進行中の学習を、もう片方に「前回の続き」として出さないためのもの。
 //   タブの印は sessionStorage に持つ（再読み込みしても同じタブなら同じ印）。進行中のタブは ALIVE ごとに時刻を書き直し、閉じるとき（pagehide）に印を外す。
 //   読む側は、印が自分のものでなく、時刻が STALE 以内なら、ほかのタブで進行中とみなして出さない（印が無い・時刻が古いなら出す）
@@ -1170,7 +1229,7 @@ const unfinished=()=>!!S.session&&S.session.i<S.session.items.length;
 const ALIVE=20000,STALE=150000;
 const TAB=(()=>{const k=KEY+'-tab';let id='';try{id=sessionStorage.getItem(k)||'';if(!id){id=Date.now().toString(36)+Math.random().toString(36).slice(2,8);sessionStorage.setItem(k,id);}}catch(e){}return id||('t'+Math.random());})();
 function saveSess(release){const s=S.session;try{if(!s||s.res.length>=s.items.length)localStorage.removeItem(SKEY);
-  else localStorage.setItem(SKEY,JSON.stringify({v:VER,subj:S.subj,mode:s.mode,ids:s.items.map(it=>it.id),res:s.res.map(r=>r.ok?1:0),tab:release?'':TAB,at:Date.now()}));}catch(e){}}
+  else localStorage.setItem(SKEY,JSON.stringify({v:VER,subj:S.subj,mode:s.mode,ids:s.items.map(it=>it.id),res:s.res.map(r=>r.ok?1:0),pre:s.pre||{},tab:release?'':TAB,at:Date.now()}));}catch(e){}}
 // 保存してあるセッションが、このタブの進行中のものか（ほかのタブが上書きしていないか）
 function ownSess(){try{const j=JSON.parse(localStorage.getItem(SKEY));return isObj(j)&&j.tab===TAB;}catch(e){return false;}}
 setInterval(()=>{if(unfinished()&&ownSess())saveSess();},ALIVE);
@@ -1184,9 +1243,10 @@ function loadSess(){let j=null;try{j=JSON.parse(localStorage.getItem(SKEY));}cat
   const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),items=[];
   for(let id of j.ids){for(const m of MIGRATIONS)if(m.v>from&&typeof id==='string'&&has(m.map,id))id=m.map[id];
     const it=typeof id==='string'?findAny(id):null;if(!it||!askable(it,j.mode))return null;items.push(it);}
-  return{subj:j.subj,mode:j.mode,items,res:j.res.map((r,i)=>({it:items[i],ok:!!r}))};}
+  const pre={};if(isObj(j.pre))for(const it of items)if(Object.prototype.hasOwnProperty.call(STATUS,j.pre[it.id]))pre[it.id]=j.pre[it.id];
+  return{subj:j.subj,mode:j.mode,items,res:j.res.map((r,i)=>({it:items[i],ok:!!r})),pre};}
 function resume(){const r=S.resume;if(!r)return;S.resume=null;S.leave=null;S.subj=r.subj;S.tab='home';S.msg='';
-  S.session={mode:r.mode,items:r.items,i:r.res.length,res:r.res,flipped:false,picked:null,choices:null,seen:[]};saveSess();render();}
+  S.session={mode:r.mode,items:r.items,i:r.res.length,res:r.res,flipped:false,picked:null,choices:null,seen:[],pre:r.pre||{}};saveSess();render();}
 // 学習の途中で離れる操作（中断・タブ・教科や教材の切り替え）は、その場に確認を出してから行う。入力中の答えは残す
 function leave(act){if(!unfinished()){act();return;}S.leave=act;redraw();const c=$('[data-leave]');if(c)try{c.scrollIntoView({block:'nearest'});}catch(e){}}
 function redraw(){const a=$('#ans'),v=a?a.value:null;render();const n=$('#ans');if(n&&v!=null)n.value=v;}
@@ -1378,7 +1438,13 @@ function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=se
   return shuffle([it,...picks]);}
 // 読み上げ用の知らせ（画面には出さない）。画面全体を読み上げ対象にする代わりに、正誤などの短い文だけを伝える
 function say(t){const l=$('#live');if(l)l.textContent=t||'';}
-function answer(ok){const sess=S.session,it=sess.items[sess.i],m=sess.mode;record(it,ok);sess.res.push({it,ok});S.leave=null;saveSess();
+// 間違えた語は、同じセットの3〜5問あとにもう一度出す（残りが少なければ最後）。1語につき REASK 回まで。
+// 出題の列（sess.items）に差し込むので、問題数の表示・進み具合・中断からの再開は、差し込んだ後の列で数える。差し戻しの回答も1回の回答として記録する
+const REASK=2;
+const isAgain=sess=>sess.items.indexOf(sess.items[sess.i])<sess.i;
+function answer(ok){const sess=S.session,it=sess.items[sess.i],m=sess.mode;record(it,ok);sess.res.push({it,ok});S.leave=null;
+  if(!ok&&sess.items.filter(x=>x===it).length<=REASK)sess.items.splice(Math.min(sess.items.length,sess.i+3+Math.floor(Math.random()*3)),0,it);
+  saveSess();
   if(m!=='flash')say(ok?'正解':'不正解。正答は '+(m==='quiz'?it.m[0]:m==='typeY'?(it.rd||it.m[0]):it.w));}
 function next(){const sess=S.session;S.leave=null;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';say('');render();const a=$('#ans');if(a)a.focus();}
 // フラッシュカードをめくる。めくった直後（GUARD ミリ秒）は「まだ／覚えた」を受け付けない（「答えを見る」と同じ位置に出るので、2回押しで記録されないように）
@@ -1431,7 +1497,7 @@ const enAttr=()=>isEn()?' lang="en"':'';
 function wordHtml(it,cls,k=it.k){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}"${enAttr()} style="--n:${[...String(it.w)].length}">${esc(it.w)}</p>${k?`<div class="kanji">${esc(k)}</div>`:''}`;}
 // 進捗行。学習中はヘッダーを隠すので、これが画面の先頭になる。正誤の数は、色に加えて記号でも示す
 function progHtml(sess){const n=sess.items.length,ok=sess.res.filter(r=>r.ok).length,ng=sess.res.length-ok;
-  return `<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div>${sess.res.length?`<span class="tally" aria-label="正解 ${ok}、不正解 ${ng}"><span class="o">◯${ok}</span> <span class="x">✕${ng}</span></span>`:''}<button data-quit>中断</button></div>`;}
+  return `<div class="prog"><span class="num">${sess.i+1} / ${n}</span><div class="track"><i style="width:${sess.i/n*100}%"></i></div>${sess.res.length?`<span class="tally" aria-label="正解 ${ok}、不正解 ${ng}"><span class="o">◯${ok}</span> <span class="x">✕${ng}</span></span>`:''}<button data-quit>中断</button></div>${isAgain(sess)?'<p class="again">さっき間違えた語をもう一度</p>':''}`;}
 // 解答後の下端の帯: 正誤（text は .verdict の中身の HTML）と「次へ」
 function bandHtml(ok,text,clamp){return `<div class="actions band"><div class="verdict ${ok?'ok':'ng'}${clamp?' clamp':''}">${text}</div><button class="btn acc" data-next>次へ<small class="kbd" aria-hidden="true">Enter</small></button></div>`;}
 // 意味の並びを、意味ごとの塊（.mm）にして「／」でつなぐ。塊の途中では折り返さない（区切りの「／」「・」は前の塊に付ける）。文字は ms.join('／') と同じ
@@ -1495,9 +1561,28 @@ function detailHtml(it){const c=SUBJ[S.subj].cls,en=enAttr();
   ${it.note?`<div class="note"><b>${it.yomi?'意味':'注'}</b>${esc(it.note)}</div>`:''}
   ${it.sei?seiHtml(it.sei):''}
   ${it.rel&&it.rel.length?`<div class="rel"><b>関連語</b><ul>${it.rel.map(x=>`<li><span class="rw">${esc(bareW(x[0]))}</span>${noteW(x[0])?`<span class="rp">${esc(noteW(x[0]))}</span>`:''}<span class="rp">${esc(x[1])}</span><span class="rm">${esc(x[2])}</span></li>`).join('')}</ul></div>`:''}
-  ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}`;}
+  ${it.der?`<div class="der"><b>派生・関連</b>${esc(it.der)}</div>`:''}
+  ${it.page?`<div class="der" data-page><b>本のページ</b>p.${esc(it.page)}</div>`:''}`;}
+// 本の番号（古文330・読み）。紙の本で引けるように、結果と苦手ワードの一覧に出す
+const numLab=it=>it.num?'No.'+it.num:'';
 
-// 学習ホーム。上から: 今日の行 → 進捗バーと凡例 →（一覧表への近道）→ 出題モード → 出題設定 → 一覧表 → 使い方・案内。
+// その教材の出題モードの一覧 [[キー, 名前], …]。並び: カード／4択 語→意味／4択 意味→語／空所 4択／空所 記述／読み入力
+function modesOf(){const sj=SUBJ[S.subj],typeY=sj.yomi||(sj.joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)));
+  return [['flash','フラッシュカード'],['quiz','4択：'+(sj.yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味')],['quizR','4択：'+(sj.yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語')]]
+    .concat(sj.yomi||sj.noCloze?[]:[['cloze','空所補充：4択'],['clozeT','空所補充：記述']],typeY?[['typeY','読みを入力']]:[]);}
+// 次に出す日の言い方（今日・明日・n日後）
+const dueLab=d=>{const n=dayDiff(d,today());return n<=0?'今日':n===1?'明日':n+'日後';};
+// 1日の目標（回答数）。全教材で共通
+const GOALS=[10,20,30,50,100],goalOf=()=>GOALS.includes(+store.prefs.goal)?+store.prefs.goal:30;
+// ホーム最上部の「今日の学習」: 1日の目標と達成度、期限が来た復習と新出を配分した1セットを始めるボタン
+function todayHtml(){const tp=todayPlan(),r=tp.rev.length,f=tp.fresh.length,t=store.days[today()]||0,g=goalOf(),done=t>=g,mode=todayMode();
+  let nextDue='';if(!r&&!f){const ds=pool(S.subj,'auto').map(schedOf).filter(Boolean).map(s=>s.d).sort();if(ds.length)nextDue='次の復習は'+dueLab(ds[0])+'です。';}
+  return `<section class="panel tbox" data-today><h2>今日の学習 <span class="sub">${esc(SUBJ[S.subj].name)}</span></h2>
+    <div class="goal${done?' done':''}" data-goal role="img" aria-label="今日の回答 ${t}問。目標 ${g}問${done?'を達成':''}"><div class="track"><i style="width:${Math.min(100,t/g*100)}%"></i></div><span class="num"><b>${t}</b> / ${g} 問</span>${done?'<span class="gdone">達成</span>':''}</div>
+    ${r+f?`<button class="btn acc tstart" data-start-today>今日の学習を始める<small>（復習 ${r}語＋新出 ${f}語）</small></button>`
+      :`<p class="tnone">今日の復習と新しい語は、もうありません。${nextDue}下の出題モードから、自由に練習できます。</p>`}
+    <p class="hint tsub">${tp.due>r?`復習待ち ${tp.due}語・`:''}形式: ${esc(modesOf().find(x=>x[0]===mode)[1])}（出題設定で変えられます）</p></section>`;}
+// 学習ホーム。上から:（今日の学習）→ 今日の行 → 進捗バーと凡例 →（一覧表への近道）→ 出題モード → 出題設定 → 一覧表 → 使い方・案内。
 // 開いてすぐ始められるよう、出題モードを設定より上に置く。並べ替えは CSS ではなく、ここの出力順で行う
 function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,sk=streak();
   // 古文330は、関連語の数を見出し語と分けて添える（PC幅は各タイルに、スマホ幅は凡例の下の1行に）
@@ -1512,11 +1597,8 @@ function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.d
   // 直近7日の印（回答した日は塗り。右端が今日）
   const week=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);week.push(store.days[today(d)]?'<i class="on"></i>':'<i></i>');}
   const tables=(sj.tables||[]).filter(t=>t.html);
-  const typeY=sj.yomi||(sj.joshiki&&DATA[S.subj].some(it=>it.rd&&/[一-龠々]/.test(it.w)));
-  // 出題モードの並び: カード／4択 語→意味／4択 意味→語／空所 4択／空所 記述／読み入力
-  const modes=[['flash','フラッシュカード',''],['quiz','4択：'+(sj.yomi?'漢字 → 読み':isEn()?'単語 → 意味':'語 → 意味'),''],['quizR','4択：'+(sj.yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'),'']]
-    .concat(sj.yomi||sj.noCloze?[]:[['cloze','空所補充：4択',czn],['clozeT','空所補充：記述',czn]],typeY?[['typeY','読みを入力','']]:[]);
-  return `${S.resume?resumeHtml():''}${fresh?firstHtml()+howtoHtml(true):''}
+  const modes=modesOf().map(([k,t])=>[k,t,k.startsWith('cloze')?czn:'']),tm=todayMode(),g=goalOf();
+  return `${S.resume?resumeHtml():''}${fresh?firstHtml()+howtoHtml(true):''}${todayHtml()}
   <div class="today"><span>今日の回答 <b class="num">${t}</b> 問</span><span>連続学習 <b class="num">${sk}</b> 日<span class="wk" aria-hidden="true">${week.join('')}</span></span><span>${esc(sj.name)}の習得率 <b class="num">${c.total?Math.round(c.ok/c.total*100):0}%</b></span><span>学習した語 <b class="num">${c.total-c.new}</b> / ${c.total}</span></div>
   <section class="tiles">
     <div class="tile"><div class="lab">収録語数</div><div class="val num">${c.total}<small>語</small></div>${relLab('total')}</div>
@@ -1534,7 +1616,7 @@ function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.d
     <div class="opts">
       <div class="opt"><label for="o-range">出題範囲</label><select id="o-range" data-pref="range">
         <optgroup label="状態">
-        <option value="auto"${sel('auto')}>おまかせ（苦手・未学習を優先）</option>
+        <option value="auto"${sel('auto')}>おまかせ（復習・苦手を優先）</option>
         <option value="notok"${sel('notok')}>未習得のみ（苦手＋学習中＋未学習）</option>
         <option value="weak"${sel('weak')}>苦手のみ</option>
         <option value="new"${sel('new')}>未学習のみ</option>
@@ -1544,7 +1626,7 @@ function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.d
       <div class="opt"><label for="o-count">問題数</label><select id="o-count" data-pref="count">
         ${['10','20','30','50','all'].map(n=>`<option value="${n}"${p.count===n?' selected':''}>${n==='all'?'全部':n+'問'}</option>`).join('')}</select></div>
       <div class="opt"><label for="o-order">出題順</label><select id="o-order" data-pref="order">
-        <option value="smart"${p.order==='smart'?' selected':''}>苦手→未学習→学習中→習得</option>
+        <option value="smart"${p.order==='smart'?' selected':''}>復習→苦手→学習中→未学習</option>
         <option value="random"${p.order==='random'?' selected':''}>ランダム</option>
         <option value="index"${p.order==='index'?' selected':''}>収録順</option></select></div>
     </div>
@@ -1552,6 +1634,9 @@ function viewHome(){const sj=SUBJ[S.subj],c=counts(S.subj),p=prefsOf(),t=store.d
       <div class="opt"><label for="o-from">番号（から）</label><input type="number" id="o-from" data-pref="from" min="1" max="330" inputmode="numeric" placeholder="1" value="${esc(p.from)}"></div>
       <div class="opt"><label for="o-to">番号（まで）</label><input type="number" id="o-to" data-pref="to" min="1" max="330" inputmode="numeric" placeholder="330" value="${esc(p.to)}"></div>
       <div class="opt"><label for="o-rel">関連語</label><select id="o-rel" data-pref="rel"><option value="no"${p.rel==='no'?' selected':''}>見出し語のみ</option><option value="with"${p.rel==='with'?' selected':''}>関連語も出題（${BOOKREL.length}語）</option><option value="only"${p.rel==='only'?' selected':''}>関連語だけ</option></select></div></div>`:''}
+    <div class="opts two">
+      <div class="opt"><label for="o-tmode">「今日の学習」の形式</label><select id="o-tmode" data-pref="tmode">${modes.map(([k,t])=>`<option value="${k}"${k===tm?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="opt"><label for="o-goal">1日の目標（全教材で共通）</label><select id="o-goal" data-gpref="goal">${GOALS.map(n=>`<option value="${n}"${n===g?' selected':''}>${n}問</option>`).join('')}</select></div></div>
   </section>
   ${tables.length?`<section class="panel" id="tables" tabindex="-1"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${tables.map(t=>`<details class="refd"><summary>${esc(t.title)}</summary><div class="tblwrap">${t.html}</div></details>`).join('')}</section>`:''}
   ${fresh?'':howtoHtml(false)}
@@ -1588,15 +1673,16 @@ function howtoHtml(fresh){const open=S.howto!=null?S.howto:(fresh&&store.prefs.h
   const P=(h,t)=>`<p style="margin:8px 0 0"><b>${h}</b>　${t}</p>`;
   return `<section class="panel"><details class="refd" data-howto${open?' open data-init':''}><summary>使い方</summary><div class="hint" style="margin:0;font-size:.84rem;color:var(--fg)">
     ${P('教科と教材','上の「古文／英語」で教科を、その下のタブで教材を選びます（タブは横に送ると続きがあります）。古文は'+esc(kobun)+'、英語は英単語（全レベルとレベル別）。')}
-    ${P('出題設定','出題モードのボタンを押すと始まります。出題範囲・問題数・出題順は、その下の「出題設定」で変えられます。設定は教材ごとに記憶されます。「おまかせ」は苦手と未学習の語を優先して出します。')}
+    ${P('出題設定','出題モードのボタンを押すと始まります。出題範囲・問題数・出題順は、その下の「出題設定」で変えられます。設定は教材ごとに記憶されます。「おまかせ」は、復習の日が来た語と苦手の語を優先し、新しい語を4割ほど混ぜて出します。間違えた語は、同じセットの3〜5問あとにもう一度出ます。いちばん上の「今日の学習を始める」は、その日の復習と新しい語を1セットにして出します。')}
     ${P('出題モード','フラッシュカードは、めくって意味を確かめ「覚えた／まだ」を自分で付けます。4択は「語 → 意味」と「意味 → 語」の両方向。空所補充は、用例の空所に入る語を選ぶ・書く形です（古文単語・古文330・英単語）。読みを入力は、漢字の読みをひらがなで答えます（読み・古文常識など）。')}
-    ${P('習得と苦手','続けて2回正解すると「習得」。それまでに一度でも間違えた語は「苦手」、正解したがまだ2回続いていない語は「学習中」です。苦手の語も、続けて2回正解すると習得になります。フラッシュカードの「覚えた」は正解、「まだ」は不正解として数えます。')}
+    ${P('復習の間隔','正解した語は、翌日・3日後・7日後・14日後・30日後と、日をあけて復習に出ます。同じ日に何度正解しても、進むのは1回ぶんです。間違えると、翌日からやり直しになります。')}
+    ${P('習得と苦手','日をあけて3回正解すると「習得」（習得した語も、日が来れば復習に出ます）。「苦手」は、一度正解したあとで間違えた語と、2回以上間違えた語です。初めて見た語を1回間違えただけなら「学習中」です。フラッシュカードの「覚えた」は正解、「まだ」は不正解として数えます。')}
     ${P('単語帳と成績','単語帳では語を検索して一覧で見られます。語を開くと意味や用例を確かめて、「苦手に登録」「習得済みにする」「記録を消す」ができます。成績では、教材ごとの習得の割合、直近14日の回答数、苦手ワードを見られます。')}
     ${P('バックアップ','学習記録はこの端末のブラウザにだけ保存されます。別の端末へ移すときや控えを取るときは、成績タブの「記録をコピー」で文字列をコピーし、別の端末の欄に貼り付けて「復元」を押します。')}
     ${P('ホーム画面に追加','iPhone では、Safari の共有ボタンから「ホーム画面に追加」を選び、追加したアイコンから開くと、記録が消えにくくなります（Safari は、しばらく開かないページの保存データを消すことがあります）。')}
   </div></details></section>`;}
 // 記録が空のときだけ、ホームの上部に出す一言
-const firstHtml=()=>`<section class="panel" data-first><h2>はじめに</h2><p class="hint" style="margin:0 0 12px;font-size:.86rem;color:var(--fg)">上のタブで教材を選び、まずは「フラッシュカード」で語をめくってみましょう。間違えた語は自動で「苦手」に入ります。</p><div class="row"><button class="btn acc" data-start-first>フラッシュカードで始める</button></div></section>`;
+const firstHtml=()=>`<section class="panel" data-first><h2>はじめに</h2><p class="hint" style="margin:0 0 12px;font-size:.86rem;color:var(--fg)">上のタブで教材を選び、まずは「フラッシュカード」で語をめくってみましょう。間違えた語は、少しあとでもう一度出ます。</p><div class="row"><button class="btn acc" data-start-first>フラッシュカードで始める</button></div></section>`;
 
 // フラッシュカード。表面は「答えを見る」だけ（カードのタップでもめくれる）。「まだ／覚えた」は、めくってから同じ位置に出す
 function viewFlash(){const sess=S.session,it=sess.items[sess.i],head=progHtml(sess);
@@ -1647,13 +1733,23 @@ function viewTypeY(){const sess=S.session,it=sess.items[sess.i],done=sess.picked
 
 // 結果。主ボタン（塗り）は、誤答があれば「間違えたn語をもう一度」、全問正解なら「次のn問へ」。
 // 「次のn問へ」は、これまでの回に出た語を除いて出題する（除くと0語になるときは「同じ設定でもう一度」）
-function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(r=>r.ok).length,wrong=sess.res.filter(r=>!r.ok).map(r=>r.it),pct=n?Math.round(ok/n*100):0,c=SUBJ[S.subj].cls,en=enAttr();
+// 正答数は、語ごとの最初の回答で数える（差し戻しの回答は数に入れず、回数だけ添える）。
+// 「今回」の行: このセットで新しく習得になった語・まだ学習中の語（苦手を含む）の数と、次の復習の時期
+function resultSum(sess){const first=new Map();for(const x of sess.res)if(!first.has(x.it))first.set(x.it,x.ok);
+  const its=[...first.keys()],pre=sess.pre||{},st=its.map(status),by={};
+  for(const it of its){const s=schedOf(it);if(s){const l=dueLab(s.d);by[l]=(by[l]||0)+1;}}
+  return{its,n:its.length,ok:[...first.values()].filter(Boolean).length,wrong:its.filter(it=>!first.get(it)),again:sess.res.length-its.length,
+    got:its.filter((it,i)=>st[i]==='ok'&&pre[it.id]&&pre[it.id]!=='ok').length,kept:its.filter((it,i)=>st[i]==='ok'&&pre[it.id]==='ok').length,
+    learning:st.filter(s=>s==='learning'||s==='weak').length,weak:st.filter(s=>s==='weak').length,
+    due:Object.entries(by).sort((a,b)=>(parseInt(a[0])||(a[0]==='明日'?1:0))-(parseInt(b[0])||(b[0]==='明日'?1:0))).map(([l,k])=>l+' '+k+'語').join('・')};}
+function viewResult(){const sess=S.session,rs=resultSum(sess),n=rs.n,ok=rs.ok,wrong=rs.wrong,pct=n?Math.round(ok/n*100):0,c=SUBJ[S.subj].cls,en=enAttr();
   const r=52,circ=2*Math.PI*r,nx=nextItems(sess),t=store.days[today()]||0;
   return `<section class="panel"><div class="score">
     <svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--ok)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(circ*pct/100).toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="var(--fg)" font-family="var(--sans)">${pct}%</text></svg>
-    <div>${pct===100?'<span class="perfect">全問正解</span>':''}<div class="big num">${ok} / ${n} 問</div><div class="sm">${pct===100?'次は範囲を広げましょう。':pct>=80?'あと一歩。間違えた語を復習しましょう。':'間違えた語は「苦手」に登録されました。もう一度挑戦。'}</div><div class="sm num">今日 ${t} 問・連続 ${streak()} 日</div></div></div>
+    <div>${pct===100?'<span class="perfect">全問正解</span>':''}<div class="big num">${ok} / ${n} 問</div><div class="sm">${pct===100?'次は範囲を広げましょう。':pct>=80?'あと一歩。間違えた語は明日また出ます。':'間違えた語は明日また出ます。もう一度挑戦。'}${rs.again?`（間違えた語の出し直し ${rs.again}回）`:''}</div><div class="sm num">今日 ${t} / ${goalOf()} 問・連続 ${streak()} 日</div></div></div>
+    <div class="rsum" data-rsum><p><b>今回</b>習得 <b class="num">${rs.got}</b>語・学習中 <b class="num">${rs.learning}</b>語${rs.weak?`（うち苦手 ${rs.weak}語）`:''}${rs.kept?`・習得のまま ${rs.kept}語`:''}</p>${rs.due?`<p><b>次の復習</b>${rs.due}</p>`:''}</div>
     <div class="row">${wrong.length?`<button class="btn acc" data-retry="wrong">間違えた ${wrong.length} 語をもう一度</button>`:''}<button class="btn${wrong.length?'':' acc'}" data-retry="same">${nx?'次の '+nx.length+' 問へ':'同じ設定でもう一度'}</button><button class="btn text" data-quit>ホームへ</button></div></section>
-    ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 4px">今回間違えた語 <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">押すと解説が開きます</span></h2><ul class="wlist res">${wrong.map(it=>`<li><details><summary><span class="w ${c}"${en}>${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}</span><span class="m">${mmHtml(it.m)}</span></summary><div class="vdet">${detailHtml(it)}</div></details></li>`).join('')}</ul>`:''}`;}
+    ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 4px">今回間違えた語 <span class="sub" style="font-weight:400;color:var(--muted);font-size:.8rem">押すと解説が開きます</span></h2><ul class="wlist res">${wrong.map(it=>`<li><details><summary><span class="w ${c}"${en}>${esc(it.w)}${it.k||it.num?`<small>${numLab(it)}${it.k&&it.num?'　':''}${esc(it.k)}</small>`:''}</span><span class="m">${mmHtml(it.m)}</span></summary><div class="vdet">${detailHtml(it)}</div></details></li>`).join('')}</ul>`:''}`;}
 
 // 単語帳。検索欄（#q）は残し、絞り込み・件数・一覧（#lbody）だけを差し替える（入力のたびに検索欄を作り直すと、日本語の変換入力が壊れる）
 function viewList(){return `<input type="search" id="q" aria-label="語・意味で検索" placeholder="語・意味で検索" value="${esc(S.list.q)}" autocomplete="off" enterkeyhint="search">
@@ -1671,7 +1767,7 @@ function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase()
   <div class="count num">全 ${total} 語中 ${items.length} 語を表示</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
     return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="sr">${STATUS[st]}</span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}<span${enAttr()}>${esc(it.w)}</span>${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${mmHtml(it.m)}</span></button>
-    ${open?`<div class="vdet">${detailHtml(it)}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>
+    ${open?`<div class="vdet">${detailHtml(it)}${schedOf(it)?`<p class="hint" data-due style="margin:10px 0 0">次の復習: ${dueLab(schedOf(it).d)}（段階 ${schedOf(it).g} / ${GMAX}。3以上で習得）</p>`:''}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>
   ${total>items.length?`<div class="row" style="margin-top:12px"><button class="btn" data-more>さらに表示（残り ${total-items.length} 語）</button></div>`:''}`
   :'<div class="empty">該当する語がありません</div>'}`;}
 // 単語帳の一覧だけを描き直す（単語帳を開いていなければ、画面全体を描く）
@@ -1704,7 +1800,7 @@ function viewStats(){const c=SUBJ[S.subj].cls,cur=baseOf(S.subj);
     ${days.some(x=>x.n)?'':'<p class="hint" style="margin:8px 0 0">学習すると、ここに日ごとの回答数が出ます。</p>'}</section>
   <div class="sgrid">${openBlock(cur)}
   <section class="panel"><h2>${esc(SUBJ[S.subj].name)}の苦手ワード <span class="sub">間違いが多い順・上位15${SUBJ[S.subj].book?`（見出し語 ${wHead.length}語・関連語 ${wRel.length}語）`:''}</span></h2>
-    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}"${enAttr()}>${esc(it.w)}</span>${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${mmHtml(it.m)}</span><span class="num wn"><span class="wx">✕${r.x}</span><span class="wo">◯${r.c}</span></span></li>`).join('')}</ul>
+    ${weak.length?`<ul class="wlist">${weak.map(({it,r})=>`<li><span class="w ${c}"${enAttr()}>${esc(it.w)}</span>${it.num?`<span class="chip num">${numLab(it)}</span>`:''}${it.isRel?'<span class="chip">関連語</span>':''}<span class="m">${mmHtml(it.m)}</span><span class="num wn"><span class="wx">✕${r.x}</span><span class="wo">◯${r.c}</span></span></li>`).join('')}</ul>
     ${wHead.concat(wRel).some(it=>askable(it,'quiz'))?'<div class="row" style="margin-top:12px"><button class="btn acc" data-start-weak>苦手ワードだけ4択で復習</button></div>':''}`:'<p class="hint" style="margin:0">苦手に登録された語はありません。</p>'}</section>
   ${subjs.filter(k=>k!==cur).map(lineBlock).join('')}</div>
   <details class="panel dm" data-dm${S.dm||S.confirm?' open':''}><summary><h2>データ管理 <span class="sub">バックアップ・記録のリセット</span></h2></summary>
@@ -1725,7 +1821,10 @@ document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const tab=b.dataset.tab;leave(()=>{S.tab=tab;S.session=null;S.msg='';S.zero=false;S.confirm=false;render();});});
 const view=$('#view');
 view.addEventListener('change',e=>{const fs=e.target.closest('[data-fsel]');if(fs){S.list[fs.dataset.fsel]=fs.value;S.list.shown=PAGE;renderList();return;}
+  const gp=e.target.closest('[data-gpref]');if(gp){store.prefs[gp.dataset.gpref]=gp.value;save();render();return;}
   const s=e.target.closest('[data-pref]');if(!s)return;const prev=prefsOf().range;setPref(s.dataset.pref,s.value);
+  // 「今日の学習」の語数は、形式・問題数・番号・関連語の設定で変わるので、その枠だけ描き直す
+  const tb=$('[data-today]');if(tb&&!S.session)tb.outerHTML=todayHtml();
   // 設定を変えたら、0語の案内は消す
   S.zero=false;const z=$('[data-zero]');if(z)z.remove();
   if(s.dataset.pref==='range'&&chapSync(prev,s.value)){const p=prefsOf(),f=$('#o-from'),t=$('#o-to');if(f)f.value=p.from;if(t)t.value=p.to;}
@@ -1740,6 +1839,7 @@ view.addEventListener('click',e=>{
   const t=e.target;const h=(sel)=>t.closest(sel);let b;
   if(b=h('[data-start]')){start(b.dataset.start);return;}
   if(h('[data-start-first]')){start('flash');return;}
+  if(h('[data-start-today]')){sync();const tp=todayPlan();start(todayMode(),tp.rev.concat(tp.fresh));return;}
   if(h('[data-start-weak]')){sync();const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
   if(h('[data-quit]')){leave(()=>{S.session=null;S.tab='home';render();});return;}
   if(b=h('[data-leave]')){const act=S.leave;S.leave=null;if(b.dataset.leave==='yes'&&act){S.session=null;saveSess();act();}else redraw();return;}
@@ -1751,7 +1851,7 @@ view.addEventListener('click',e=>{
   if(b=h('[data-pick]')){const sess=S.session;if(sess.picked!==null)return;sess.picked=+b.dataset.pick;answer(sess.choices[sess.picked].id===sess.items[sess.i].id);render();return;}
   if(h('[data-next]')){next();return;}
   if(b=h('[data-retry]')){const sess=S.session,seen=sess.seen.concat(sess.items.map(it=>it.id));
-    if(b.dataset.retry==='wrong'){start(sess.mode,shuffle(sess.res.filter(r=>!r.ok).map(r=>r.it)),seen);}else{const nx=nextItems(sess);if(nx)start(sess.mode,nx,seen);else start(sess.mode);}return;}
+    if(b.dataset.retry==='wrong'){start(sess.mode,shuffle(resultSum(sess).wrong),seen);}else{const nx=nextItems(sess);if(nx)start(sess.mode,nx,seen);else start(sess.mode);}return;}
   if((b=h('[data-f]'))&&b.dataset.v!==undefined){S.list[b.dataset.f]=b.dataset.v;S.list.shown=PAGE;renderList();return;}
   if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;renderList();return;}
   if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);renderList();}return;}
@@ -1759,11 +1859,11 @@ view.addEventListener('click',e=>{
   if(h('[data-export]')){S.dm=true;sync();const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fallback);}else fallback();}catch(x){fallback();}return;}
-  // バックアップの取り込み。形を確かめてから取り込む: 記録は {c,x,s,t} がどれも0以上の数値のものだけ（余分な欄は落とす）、
+  // バックアップの取り込み。形を確かめてから取り込む: 記録は {c,x,s,t} がどれも0以上の数値のものだけ（復習の段階と次の日 g・d は、形が正しければ残す。ほかの余分な欄は落とす）、
   // 日別の回答数は「年-月-日」の日付と0以上の数値の組だけ。おかしな項目は捨てて、取り込んだ件数と捨てた件数を知らせる。
   // 取り込みの優先は、2つのタブの記録を合わせるときと同じ（merge）
   if(h('[data-import]')){S.dm=true;const ta=$('#imp');try{const j=JSON.parse(ta.value);if(!isObj(j)||!isObj(j.prog))throw 0;const prog={},days={};let bad=0;
-      for(const id in j.prog){const r=j.prog[id];if(validRec(r))prog[id]={c:r.c,x:r.x,s:r.s,t:r.t};else bad++;}
+      for(const id in j.prog){const r=j.prog[id];if(validRec(r)){prog[id]={c:r.c,x:r.x,s:r.s,t:r.t};if(validG(r)){prog[id].g=r.g;prog[id].d=r.d;}}else bad++;}
       if(isObj(j.days)){for(const d in j.days){if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&isNum(j.days[d]))days[d]=j.days[d];else bad++;}}else if(j.days!=null)bad++;
       sync();const n=merge(migrate({v:j.v,prog,days}),true);save();S.msg=n+' 語の記録を取り込みました。'+(bad?'形の正しくない '+bad+' 件は読み飛ばしました。':'');}
     catch(x){S.msg='読み取れませんでした。コピーした文字列をそのまま貼り付けてください。';}render();return;}
@@ -1790,7 +1890,7 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
 window.addEventListener('storage',e=>{if(e.key===KEY)sync();});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
-window.__tangoTest={render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
+window.__tangoTest={status,schedOf,todayPlan,resultSum,session:()=>S.session,render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
 // フッターの収録内容。教材の一覧（GROUPS）から、タブと同じ名前・順で、語数はデータから数える（英語のレベル別タブは英単語に含まれるので出さない）
 $('.about').textContent='収録: '+GROUPS.flatMap(g=>g.subs.filter(k=>SUBJ[k]&&!SUBJ[k].base)).map(k=>SUBJ[k].name+' '+DATA[k].length+'語'+(SUBJ[k].book?'（関連語 '+BOOKREL.length+'語）':'')).join('／')+'。学習記録はこの端末のブラウザにだけ保存されます。';
 if(!SUBJ[S.subj])S.subj='kobun';
