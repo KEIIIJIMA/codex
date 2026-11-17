@@ -160,13 +160,16 @@ const startFlash = async (prefs = { subj: 'kobun', kobun: { range: 'all', count:
   await page.click('[data-start="flash"]');
   return page;
 };
-test('学習の途中の「中断」・タブ・教科・教材の切り替えは、確認を出す（「続ける」で元の問題に戻る）', async () => {
+// 学習中はヘッダー（教科・教材）とタブを隠すので、途中で離れる操作は「中断」だけになる
+test('学習の途中の「中断」は、確認を出す（「続ける」で元の問題に戻る）。学習中はタブ・教科・教材の切り替えを出さない', async () => {
   const page = await startFlash();
   let dialogs = 0;
   page.on('dialog', d => { dialogs++; d.dismiss(); });
-  for (let i = 0; i < 3; i++) await page.click('[data-ans="1"]');
+  for (let i = 0; i < 3; i++) await H.ans(page, 1);
   const w = await word(page);
-  const tries = ['[data-quit]', '.tabs [data-tab="list"]', '.tabs [data-tab="stats"]', '.tabs [data-tab="home"]', '.switch [data-group="eigo"]', '.subtabs [data-subj="book"]', '.subtabs [data-subj="kobun"]'];
+  for (const sel of ['.tabs [data-tab="list"]', '.tabs [data-tab="stats"]', '.tabs [data-tab="home"]', '.switch [data-group="eigo"]', '.subtabs [data-subj="book"]', '.subtabs [data-subj="kobun"]'])
+    assert.equal(await page.locator(sel).isVisible(), false, sel + ': 学習中に出ている');
+  const tries = ['[data-quit]', '[data-quit]'];
   for (const sel of tries) {
     await page.click(sel);
     assert.equal(await count(page, '[data-leave="yes"]'), 1, sel + ': 確認が出ない');
@@ -179,33 +182,36 @@ test('学習の途中の「中断」・タブ・教科・教材の切り替え�
     assert.equal(await page.getAttribute('html', 'data-subj'), 'kobun');
   }
   assert.equal(dialogs, 0, 'ブラウザの confirm を使った');
-  // 「中断する」で、押した先へ移る
-  await page.click('.tabs [data-tab="list"]');
+  // 「中断する」でホームへ戻り、タブが使える
+  await page.click('[data-quit]');
   await page.click('[data-leave="yes"]');
-  assert.equal(await count(page, '#q'), 1);
   assert.equal(await count(page, '.prog'), 0);
+  await page.click('.tabs [data-tab="list"]');
+  assert.equal(await count(page, '[data-leave]'), 0);
+  assert.equal(await count(page, '#q'), 1);
   assert.equal(await H.raw(page, SKEY), null, '中断したのに、進行中のセッションが残っている');
   assert.equal(Object.keys((await H.stored(page)).prog).length, 3); // 回答済みの記録は残る
   await done(page);
 });
 
-test('確認のあとの「中断する」: 中断はホームへ、教科・教材の切り替えはその教材へ', async () => {
+test('確認のあとの「中断する」: ホームへ戻り、教科・教材を切り替えられる', async () => {
   let page = await startFlash();
-  await page.click('[data-ans="1"]');
+  await H.ans(page, 1);
   await page.click('[data-quit]');
   await page.click('[data-leave="yes"]');
   assert.equal(await count(page, '[data-start="flash"]'), 1);
   assert.equal(await count(page, '[data-resume]'), 0);
   await done(page);
   page = await startFlash();
+  await H.quit(page);
   await page.click('.subtabs [data-subj="book"]');
-  await page.click('[data-leave="yes"]');
+  assert.equal(await count(page, '[data-leave]'), 0);
   assert.equal(await page.getAttribute('.subtabs [data-subj="book"]', 'aria-selected'), 'true');
   assert.equal(await count(page, '[data-start="flash"]'), 1);
   assert.equal((await H.stored(page)).prefs.subj, 'book');
   await page.click('[data-start="flash"]');
+  await H.quit(page);
   await page.click('.switch [data-group="eigo"]');
-  await page.click('[data-leave="yes"]');
   assert.equal(await page.getAttribute('html', 'data-subj'), 'eigo');
   await done(page);
 });
@@ -227,7 +233,7 @@ test('確認を出しても、入力中の答えは消えない。結果画面�
   await page.click('[data-leave="yes"]');
   // 最後まで答えた結果画面
   await page.click('[data-start="flash"]');
-  for (let i = 0; i < 10; i++) await page.click('[data-ans="1"]');
+  for (let i = 0; i < 10; i++) await H.ans(page, 1);
   assert.match(await page.textContent('#view'), /10 \/ 10 問/);
   assert.equal(await H.raw(page, SKEY), null);
   await page.click('.tabs [data-tab="stats"]');
@@ -243,7 +249,7 @@ test('学習の途中で再読み込みすると、「続きから（◯問目�
   assert.equal(ids.length, 10);
   const byId = Object.fromEntries(D.kobun.map(it => [it.id, it]));
   assert.equal(await word(page), byId[ids[0]].w);
-  for (let i = 0; i < 3; i++) await page.click(`[data-ans="${i === 1 ? 0 : 1}"]`);
+  for (let i = 0; i < 3; i++) await H.ans(page, i !== 1);
   assert.deepEqual((await sess(page)).res, [1, 0, 1]);
   await page.reload();
   await page.waitForSelector('#view > *');
@@ -257,11 +263,11 @@ test('学習の途中で再読み込みすると、「続きから（◯問目�
   for (let i = 3; i < 10; i++) {
     assert.equal(await num(page), `${i + 1} / 10`);
     assert.equal(await word(page), byId[ids[i]].w, `${i + 1}問目の語が違う`);
-    await page.click('[data-ans="1"]');
+    await H.ans(page, 1);
   }
   // 結果は、再読み込みの前の回答も合わせて数える（10問中9問）
   assert.match(await page.textContent('#view'), /9 \/ 10 問/);
-  assert.equal(await page.locator('.wlist li').count(), 1);
+  assert.equal(await page.locator('.wlist > li').count(), 1);
   assert.ok((await page.textContent('.wlist li')).includes(byId[ids[1]].w));
   assert.equal(await H.raw(page, SKEY), null);
   const s = await H.stored(page);
@@ -291,8 +297,6 @@ test('再開: 4択で答えた直後（解説の表示中）に再読み込み�
   const s = await H.stored(page);
   assert.equal(Object.values(s.prog).reduce((n, r) => n + r.c + r.x, 0), 2);
   // 別の教材を開いたまま読み込んでも、再開すると元の教材に戻る
-  await page.click('.switch [data-group="kobun"]');
-  await page.click('[data-leave="no"]');
   await page.evaluate(k => { const j = JSON.parse(localStorage.getItem(k)); j.prefs.subj = 'kobun'; localStorage.setItem(k, JSON.stringify(j)); }, H.KEY);
   await page.reload();
   await page.waitForSelector('#view > *');
@@ -313,7 +317,7 @@ test('再開: 4択で答えた直後（解説の表示中）に再読み込み�
 
 test('再開: 新しく始めたら前の途中のセッションは消える。壊れた保存内容・無くなった語は、再開を出さない', async () => {
   const page = await startFlash();
-  await page.click('[data-ans="1"]');
+  await H.ans(page, 1);
   const first = await sess(page);
   await page.reload();
   await page.waitForSelector('#view > *');

@@ -7,6 +7,9 @@
   `node tests/storage.test.js` ＝ バックアップの取り込みの検査・2つのタブで開いたときの記録の統合・保存の失敗の知らせ、
   `node tests/session_list.test.js` ＝ 単語帳の検索欄（日本語の変換入力）と「さらに表示」・学習の途中の確認と再読み込みのあとの再開・選択中の教材タブの位置、
   `node tests/wording.test.js` ＝ 「このページについて」・出題モードの説明文・フッターの収録内容・章や分野のラベル・タッチ端末でのキーボード案内・「使い方」と初回の一言、
+  `node tests/design.test.js` ＝ デザインの作り替えで動きが変わった所（フラッシュカードはめくってから判定・「次へ」「まだ／覚えた」の下端固定・学習中はヘッダーとタブを隠す・
+  ヘッダーの固定・0語の案内の位置・学習ホームの並びと一覧表への近道・出題範囲の区切りと古文330の章→番号・結果の主ボタンと「次のn問へ」・正誤の記号・
+  入力欄16px以上と押せる要素44px以上・「使い方」が開いたまま残らない・2つのタブでの「前回の続き」・prefs や days が null の保存データ）、
   `node tests/data.test.js` ＝ 語彙データの形式（以前の validate.js の検査を全チャンクと src/data_*.js に）・見出し語の重複・README の語数とビルドの件数の一致、
   `node tests/build.test.js` ＝ 組み立てスクリプトと build.js が入力の不備で止まること・build_all.sh で作り直した完成版がコミットされたものと一致すること）。
 - ブラウザを使わないテストは `tests/ids.test.js`・`tests/data.test.js`・`tests/build.test.js` の3つ。GitHub Actions（`.github/workflows/tango-drill-check.yml`）ではこの3つだけを実行する。
@@ -24,5 +27,8 @@
   差分の表示でメモリを使い切ることがある）。
 - 学習の途中で「中断」を押すと確認が出る。テストでホームへ戻るときは `helpers.js` の `quit(page)` を使う（確認が出ていれば「中断する」を押す）。
 - 日本語の変換入力は、Chromium の CDP（`Input.imeSetComposition` → `Input.insertText`）で再現する（`tests/session_list.test.js`）。
+- フラッシュカードは、めくってから「まだ／覚えた」を押す（表面には判定ボタンが無く、めくった直後の0.3秒は押せない）。テストで1問答えるときは `helpers.js` の `ans(page, ok)` を使う。
+- 学習中（出題の途中）はヘッダー（教科・教材）とタブを隠している。途中で離れるには `quit(page)`。
+- 成績タブのバックアップと記録のリセットは、折りたたみ「データ管理」の中にある。操作の前に `helpers.js` の `dm(page)` で開く。
 - スマホ（タッチ端末）を模すときは `helpers.js` の `open()` の4つ目の引数に `{ viewport, hasTouch: true, isMobile: true }` を渡す。
   なお、スマホを模した状態で `fullPage: true` のスクリーンショットを撮ると、Chromium ではその後 `(pointer: coarse)` が外れる（確認の画像は fullPage を使わずに撮る）。

@@ -26,9 +26,9 @@ test('関連語だけを出題して「まだ」と答えると、ホームの�
   assert.ok(REL >= 300, '関連語が ' + REL + ' 語しかない');
   assert.match(await tile(page, '.weak'), /^苦手1語関連語0$/);
   await page.click('[data-start="flash"]');
-  for (let i = 0; i < 10; i++) await page.click('[data-ans="0"]');
+  for (let i = 0; i < 10; i++) await H.ans(page, 0);
   assert.match(await page.textContent('#view'), /0 \/ 10 問/);
-  assert.equal((await page.$$('.wlist li')).length, 10);
+  assert.equal((await page.$$('.wlist > li')).length, 10);
   await H.quit(page);
   let s = await H.stored(page);
   assert.equal(relIds(s).length, 10);
@@ -47,7 +47,7 @@ test('関連語だけを出題して「まだ」と答えると、ホームの�
   assert.equal(rows.length, 11);
   assert.match(rows[0], /^おどろく/);
   assert.equal(rows.filter(r => /関連語/.test(r)).length, 10);
-  assert.ok((await page.locator('.sgrid .panel', { hasText: '古文330' }).textContent()).includes(`関連語 ${REL}語：習得 0・学習中 0・苦手 10・未学習 ${REL - 10}`));
+  assert.ok((await page.locator('.sgrid .panel', { hasText: '古文330' }).first().textContent()).includes(`関連語 ${REL}語：習得 0・学習中 0・苦手 10・未学習 ${REL - 10}`));
 
   // 苦手だけの復習: 関連語も出題される
   await page.click('[data-start-weak]');
@@ -56,6 +56,7 @@ test('関連語だけを出題して「まだ」と答えると、ホームの�
 
   // 記録のリセット: 関連語の記録も消える（ほかの科目の記録は残る）
   await page.click('.tabs [data-tab="stats"]');
+  await H.dm(page);
   await page.click('[data-reset="ask"]');
   assert.match(await page.textContent('.confirm'), /古文330の学習記録（関連語を含む）をすべて消します/);
   await page.click('[data-reset="yes"]');
@@ -78,7 +79,7 @@ test('関連語の習得も、ホームと成績で関連語として数える�
   assert.match(await page.textContent('.today'), /古文330の習得率 0%/); // 1/330 語
   const counts = await H.statCounts(page);
   assert.deepEqual(counts['古文330'], { '習得': 1, '学習中': 0, '苦手': 0, '未学習': 329 });
-  assert.ok((await page.locator('.sgrid .panel', { hasText: '古文330' }).textContent()).includes(`関連語 ${REL}語：習得 2・学習中 0・苦手 0・未学習 ${REL - 2}`));
+  assert.ok((await page.locator('.sgrid .panel', { hasText: '古文330' }).first().textContent()).includes(`関連語 ${REL}語：習得 2・学習中 0・苦手 0・未学習 ${REL - 2}`));
   await done(page);
 });
 

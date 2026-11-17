@@ -29,18 +29,19 @@ const OTHER = { c: 1, x: 4, s: 0, t: 5 };
 // バックアップの欄に貼り付けて「復元」を押し、出たメッセージを返す
 async function imp(page, j) {
   await page.click('.tabs [data-tab="stats"]');
+  await H.dm(page);
   await page.fill('#imp', typeof j === 'string' ? j : JSON.stringify(j));
   await page.click('[data-import]');
   return (await page.textContent('#msg')).trim();
 }
 // フラッシュカードで n 問答える（始まっていなければ始める）。答えた語のIDを返す
 async function answer(page, n, ok = true) {
-  if (!(await page.$('[data-ans]'))) { if (!(await page.$('[data-start="flash"]'))) await page.click('.tabs [data-tab="home"]'); await page.click('[data-start="flash"]'); }
+  if (!(await page.$('.prog'))) { if (!(await page.$('[data-start="flash"]'))) await page.click('.tabs [data-tab="home"]'); await page.click('[data-start="flash"]'); }
   const pre = (await page.getAttribute('html', 'data-subj')) === 'eigo' ? 'e:' : 'k:', ids = [];
   for (let i = 0; i < n; i++) {
     const w = (await page.textContent('.card .word')).trim(), kEl = await page.$('.card .kanji'), k = kEl ? (await kEl.textContent()).trim() : '';
     ids.push(pre + w + (k ? '|' + k : ''));
-    await page.click(`[data-ans="${ok ? 1 : 0}"]`);
+    await H.ans(page, ok);
   }
   return ids;
 }
@@ -58,7 +59,7 @@ const mute = page => page.evaluate(() => { window.__mute = true; });
 // そのページが覚えている累計の回答数（成績タブの表示。保存はしない操作）
 async function totalShown(page) {
   await page.click('.tabs [data-tab="stats"]');
-  return +(await page.locator('.panel', { hasText: '学習の記録' }).locator('h2 .sub').textContent()).match(/累計 (\d+) 問/)[1];
+  return +(await page.locator('.panel', { hasText: '学習の記録' }).locator('[data-total]').textContent()).match(/(\d+)\s*問/)[1];
 }
 // 古い版のタブが、自分の覚えている内容で保存データを丸ごと上書きした状態を作る（別のページから書き込む）
 async function clobber(page, obj) {
@@ -233,14 +234,14 @@ test('片方で消した記録は、開いたままのもう片方が保存し�
     assert.deepEqual(Object.keys((await H.stored(A)).prog).sort(), ['e:abandon', 'k:あいなし', 'k:あからさまなり', ...b1].sort(), '消した1語が戻った');
     // A: 古文単語の記録をリセット
     await A.click('.tabs [data-tab="stats"]');
+    await H.dm(A);
     await A.click('[data-reset="ask"]');
     await A.click('[data-reset="yes"]');
     const b2 = await answer(B, 1);
     let s = await H.stored(A);
     assert.deepEqual(Object.keys(s.prog).sort(), ['e:abandon', ...b1, ...b2].sort(), 'リセットした記録が戻った');
     // 消したあとで同じ語に答えれば、新しい記録が付く（どちらのページでも）
-    await B.click('.tabs [data-tab="home"]');
-    await B.click('[data-leave="yes"]'); // 学習の途中なので確認が出る
+    await H.quit(B); // 学習の途中なので確認が出る（「中断する」でホームへ）
     await B.click('.switch [data-group="kobun"]');
     const k1 = await answer(B, 1);
     assert.deepEqual(k1, ['k:あいなし']);
@@ -259,9 +260,11 @@ test('記録を消したあとでも、バックアップから戻せる（も�
   await mute(B);
   await B.click('.switch [data-group="eigo"]');
   await A.click('.tabs [data-tab="stats"]');
+  await H.dm(A);
   await A.click('[data-export]');
   const backup = await A.inputValue('#imp');
   assert.deepEqual(Object.keys(JSON.parse(backup)).sort(), ['days', 'prog', 'v']); // 書き出しの形は変えない
+  await H.dm(A);
   await A.click('[data-reset="ask"]');
   await A.click('[data-reset="yes"]');
   assert.deepEqual((await H.stored(A)).prog, {});
@@ -425,7 +428,7 @@ test('最初から保存できない環境（プライベートブラウズな�
   await page.click('.subtabs [data-subj="yomi"]'); // 科目の選択を保存しようとして失敗する
   assert.equal(await page.locator('#savewarn').count(), 1);
   await page.click('[data-start="flash"]');
-  await page.click('[data-ans="1"]');
+  await H.ans(page, 1);
   assert.equal(await page.locator('#savewarn').count(), 1);
   await done(page);
 });

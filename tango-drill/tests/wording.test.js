@@ -52,8 +52,8 @@ test('「個人用」「URLを他の人に渡さないでください」は、�
   await done(page);
 });
 
-// 各教材のホームの出題モード: [{k, t, d}]
-const modes = page => page.$$eval('.modes .mode', bs => bs.map(x => ({ k: x.querySelector('.k').textContent, t: x.querySelector('.t').textContent, d: x.querySelector('.d').textContent })));
+// 各教材のホームの出題モード: [{k, t, d}]。k はモードの呼び名（以前の英字の見出し。いまは画面に出さないので、data-start から引く）
+const modes = page => page.$$eval('.modes .mode', bs => bs.map(x => ({ k: { flash: 'FLASHCARD', quiz: 'QUIZ A', quizR: 'QUIZ B', cloze: 'CLOZE A', clozeT: 'CLOZE B', typeY: 'TYPE' }[x.dataset.start], t: x.querySelector('.t').textContent, d: x.querySelector('.d').textContent })));
 test('出題モードの説明文が、科目の内容に合っている', async () => {
   const page = await openWith({});
   const all = {};
@@ -151,10 +151,12 @@ test('キーボード操作の案内は、タッチ端末では出さず、PCで
     await page.click('[data-start="flash"]');
     const tap = (await page.innerText('.card .tap')).trim();
     assert.equal(tap, touch ? 'タップで意味を表示' : 'タップ / Space で意味を表示');
-    const btns = await page.$$eval('.actions .btn', bs => bs.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
-    assert.deepEqual(btns, touch ? ['まだ', '覚えた'] : ['まだ ← / 1', '覚えた → / 2']);
-    await page.click('[data-flip]');
-    await page.click('[data-ans="1"]');
+    // 表面は「答えを見る」だけ。めくると「まだ／覚えた」
+    const btns = () => page.$$eval('.actions .btn', bs => bs.map(x => x.innerText.replace(/\s+/g, ' ').trim()));
+    assert.deepEqual(await btns(), touch ? ['答えを見る'] : ['答えを見る Space']);
+    await page.click('.card[data-flip]');
+    assert.deepEqual(await btns(), touch ? ['まだ', '覚えた'] : ['まだ ← / 1', '覚えた → / 2']);
+    await H.ans(page, 1);
     await H.quit(page);
     // 4択の「次へ」の Enter
     await page.click('[data-start="quiz"]');
@@ -197,7 +199,7 @@ test('一言のボタンでフラッシュカードが始まる。1問答えた�
   const page = await H.open(browser, b.html, null);
   await page.click('[data-first] [data-start-first]');
   assert.equal(await page.locator('.card.flip').count(), 1);
-  await page.click('[data-ans="1"]');
+  await H.ans(page, 1);
   await H.quit(page);
   assert.equal(await page.locator('[data-first]').count(), 0);
   await done(page);
