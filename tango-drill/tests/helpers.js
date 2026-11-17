@@ -75,4 +75,10 @@ async function statCounts(page) {
   })));
 }
 
-module.exports = { ROOT, KEY, BAK, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };
+// 学習の途中の「中断」: 確認が出たら「中断する」を押してホームに戻る（結果画面の「ホームへ」は確認なしで戻る）
+async function quit(page) {
+  await page.click('[data-quit]');
+  if (await page.locator('[data-leave="yes"]').count()) await page.click('[data-leave="yes"]');
+}
+
+module.exports = { ROOT, KEY, BAK, quit, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };

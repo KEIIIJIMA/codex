@@ -29,7 +29,7 @@ test('関連語だけを出題して「まだ」と答えると、ホームの�
   for (let i = 0; i < 10; i++) await page.click('[data-ans="0"]');
   assert.match(await page.textContent('#view'), /0 \/ 10 問/);
   assert.equal((await page.$$('.wlist li')).length, 10);
-  await page.click('[data-quit]');
+  await H.quit(page);
   let s = await H.stored(page);
   assert.equal(relIds(s).length, 10);
 
@@ -52,7 +52,7 @@ test('関連語だけを出題して「まだ」と答えると、ホームの�
   // 苦手だけの復習: 関連語も出題される
   await page.click('[data-start-weak]');
   assert.equal((await page.textContent('.prog .num')).trim(), '1 / 11');
-  await page.click('[data-quit]');
+  await H.quit(page);
 
   // 記録のリセット: 関連語の記録も消える（ほかの科目の記録は残る）
   await page.click('.tabs [data-tab="stats"]');

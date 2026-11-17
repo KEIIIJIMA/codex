@@ -218,7 +218,7 @@ test('古文330: フラッシュカードと単語帳で、漢字が二重に出
   await page.click('[data-start="flash"]');
   assert.equal(await page.textContent('.card .word'), 'けしき');
   assert.equal(await page.textContent('.card .kanji'), '気色');
-  await page.click('[data-quit]');
+  await H.quit(page);
   await page.click('.tabs [data-tab="list"]');
   // 章ごと（200語の上限に掛からない）に全行を見る
   let rows = 0;

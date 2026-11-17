@@ -365,7 +365,7 @@ test('1枚に複数の語と意味が並ぶ項目は、4択（両方向）と空
     await page.click('[data-start="flash"]');
     assert.equal(await num(page), '1 / 1');
     assert.equal(await page.textContent('.card .word'), w);
-    await page.click('[data-quit]');
+    await H.quit(page);
     // 単語帳にもある
     await page.click('.tabs [data-tab="list"]');
     await page.fill('#q', search);
@@ -385,14 +385,14 @@ test('1枚に複数の語と意味が並ぶ項目は、4択（両方向）と空
     for (const [mode, want] of [['flash', n], ['quiz', n - 1], ['quizR', n - 1]]) {
       await page.click(`[data-start="${mode}"]`);
       assert.equal(await total(page), want, `${subj} ${mode}`);
-      await page.click('[data-quit]');
+      await H.quit(page);
     }
     const m = (await page.textContent('[data-start="cloze"]')).match(/対象 (\d+)語/);
     assert.ok(+m[1] <= n - 1, `${subj}: 空所補充の対象 ${m[1]}語`);
     for (const mode of ['cloze', 'clozeT']) {
       await page.click(`[data-start="${mode}"]`);
       assert.equal(await total(page), +m[1], `${subj} ${mode}`);
-      await page.click('[data-quit]');
+      await H.quit(page);
     }
     await done(page);
   }

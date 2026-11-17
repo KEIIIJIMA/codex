@@ -240,6 +240,7 @@ test('片方で消した記録は、開いたままのもう片方が保存し�
     assert.deepEqual(Object.keys(s.prog).sort(), ['e:abandon', ...b1, ...b2].sort(), 'リセットした記録が戻った');
     // 消したあとで同じ語に答えれば、新しい記録が付く（どちらのページでも）
     await B.click('.tabs [data-tab="home"]');
+    await B.click('[data-leave="yes"]'); // 学習の途中なので確認が出る
     await B.click('.switch [data-group="kobun"]');
     const k1 = await answer(B, 1);
     assert.deepEqual(k1, ['k:あいなし']);

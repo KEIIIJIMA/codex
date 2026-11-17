@@ -149,7 +149,7 @@ test('単語帳の検索語と状態の絞り込みは、科目を切り替え�
   await page.click('.switch [data-group="eigo"]');
   let s = await state();
   assert.deepEqual([s.q, s.all, s.weak], ['', 'true', 'false']);
-  assert.match(s.count, /^2138 語/);
+  assert.match(s.count, /^全 2138 語中 200 語を表示$/);
   assert.equal(await page.locator('.empty').count(), 0);
   // 同じ古文の中での切り替え（古文単語 → 古文330）でも消える
   await page.click('.switch [data-group="kobun"]');
@@ -159,7 +159,7 @@ test('単語帳の検索語と状態の絞り込みは、科目を切り替え�
   await page.click('.subtabs [data-subj="book"]');
   s = await state();
   assert.deepEqual([s.q, s.all, s.weak], ['', 'true', 'false']);
-  assert.match(s.count, /^330 語/);
+  assert.match(s.count, /^全 330 語中 200 語を表示$/);
   await done(page);
 });
 

@@ -4,7 +4,8 @@
   `node tests/cloze.test.js` ＝ 空所補充の照合と古文330の見出し語の表示、`node tests/book_rel.test.js` ＝ 古文330の関連語の記録、
   `node tests/choices.test.js` ＝ 4択の選択肢と設問文、`node tests/yomi.test.js` ＝ 「読みを入力」の判定、
   `node tests/usability.test.js` ＝ おまかせの出題・英語のレベル別タブの並び・苦手ワードの並び・単語帳の絞り込み・キー操作、
-  `node tests/storage.test.js` ＝ バックアップの取り込みの検査・2つのタブで開いたときの記録の統合・保存の失敗の知らせ）。
+  `node tests/storage.test.js` ＝ バックアップの取り込みの検査・2つのタブで開いたときの記録の統合・保存の失敗の知らせ、
+  `node tests/session_list.test.js` ＝ 単語帳の検索欄（日本語の変換入力）と「さらに表示」・学習の途中の確認と再読み込みのあとの再開・選択中の教材タブの位置）。
 - `tests/choices.test.js` は、全科目・全項目で選択肢を繰り返し作り、選択肢が4つ・正解が1つだけ・語→意味の選択肢に見出し語が出ない・誤答の品詞（分類）がそろうことを確かめる。
   意味の重なりや見出し語が出ているかの判定は、アプリの実装とは別にテストの中に書いてある。選択肢は無作為に選ぶので、割合の基準（9割以上など）には余裕を持たせてある。
 - playwright（chromium）を使う。いまのソースから試験用の完成版を一時フォルダに作って開くので、リポジトリの `index.html` は書き換えない。
@@ -15,3 +16,5 @@
   届かない場合も確かめるため、知らせを止める仕掛けをページを開く前に入れている（テストの中の `pair()` と `mute()`）。
 - 画面に要素が無いことは、`page.locator(…).count()` が 0 であることで確かめる（`assert.equal(await page.$(…), null)` は、失敗したときに
   差分の表示でメモリを使い切ることがある）。
+- 学習の途中で「中断」を押すと確認が出る。テストでホームへ戻るときは `helpers.js` の `quit(page)` を使う（確認が出ていれば「中断する」を押す）。
+- 日本語の変換入力は、Chromium の CDP（`Input.imeSetComposition` → `Input.insertText`）で再現する（`tests/session_list.test.js`）。

@@ -948,7 +948,10 @@ function counts(subj){return countOf(DATA[subj]);}
 function streak(){let n=0;const d=new Date();if(!store.days[today(d)])d.setDate(d.getDate()-1);while(store.days[today(d)]){n++;d.setDate(d.getDate()-1);}return n;}
 
 /* ---- state ---- */
-const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null},confirm:false,msg:''};
+// list.shown … 単語帳に出す語数（PAGE 語ずつ「さらに表示」で増やす）   leave … 学習の途中で離れようとしたときの確認（確認のあとに行う操作）
+// resume … 前回の途中のセッション（読み込み直後に「続きから」を出す）
+const PAGE=200;
+const S={subj:store.prefs.subj||'kobun',tab:'home',session:null,list:{q:'',st:'all',lv:'all',open:null,shown:PAGE},confirm:false,msg:'',leave:null,resume:null};
 const prefsOf=()=>Object.assign({range:'auto',count:'20',order:'smart',rel:'no',from:'',to:''},store.prefs[S.subj]||{});
 function setPref(k,v){store.prefs[S.subj]=Object.assign(prefsOf(),{[k]:v});save();}
 
@@ -985,7 +988,29 @@ function start(mode,items){sync();const p=prefsOf(); // 出題する語は、最
   if(!items)items=pick(pool(S.subj,p.range).filter(modeOk),p);
   items=items.filter(modeOk);
   if(!items.length){S.msg='この条件に当てはまる語がありません。範囲を変えてください。';render();return;}
-  S.msg='';S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};render();}
+  S.msg='';S.leave=null;S.resume=null;S.session={mode,items,i:0,res:[],flipped:false,picked:null,choices:null};saveSess();render();}
+/* ---- 進行中のセッションの保存（再読み込みやページを閉じたあとで、続きから再開するため） ---- */
+// 学習記録とは別のキーに入れる（学習記録の保存データの形・移行・2つのタブの統合には関わらない）。
+//   {v:版, subj:教材, mode:出題形式, ids:[出題する語のID（出題順）], res:[答えた問題の正誤 1/0（出題順）]}
+// 始めたときと1問答えるごとに書き、最後まで答えたとき・中断したとき・「やめる」を選んだときに消す。
+// 再開は、答えた数の次の問題から（答えた直後の解説の表示中に閉じたときも、次の問題から。同じ問題を二重に記録しないため）。
+// 4択の選択肢と、空所補充で使う用例は、再開のときに選び直す
+const SKEY=KEY+'-session',MODES={flash:'フラッシュカード',quiz:'4択',quizR:'4択',cloze:'空所補充',clozeT:'空所補充',typeY:'読みを入力'};
+const unfinished=()=>!!S.session&&S.session.i<S.session.items.length;
+function saveSess(){const s=S.session;try{if(!s||s.res.length>=s.items.length)localStorage.removeItem(SKEY);
+  else localStorage.setItem(SKEY,JSON.stringify({v:VER,subj:S.subj,mode:s.mode,ids:s.items.map(it=>it.id),res:s.res.map(r=>r.ok?1:0)}));}catch(e){}}
+// 保存してある途中のセッションを読む。古い版のIDは、記録の移行と同じ対応で付け替える。形がおかしい・語が見つからない・もう全部答えてある、なら無いものとして扱う
+function loadSess(){let j=null;try{j=JSON.parse(localStorage.getItem(SKEY));}catch(e){}
+  if(!isObj(j)||!Object.prototype.hasOwnProperty.call(SUBJ,j.subj)||!Object.prototype.hasOwnProperty.call(MODES,j.mode)||!Array.isArray(j.ids)||!Array.isArray(j.res)||j.res.length>=j.ids.length)return null;
+  const from=+j.v||0,has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),items=[];
+  for(let id of j.ids){for(const m of MIGRATIONS)if(m.v>from&&typeof id==='string'&&has(m.map,id))id=m.map[id];
+    const it=typeof id==='string'?findAny(id):null;if(!it||!askable(it,j.mode))return null;items.push(it);}
+  return{subj:j.subj,mode:j.mode,items,res:j.res.map((r,i)=>({it:items[i],ok:!!r}))};}
+function resume(){const r=S.resume;if(!r)return;S.resume=null;S.leave=null;S.subj=r.subj;S.tab='home';S.msg='';
+  S.session={mode:r.mode,items:r.items,i:r.res.length,res:r.res,flipped:false,picked:null,choices:null};render();}
+// 学習の途中で離れる操作（中断・タブ・教科や教材の切り替え）は、その場に確認を出してから行う。入力中の答えは残す
+function leave(act){if(!unfinished()){act();return;}S.leave=act;redraw();const c=$('[data-leave]');if(c)try{c.scrollIntoView({block:'nearest'});}catch(e){}}
+function redraw(){const a=$('#ans'),v=a?a.value:null;render();const n=$('#ans');if(n&&v!=null)n.value=v;}
 // 学習ホームの空所補充モードに出す対象語数。いまの出題設定の範囲のうち、用例から空所を作れる語の数
 function clozeNote(){const all=pool(S.subj,prefsOf().range),n=all.filter(it=>askable(it,'cloze')).length;return '対象 '+n+'語'+(n<all.length?'（範囲 '+all.length+'語のうち）':'');}
 /* ---- 空所補充の照合 ---- */
@@ -1170,8 +1195,8 @@ function makeChoices(it,mode,subj){const toM=mode==='quiz',gi=glossAll(it),si=se
   const picks=[],seen=new Set([txt(it)]);
   for(const r of [...by.keys()].sort((a,b)=>a-b)){for(const x of shuffle(by.get(r))){if(!ok(x)||seen.has(txt(x))||seen.has(gkey(x)))continue;seen.add(txt(x));seen.add(gkey(x));picks.push(x);if(picks.length===3)break;}if(picks.length===3)break;}
   return shuffle([it,...picks]);}
-function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});}
-function next(){const sess=S.session;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';render();const a=$('#ans');if(a)a.focus();}
+function answer(ok){const sess=S.session,it=sess.items[sess.i];record(it,ok);sess.res.push({it,ok});S.leave=null;saveSess();}
+function next(){const sess=S.session;S.leave=null;sess.i++;sess.flipped=false;sess.picked=null;sess.choices=null;sess.typedAns='';render();const a=$('#ans');if(a)a.focus();}
 
 /* ---- rendering ---- */
 function render(){
@@ -1182,14 +1207,22 @@ function render(){
   $('.subtabs').innerHTML=subs.map(k=>`<button role="tab" data-subj="${k}" aria-selected="${k===S.subj}">${esc(SUBLABEL[k]||SUBJ[k].name)}<span class="n">${DATA[k].length}</span></button>`).join('');
   document.querySelectorAll('.tabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===S.tab)));
   const v=$('#view');
-  if(S.session){v.innerHTML=S.session.i>=S.session.items.length?viewResult():(S.session.mode==='flash'?viewFlash():S.session.mode.startsWith('cloze')?viewCloze():S.session.mode==='typeY'?viewTypeY():viewQuiz());}
+  if(!unfinished())S.leave=null;
+  if(S.session){v.innerHTML=(S.leave?leaveHtml():'')+(S.session.i>=S.session.items.length?viewResult():(S.session.mode==='flash'?viewFlash():S.session.mode.startsWith('cloze')?viewCloze():S.session.mode==='typeY'?viewTypeY():viewQuiz()));}
   else if(S.tab==='home')v.innerHTML=viewHome();
   else if(S.tab==='list')v.innerHTML=viewList();
   else v.innerHTML=viewStats();
   const vk=S.subj+'|'+S.tab+'|'+(S.session?'s'+S.session.i:'');
   if(vk!==render.vk){render.vk=vk;try{window.scrollTo({top:0});}catch(e){}}
   const a=$('#ans');if(a&&S.session&&S.session.picked===null)a.focus();
+  showSub();
 }
+// 選択中の教材タブが横スクロールの外に隠れていたら、タブの列だけを横に送って中央に出す（ページの縦位置は動かさない）
+function showSub(){const st=$('.subtabs'),b=st.querySelector('[aria-selected="true"]');if(!b)return;
+  const r=b.getBoundingClientRect(),c=st.getBoundingClientRect();if(r.left<c.left||r.right>c.right)st.scrollLeft+=r.left-c.left-(c.width-r.width)/2;}
+function leaveHtml(){return `<div class="confirm" role="alert" style="margin:0 0 14px"><span>学習を中断しますか？ ここまでの回答は記録されています。</span><button class="btn bad" data-leave="yes" style="padding:8px 14px">中断する</button><button class="btn ghost" data-leave="no" style="padding:8px 14px">続ける</button></div>`;}
+function resumeHtml(){const r=S.resume,n=r.items.length;
+  return `<section class="panel"><h2>前回の続き <span class="sub">${esc(SUBJ[r.subj].name)}・${MODES[r.mode]}（全${n}問）</span></h2><div class="confirm" style="margin-top:0"><span>学習が途中で止まっています。</span><button class="btn acc" data-resume="yes" style="padding:8px 14px">続きから（${r.res.length+1}問目）</button><button class="btn ghost" data-resume="no" style="padding:8px 14px">やめる</button></div></section>`;}
 function wordHtml(it,cls,k=it.k){const c=SUBJ[S.subj].cls;return `<p class="word ${c}${cls||''}">${esc(it.w)}</p>${k?`<div class="kanji">${esc(k)}</div>`:''}`;}
 function chipsHtml(it){return `<div class="chips">${it.num?`<span class="chip num">No.${it.num}${it.isRel?' 関連':''}</span>`:''}<span class="chip acc">${esc(it.pos)}</span><span class="chip lv">${esc(lvName(it))}</span>${it.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`;}
 /* ---- 古文常識の図（本の図を参考に描き直した略図） ---- */
@@ -1249,7 +1282,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
   const pct=k=>c.total?(c[k]/c.total*100):0;
   const tagOpts=TAGS[S.subj].map(t=>`<option value="tag:${esc(t)}"${p.range==='tag:'+t?' selected':''}>分野: ${esc(t)}</option>`).join('');
   const sel=(v)=>p.range===v?' selected':'';
-  return `
+  return `${S.resume?resumeHtml():''}
   <section class="tiles">
     <div class="tile"><div class="lab">収録語数</div><div class="val num">${c.total}<small>語</small></div>${relLab('total')}</div>
     <div class="tile ok"><div class="lab">習得</div><div class="val num">${c.ok}<small>語</small></div>${relLab('ok')}</div>
@@ -1352,18 +1385,23 @@ function viewResult(){const sess=S.session,n=sess.res.length,ok=sess.res.filter(
     <div class="row">${wrong.length?`<button class="btn acc" data-retry="wrong">間違えた ${wrong.length} 語をもう一度</button>`:''}<button class="btn" data-retry="same">同じ設定でもう一度</button><button class="btn ghost" data-quit>ホームへ</button></div></section>
     ${wrong.length?`<h2 style="font-size:.95rem;margin:4px 0 10px">今回間違えた語</h2><ul class="wlist">${wrong.map(it=>`<li><span class="w ${c}">${esc(it.w)}${it.k?`<small style="font-weight:400;color:var(--muted);margin-left:6px">${esc(it.k)}</small>`:''}</span><span class="m">${esc(it.m.join('／'))}</span></li>`).join('')}</ul>`:''}`;}
 
-function viewList(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase();
+// 単語帳。検索欄（#q）は残し、絞り込み・件数・一覧（#lbody）だけを差し替える（入力のたびに検索欄を作り直すと、日本語の変換入力が壊れる）
+function viewList(){return `<input type="search" id="q" placeholder="語・意味で検索" value="${esc(S.list.q)}" autocomplete="off">
+  <div id="lbody">${listBody()}</div>`;}
+function listBody(){const L=S.list,c=SUBJ[S.subj].cls,q=L.q.trim().toLowerCase();
   let items=DATA[S.subj].filter(it=>L.st==='all'||status(it)===L.st).filter(it=>L.lv==='all'||it.lv===+L.lv);
   if(q)items=items.filter(it=>(it.w+' '+(it.k||'')+' '+it.m.join(' ')+' '+(it.der||'')+' '+(it.rel||[]).map(x=>x[0]+' '+x[2]).join(' ')+' '+(it.num||'')).toLowerCase().includes(q));
-  const total=items.length,CAP=200;items=items.slice(0,CAP);
+  const total=items.length;items=items.slice(0,L.shown);
   const chip=(k,v,lab)=>`<button class="fchip" data-f="${k}" data-v="${v}" aria-pressed="${String(L[k])===v}">${lab}</button>`;
-  return `<input type="search" id="q" placeholder="語・意味で検索" value="${esc(L.q)}" autocomplete="off">
-  <div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${SUBJ[S.subj].fixLv||SUBJ[S.subj].yomi?'':chip('lv','all','全レベル')+Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
-  <div class="count num">${total} 語${total>CAP?`（先頭 ${CAP} 語を表示。検索や絞り込みで狭めてください）`:''}</div>
+  return `<div class="filters">${chip('st','all','すべて')}${chip('st','new','未学習')}${chip('st','learning','学習中')}${chip('st','weak','苦手')}${chip('st','ok','習得')}<span style="width:8px"></span>${SUBJ[S.subj].fixLv||SUBJ[S.subj].yomi?'':chip('lv','all','全レベル')+Object.keys(SUBJ[S.subj].lv).map(l=>chip('lv',l,SUBJ[S.subj].lv[l])).join('')}</div>
+  <div class="count num">全 ${total} 語中 ${items.length} 語を表示</div>
   ${items.length?`<ul class="vlist">${items.map(it=>{const st=status(it),open=L.open===it.id;
     return `<li class="vrow"><button data-open="${esc(it.id)}" aria-expanded="${open}"><span class="dot ${st}" title="${STATUS[st]}"></span><span class="vw ${c}">${it.num?`<small style="margin:0 6px 0 0">${it.num}</small>`:''}${esc(it.w)}${it.k?`<small>${esc(it.k)}</small>`:''}<small>${esc(it.pos)}</small></span><span class="vm">${esc(it.m.join('／'))}</span></button>
-    ${open?`<div class="vdet">${detailHtml(it)}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>`
+    ${open?`<div class="vdet">${detailHtml(it)}<div class="row"><button class="btn" data-set="weak" data-id="${esc(it.id)}">苦手に登録</button><button class="btn" data-set="ok" data-id="${esc(it.id)}">習得済みにする</button><button class="btn ghost" data-set="new" data-id="${esc(it.id)}">記録を消す</button></div></div>`:''}</li>`;}).join('')}</ul>
+  ${total>items.length?`<div class="row" style="margin-top:12px"><button class="btn" data-more>さらに表示（残り ${total-items.length} 語）</button></div>`:''}`
   :'<div class="empty">該当する語がありません</div>'}`;}
+// 単語帳の一覧だけを描き直す（単語帳を開いていなければ、画面全体を描く）
+function renderList(){const b=$('#lbody');if(b&&!S.session&&S.tab==='list')b.innerHTML=listBody();else render();}
 
 function viewStats(){const c=SUBJ[S.subj].cls;
   const subjBlock=s=>{const cc=counts(s),all=DATA[s],rc=SUBJ[s].book?countOf(BOOKREL):null;const lvs=Object.keys(SUBJ[s].lv).map(n=>{const a=all.filter(it=>it.lv===+n),o=a.filter(it=>status(it)==='ok').length;return{n,lab:SUBJ[s].lv[n],a:a.length,o};});
@@ -1396,26 +1434,34 @@ function viewStats(){const c=SUBJ[S.subj].cls;
     :`<div class="row"><button class="btn ghost danger" data-reset="ask">${esc(SUBJ[S.subj].name)}の記録を消す</button></div>`}</section>`;}
 
 /* ---- events ---- */
-function setSubj(k){if(k!==S.subj){S.list.q='';S.list.st='all';}S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.confirm=false;S.list.open=null;S.list.lv='all';render();}
-document.querySelector('.switch').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(!b)return;const g=b.dataset.group;const last=(store.prefs.last||{})[g];setSubj(last&&SUBJ[last]?last:g);});
-document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-subj]');if(!b)return;setSubj(b.dataset.subj);});
-document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.session=null;S.msg='';S.confirm=false;render();});
+function setSubj(k){if(k!==S.subj){S.list.q='';S.list.st='all';}S.list.shown=PAGE;S.subj=k;store.prefs.subj=k;store.prefs.last=Object.assign({},store.prefs.last,{[groupOf(k)]:k});save();S.session=null;S.msg='';S.confirm=false;S.list.open=null;S.list.lv='all';render();}
+document.querySelector('.switch').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(!b)return;const g=b.dataset.group;const last=(store.prefs.last||{})[g];leave(()=>setSubj(last&&SUBJ[last]?last:g));});
+document.querySelector('.subtabs').addEventListener('click',e=>{const b=e.target.closest('[data-subj]');if(!b)return;const k=b.dataset.subj;leave(()=>setSubj(k));});
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const tab=b.dataset.tab;leave(()=>{S.tab=tab;S.session=null;S.msg='';S.confirm=false;render();});});
 const view=$('#view');
 view.addEventListener('change',e=>{const s=e.target.closest('[data-pref]');if(s){setPref(s.dataset.pref,s.value);document.querySelectorAll('[data-czn]').forEach(x=>{x.textContent=clozeNote();});}});
-view.addEventListener('input',e=>{if(e.target.id==='q'){S.list.q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#q');if(q){q.focus();try{q.setSelectionRange(pos,pos);}catch(x){}}}});
+// 単語帳の検索。日本語の変換中（compositionstart〜compositionend）は一覧を変えず、確定したときに反映する。
+// 確定の知らせと input の順はブラウザによって違うので、どちらが先でも確定した文字で絞り込む。変換中の印は入力欄そのものに付ける（入力欄が作り直されたら消える）
+const onSearch=q=>{if(S.list.q===q.value)return;S.list.q=q.value;S.list.shown=PAGE;renderList();};
+view.addEventListener('compositionstart',e=>{if(e.target.id==='q')e.target._composing=true;});
+view.addEventListener('compositionend',e=>{if(e.target.id==='q'){e.target._composing=false;onSearch(e.target);}});
+view.addEventListener('input',e=>{if(e.target.id!=='q'||e.isComposing||e.target._composing)return;onSearch(e.target);});
 view.addEventListener('click',e=>{
   const t=e.target;const h=(sel)=>t.closest(sel);let b;
   if(b=h('[data-start]')){start(b.dataset.start);return;}
   if(h('[data-start-weak]')){sync();const items=shuffle(DATA[S.subj].concat(relOf(S.subj)).filter(it=>status(it)==='weak'));start('quiz',items);return;}
-  if(h('[data-quit]')){S.session=null;S.tab='home';render();return;}
+  if(h('[data-quit]')){leave(()=>{S.session=null;S.tab='home';render();});return;}
+  if(b=h('[data-leave]')){const act=S.leave;S.leave=null;if(b.dataset.leave==='yes'&&act){S.session=null;saveSess();act();}else redraw();return;}
+  if(b=h('[data-resume]')){if(b.dataset.resume==='yes')resume();else{S.resume=null;try{localStorage.removeItem(SKEY);}catch(x){}render();}return;}
+  if(h('[data-more]')){S.list.shown+=PAGE;renderList();return;}
   if(h('[data-flip]')){S.session.flipped=true;render();return;}
   if(b=h('[data-ans]')){answer(b.dataset.ans==='1');next();return;}
   if(b=h('[data-pick]')){const sess=S.session;if(sess.picked!==null)return;sess.picked=+b.dataset.pick;answer(sess.choices[sess.picked].id===sess.items[sess.i].id);render();return;}
   if(h('[data-next]')){next();return;}
   if(b=h('[data-retry]')){const sess=S.session;if(b.dataset.retry==='wrong'){start(sess.mode,shuffle(sess.res.filter(r=>!r.ok).map(r=>r.it)));}else{start(sess.mode);}return;}
-  if(b=h('[data-f]')){S.list[b.dataset.f]=b.dataset.v;render();return;}
-  if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;render();return;}
-  if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);render();}return;}
+  if(b=h('[data-f]')){S.list[b.dataset.f]=b.dataset.v;S.list.shown=PAGE;renderList();return;}
+  if(b=h('[data-open]')){S.list.open=S.list.open===b.dataset.open?null:b.dataset.open;renderList();return;}
+  if(b=h('[data-set]')){const it=DATA[S.subj].find(x=>x.id===b.dataset.id);if(it){setStatus(it,b.dataset.set);renderList();}return;}
   if(b=h('[data-reset]')){if(b.dataset.reset==='ask'){S.confirm=true;}else if(b.dataset.reset==='yes'){sync();forget(DATA[S.subj].concat(relOf(S.subj)).map(it=>it.id));save();S.confirm=false;S.msg='';}else{S.confirm=false;}render();return;}
   if(h('[data-export]')){sync();const txt=JSON.stringify({v:store.v,prog:store.prog,days:store.days});const done=()=>{S.msg='コピーしました。別の端末で貼り付けてください。';render();};
     const fallback=()=>{const ta=$('#imp');if(ta){ta.value=txt;ta.focus();ta.select();}S.msg='下の欄に記録を表示しました。全選択してコピーしてください。';const m=$('#msg');if(m)m.textContent=S.msg;};
@@ -1432,7 +1478,7 @@ view.addEventListener('click',e=>{
 view.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest('[data-flip]')){S.session.flipped=true;render();}});
 view.addEventListener('submit',e=>{const f=e.target.closest('[data-submit]');if(!f)return;e.preventDefault();const sess=S.session;if(!sess||sess.picked!==null)return;const v=$('#ans').value;if(!v.trim())return;sess.typedAns=v.trim();const it_=sess.items[sess.i];const ok=sess.mode==='typeY'?yomiOk(it_,v):clozeOk(it_,v,curCloze(sess).f);sess.picked=ok;answer(ok);render();});
 // 回答のキー操作。Ctrl・Alt・Meta を押しながらの操作（ブラウザのタブ切り替えや「戻る」）と、入力欄にいるときの操作は、回答に使わない
-document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length)return;if(e.ctrlKey||e.altKey||e.metaKey)return;if(e.target.matches('input,textarea,select'))return;
+document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=sess.items.length||S.leave)return;if(e.ctrlKey||e.altKey||e.metaKey)return;if(e.target.matches('input,textarea,select'))return;
   if(sess.mode==='flash'){
     if(e.key===' '){e.preventDefault();if(!sess.flipped){sess.flipped=true;render();}return;}
     if(e.key==='ArrowLeft'||e.key==='1'){e.preventDefault();answer(false);next();return;}
@@ -1446,11 +1492,11 @@ document.addEventListener('keydown',e=>{const sess=S.session;if(!sess||sess.i>=s
 window.addEventListener('storage',e=>{if(e.key===KEY)sync();});
 
 // テスト用の窓口（tests/ が、全用例の空所の位置などをページの中で確かめるのに使う。アプリの動きには関わらない）
-window.__tangoTest={DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
+window.__tangoTest={render,DATA,BOOKREL,findForm,makeChoices,choiceText,choiceMs:x=>choiceM(x).ms,hideWord,askable,qKanji,yomiOk,readings:it=>{const r=readings(it);return{ok:[...r.ok],more:r.more};}};
 $('#n-kobun').textContent=DATA.kobun.length;$('#n-eigo').textContent=DATA.eigo.length;
 {if(SUBJ.book){$('.about').textContent='収録: '+SUBJ.book.name+' '+DATA.book.length+'語（関連語 '+BOOKREL.length+'語）／読み '+(DATA.yomi?DATA.yomi.length:0)+'語'+(DATA.joshiki?'／古文常識 '+DATA.joshiki.length+'語':'')+'／古文 '+DATA.kobun.length+'語／英単語 '+DATA.eigo.length+'語。学習記録はこの端末のブラウザにだけ保存されます。';}}
 if(!SUBJ[S.subj])S.subj='kobun';
-function boot(d){try{if(d&&d.S){S.subj=d.S.subj||S.subj;S.tab=d.S.tab||S.tab;if(d.S.session)S.session=d.S.session;}}catch(e){}render();}
+function boot(d){try{if(d&&d.S){S.subj=d.S.subj||S.subj;S.tab=d.S.tab||S.tab;if(d.S.session)S.session=d.S.session;}}catch(e){}if(!S.session)S.resume=loadSess();render();}
 try{if(window.claude&&window.claude.hot&&window.claude.hot.snapshot)window.claude.hot.snapshot(()=>({S:{subj:S.subj,tab:S.tab,session:S.session}}));}catch(e){}
 (window.claude&&window.claude.hot&&window.claude.hot.ready)?window.claude.hot.ready(boot):boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
 })();
