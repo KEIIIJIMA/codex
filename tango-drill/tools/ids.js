@@ -27,6 +27,15 @@ function idsFromHtml(html) {
   return [...ids].sort();
 }
 
+// 科目ごとの件数（README の「収録内容」の語数。build.js が書き出しの後に「収録: …」として出す）
+function countsFromHtml(html) {
+  const d = rawData(html), ex = key => (d.EXTRA_SUBJ.find(e => e.key === key) || { items: [] }).items.length;
+  return {
+    古文単語: d.KOBUN_RAW.length, 古文330: d.BOOK_RAW.length, 古文330の関連語: d.BOOK_RAW.reduce((n, r) => n + (r[10] || []).length, 0),
+    古文常識: d.JOSHIKI_RAW.length, 文学史: ex('bungaku'), 和歌: ex('waka'), 文法: ex('bunpo'), 読み: d.YOMI_RAW.length, 英単語: d.EIGO_RAW.length,
+  };
+}
+
 // 完成版に埋め込まれた移行表（build.js が「const MIGRATIONS=[…];」の1行で埋め込む）。
 // 埋め込みの無い古い版は空の配列（＝版0）。
 function migrationsFromHtml(html) {
@@ -35,7 +44,7 @@ function migrationsFromHtml(html) {
 }
 const latest = migrations => migrations.reduce((n, m) => Math.max(n, m.v), 0);
 
-module.exports = { idsFromHtml, migrationsFromHtml, latest };
+module.exports = { rawData, idsFromHtml, countsFromHtml, migrationsFromHtml, latest };
 
 if (require.main === module) {
   const file = path.resolve(process.argv[2] || path.join(__dirname, '../index.html'));

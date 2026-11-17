@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+# 挿絵の元の写真（権利の都合でリポジトリに入れない。README.md の「挿絵の作り方」）
+book/illust/photos/

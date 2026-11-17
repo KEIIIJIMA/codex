@@ -203,7 +203,6 @@ table.ref small{display:block;color:var(--muted);font-size:.72rem;margin-bottom:
 table.ref td.tr{color:var(--accent)}
 table.ref td[rowspan],table.ref th[rowspan]{vertical-align:middle}
 table.ref mark{background:var(--accent-soft);color:var(--accent);font-weight:700;padding:0 2px;border-radius:3px}
-.refimg{display:block;width:1100px;max-width:none}
 .refd .cap{font-size:.75rem;color:var(--muted);margin:6px 0 0}
 /* quiz */
 .qprompt{font-size:.8rem;color:var(--muted);letter-spacing:.06em;margin-bottom:8px}
@@ -804,8 +803,7 @@ function viewHome(){const c=counts(S.subj),p=prefsOf(),t=store.days[today()]||0,
     <button class="mode" data-start="clozeT"><span class="k">CLOZE B</span><span class="t">空所補充：記述</span><span class="d">${modeDesc('clozeT')}</span>${czn}</button>`}
     <button class="mode" data-start="quizR"><span class="k">QUIZ B</span><span class="t">4択：${SUBJ[S.subj].yomi?'読み → 漢字':isEn()?'意味 → 単語':'意味 → 語'}</span><span class="d">${modeDesc('quizR')}</span></button>
   </section>
-  ${SUBJ[S.subj].tables?`<section class="panel"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${SUBJ[S.subj].tables.map((t,i)=>{const im=t.img&&typeof JOSHIKI_IMG!=='undefined'&&JOSHIKI_IMG[t.img];if(!t.html&&!im)return'';
-    return `<details class="refd"><summary>${esc(t.title)}</summary>${t.html?`<div class="tblwrap">${t.html}</div>`:''}${im?`<div class="tblwrap"><img class="refimg" src="${im}" alt="${esc(t.title)}（本の表）"></div><p class="cap">本の表の写真。横にスクロールして見られます。</p>`:''}</details>`;}).join('')}</section>`:''}
+  ${SUBJ[S.subj].tables?`<section class="panel"><h2>一覧表 <span class="sub">タップで開く。表は横にスクロールできます</span></h2>${SUBJ[S.subj].tables.map(t=>t.html?`<details class="refd"><summary>${esc(t.title)}</summary><div class="tblwrap">${t.html}</div></details>`:'').join('')}</section>`:''}
   <p class="hint kbd">キーボード操作: Space で裏返す、← まだ ／ → 覚えた、1〜4 で選択、Enter で答え合わせ・次へ。</p>
   <div class="share"><b>このページについて</b>学習記録（習得・苦手）は、この端末のブラウザの中に保存され、他の人には見えません。別の端末へは「成績」タブのバックアップで移せます。iPhone では、Safari の共有ボタンから「ホーム画面に追加」して開くと、記録が消えにくくなります。</div>`;}
 // 出題モードの説明文（科目ごと）。古文330は古文単語と同じ。無い科目・モードは古文単語の文を使う

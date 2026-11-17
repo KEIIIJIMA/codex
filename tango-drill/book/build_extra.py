@@ -1,7 +1,10 @@
 # 文学史・和歌の修辞・文法（付録）のデータを src/extra_data.js に生成する。
 # 文学史は book/bungakushi.tsv、和歌は book/shuji.tsv と下の表、文法は下の表から作る。
-import json,os
+# 列の数の違い・JSON の誤りなど入力の不備は、飛ばさずにエラーで止める（inputs.py）。
+import json,os,sys
 HERE=os.path.dirname(os.path.abspath(__file__))+'/'
+sys.path.insert(0,HERE)
+from inputs import tsv,load_json
 def item(w,pos,m,lv,k='',rd='',note='',tags=None,ex='',tr=''):
     return {'w':w,'k':k,'pos':pos,'m':m,'rd':rd,'alt':'','ex':ex,'tr':tr,'note':note,'lv':lv,'tags':tags or [],'img':'','fig':''}
 # 出題カードに出す接続の説明（一覧表の接続欄は本のとおり。学習記録のIDを変えないため、カード側は具体的な接続先を出す）
@@ -12,11 +15,10 @@ CHECK=set('古今和歌集 新古今和歌集 金槐和歌集 伊勢物語 源�
 FIX={'琴後集':'歌文集','土佐日記':None}
 ERA={'奈良':1,'平安':2,'鎌倉':3,'室町':3,'江戸':4}
 # 成立年の根拠（年表に成立年が載っている作品）: book/seiritsu.json
-SEI={x['w']:x for x in json.load(open(HERE+'seiritsu.json',encoding='utf-8'))}
+SEI={x['w']:x for x in load_json(HERE+'seiritsu.json')}
 bun=[]
-for l in open(HERE+'bungakushi.tsv',encoding='utf-8'):
-    if l.startswith('#') or not l.strip(): continue
-    p=(l.rstrip('\n').split('\t')+['']*8)[:8]; era,c,w,g,au,yr,mk,note=p
+BUN=tsv(HERE+'bungakushi.tsv',8)  # 列: 時代, 世紀, 作品, ジャンル, 作者・撰者, 成立年, マーカー(★), 要点
+for era,c,w,g,au,yr,mk,note in BUN:
     g=FIX.get(w) or g
     if w=='土佐日記': note='最初の仮名の日記'
     m=[f'{era}時代（{c}世紀）の{g}'+(f'。{au}' if au else '')]
@@ -94,8 +96,6 @@ J=[('る','未然形',1,['自発（自然と〜れる・〜ずにはいられな
 ('ごとし','特殊',4,['比況（〜（の）ようだ・〜（の）とおりだ・〜と同じだ）','例示（〜（の）ようだ）'],'（ごとく）／ごとく／ごとし／ごとき／○／○','形容詞型','活用語の連体形・格助詞「が」「の」・体言','比況')]
 for w,setsu,lv,m,katsu,kata,nt,shu in J:
     gr.append(item(w,'助動詞',m,lv,k=K_SHOW.get(w,setsu)+'に接続',note=f'活用（未然／連用／終止／連体／已然／命令）: {katsu}。{kata}。'+(nt or '')))
-import sys
-sys.path.insert(0, HERE)
 from tables_data import PART, ROWS, VERBS, PATTERN, IRREG, ADJ, ADJV, CHECKLIST
 _seen = {}
 for kind, setsu, w, uses in PART:
@@ -128,7 +128,7 @@ def part_table(kind):
     for k,setsu,w,uses in PART:
         if k!=kind: continue
         for i,(use,tr) in enumerate(uses):
-            h+='<tr>'+(f'<th rowspan="{len(uses)}">{setsu}</th><td rowspan="{len(uses)}"><b>{w.replace('・','・<wbr>')}</b></td>' if i==0 else '')+f'<td>{use}</td><td class="tr">{tr}</td></tr>'
+            h+='<tr>'+(f'<th rowspan="{len(uses)}">{setsu}</th><td rowspan="{len(uses)}"><b>{w.replace("・","・<wbr>")}</b></td>' if i==0 else '')+f'<td>{use}</td><td class="tr">{tr}</td></tr>'
     return h+'</table>'
 def endings(kind,row):
     k=ROWS[row]; v=dict(zip('aiueo',k))
@@ -146,16 +146,16 @@ for kind,span,row,ex,stem,e in vrows:
 vh+='</table><p class="cap">（ ）の語幹は、語幹と活用語尾の区別がないもの。下一段は「蹴る」だけ。サ変は「す」「おはす」、ナ変は「死ぬ」「往ぬ」、ラ変は「あり」「居り」「侍り」「いまそかり」。</p>'
 def adj_table(data): return tbl(['種類','基本形','語幹']+F,[[a,f'<b>{b}</b>',c]+d.split('／') for a,b,c,d in data])
 EX[2]['meta']['tables']=[
- {'title':'助動詞の種類・接続・活用・主な意味','html':tbl(['接続','種類','助動詞','主な意味（訳）']+F+['活用型','注意すべき接続など'],jrows),'img':''},
- {'title':'格助詞','html':part_table('格助詞'),'img':''},
- {'title':'接続助詞','html':part_table('接続助詞'),'img':''},
- {'title':'係助詞','html':part_table('係助詞'),'img':''},
- {'title':'副助詞','html':part_table('副助詞'),'img':''},
- {'title':'終助詞','html':part_table('終助詞'),'img':''},
- {'title':'間投助詞','html':part_table('間投助詞'),'img':''},
- {'title':'動詞活用表','html':vh,'img':''},
- {'title':'形容詞活用表','html':adj_table(ADJ),'img':''},
- {'title':'形容動詞活用表','html':adj_table(ADJV),'img':''}]
+ {'title':'助動詞の種類・接続・活用・主な意味','html':tbl(['接続','種類','助動詞','主な意味（訳）']+F+['活用型','注意すべき接続など'],jrows)},
+ {'title':'格助詞','html':part_table('格助詞')},
+ {'title':'接続助詞','html':part_table('接続助詞')},
+ {'title':'係助詞','html':part_table('係助詞')},
+ {'title':'副助詞','html':part_table('副助詞')},
+ {'title':'終助詞','html':part_table('終助詞')},
+ {'title':'間投助詞','html':part_table('間投助詞')},
+ {'title':'動詞活用表','html':vh},
+ {'title':'形容詞活用表','html':adj_table(ADJ)},
+ {'title':'形容動詞活用表','html':adj_table(ADJV)}]
 # 文学史年表
 COL={'詩歌':['和歌集','勅撰集','私家集','漢詩集','漢詩文集','歌謡集','連歌集','俳諧集','俳文集','歌文集'],'随筆・日記・評論など':['随筆','日記','評論','紀行','注釈書']}
 def col(g):
@@ -163,9 +163,8 @@ def col(g):
         if g in v: return k
     return '物語・説話・戯曲など'
 rows={}
-for l in open(HERE+'bungakushi.tsv',encoding='utf-8'):
-    if l.startswith('#') or not l.strip(): continue
-    p=(l.rstrip('\n').split('\t')+['']*8)[:8]; era,c,w,g,au,yr,mk,note=p; g=FIX.get(w) or g
+for era,c,w,g,au,yr,mk,note in BUN:
+    g=FIX.get(w) or g
     cell=(f'<mark>{w}</mark>' if mk else w)+f'<small>〔{g}〕{au}{(" "+yr) if yr else ""}</small>'
     rows.setdefault((era,c),{}).setdefault(col(g),[]).append(cell)
 # 年表の注記（作品ではないので出題項目にはしない）
@@ -176,10 +175,10 @@ for i,(sec,w,rd,pts) in enumerate(CHECKLIST):
     n=sum(1 for x in CHECKLIST if x[0]==sec); first=i==0 or CHECKLIST[i-1][0]!=sec
     ch+='<tr>'+(f'<th rowspan="{n}">{sec}</th>' if first else '')+f'<td><b>{w}</b>'+(f'<small>{rd}</small>' if rd else '')+'</td><td>'+'<br>'.join(pts)+'</td></tr>'
 ch+='</table>'
-EX[0]['meta']['tables']=[{'title':'文学史年表（マーカーは色付き）','html':tbl(['時代・世紀']+cols,[[f'{e}<br>{c}世紀']+['<br>'.join(v.get(k,[])) for k in cols] for (e,c),v in rows.items()],'wide'),'img':''},
- {'title':'文学史チェックリスト','html':ch,'img':''}]
-EX[1]['meta']['tables']=[{'title':'暗記したい枕詞','html':tbl(['枕詞','導く語'],[[a,b] for a,b in MAKURA]),'img':''},{'title':'暗記したい掛詞','html':tbl(['掛詞','掛けられる意味'],[[a,b] for a,b in KAKE]),'img':''},
- {'title':'よく用いられる縁語','html':tbl(['語','縁語'],[[i['w'],i['m'][0]] for i in wa if i['pos']=='縁語']),'img':''},
- {'title':'よく用いられる歌枕','html':tbl(['歌枕','場所・詠まれ方'],[[i['w']+f"<small>{i['rd']}</small>",i['m'][0]] for i in wa if i['pos']=='歌枕']),'img':''}]
+EX[0]['meta']['tables']=[{'title':'文学史年表（マーカーは色付き）','html':tbl(['時代・世紀']+cols,[[f'{e}<br>{c}世紀']+['<br>'.join(v.get(k,[])) for k in cols] for (e,c),v in rows.items()],'wide')},
+ {'title':'文学史チェックリスト','html':ch}]
+EX[1]['meta']['tables']=[{'title':'暗記したい枕詞','html':tbl(['枕詞','導く語'],[[a,b] for a,b in MAKURA])},{'title':'暗記したい掛詞','html':tbl(['掛詞','掛けられる意味'],[[a,b] for a,b in KAKE])},
+ {'title':'よく用いられる縁語','html':tbl(['語','縁語'],[[i['w'],i['m'][0]] for i in wa if i['pos']=='縁語'])},
+ {'title':'よく用いられる歌枕','html':tbl(['歌枕','場所・詠まれ方'],[[i['w']+f"<small>{i['rd']}</small>",i['m'][0]] for i in wa if i['pos']=='歌枕'])}]
 open(os.path.dirname(HERE[:-1])+'/src/extra_data.js','w',encoding='utf-8').write('const EXTRA_SUBJ='+json.dumps(EX,ensure_ascii=False)+';\n')
 print('tables',{e['key']:len(e['meta'].get('tables',[])) for e in EX},'items',{e['key']:len(e['items']) for e in EX})

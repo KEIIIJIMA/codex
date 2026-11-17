@@ -1,0 +1,42 @@
+# 単語ドリル（tango-drill/）の確認。プルリクエストと main への push で実行する。
+#   1. ./build_all.sh で元のデータから作り直す（途中で失敗したら止まる。最後に IDの検査 を行う）
+#   2. 作り直した生成物が、コミットされたものと一致することを確かめる（作り直さずにコミットしていないか）
+#   3. ブラウザを使わないテストを実行する（Playwright を使うテストはブラウザの用意が要るので、ここでは実行しない）
+name: tango-drill check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tango-drill
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: データの組み立てとビルド（IDの検査を含む）
+        run: |
+          ./build_all.sh | tee build.log
+          grep -q 'IDの検査: OK' build.log
+          rm build.log
+      - name: 生成物がコミットされたものと一致する
+        run: |
+          if ! git diff --exit-code --stat -- index.html dist/artifact.html src/book_data.js src/joshiki_data.js src/extra_data.js; then
+            echo "::error::生成物が古いままです。tango-drill/ で ./build_all.sh を実行し、生成物もコミットしてください。"
+            exit 1
+          fi
+          test -z "$(git status --porcelain -- .)" || { git status --porcelain -- .; echo "::error::ビルドで想定外のファイルができました"; exit 1; }
+      - name: ブラウザを使わないテスト
+        run: node --test tests/ids.test.js tests/data.test.js tests/build.test.js

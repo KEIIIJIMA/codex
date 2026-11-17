@@ -6,7 +6,12 @@
   `node tests/usability.test.js` ＝ おまかせの出題・英語のレベル別タブの並び・苦手ワードの並び・単語帳の絞り込み・キー操作、
   `node tests/storage.test.js` ＝ バックアップの取り込みの検査・2つのタブで開いたときの記録の統合・保存の失敗の知らせ、
   `node tests/session_list.test.js` ＝ 単語帳の検索欄（日本語の変換入力）と「さらに表示」・学習の途中の確認と再読み込みのあとの再開・選択中の教材タブの位置、
-  `node tests/wording.test.js` ＝ 「このページについて」・出題モードの説明文・フッターの収録内容・章や分野のラベル・タッチ端末でのキーボード案内・「使い方」と初回の一言）。
+  `node tests/wording.test.js` ＝ 「このページについて」・出題モードの説明文・フッターの収録内容・章や分野のラベル・タッチ端末でのキーボード案内・「使い方」と初回の一言、
+  `node tests/data.test.js` ＝ 語彙データの形式（以前の validate.js の検査を全チャンクと src/data_*.js に）・見出し語の重複・README の語数とビルドの件数の一致、
+  `node tests/build.test.js` ＝ 組み立てスクリプトと build.js が入力の不備で止まること・build_all.sh で作り直した完成版がコミットされたものと一致すること）。
+- ブラウザを使わないテストは `tests/ids.test.js`・`tests/data.test.js`・`tests/build.test.js` の3つ。GitHub Actions（`.github/workflows/tango-drill-check.yml`）ではこの3つだけを実行する。
+- `tests/build.test.js` は、リポジトリの `book/` `src/` `tools/` `build.js` `build_all.sh` を一時フォルダに写し、そこで生成する（リポジトリのファイルは書き換えない）。
+  完成版の一致の確認は作業中のファイルと比べるので、生成物を作り直さずにデータだけ直していると失敗する（`./build_all.sh` で作り直す）。
 - `tests/choices.test.js` は、全科目・全項目で選択肢を繰り返し作り、選択肢が4つ・正解が1つだけ・語→意味の選択肢に見出し語が出ない・誤答の品詞（分類）がそろうことを確かめる。
   意味の重なりや見出し語が出ているかの判定は、アプリの実装とは別にテストの中に書いてある。選択肢は無作為に選ぶので、割合の基準（9割以上など）には余裕を持たせてある。
 - playwright（chromium）を使う。いまのソースから試験用の完成版を一時フォルダに作って開くので、リポジトリの `index.html` は書き換えない。
