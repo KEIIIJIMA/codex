@@ -37,9 +37,10 @@ function build(opts = {}) {
 
 // 保存データを先に入れてから、完成版を開く。
 //   stored: キー tango-drill-v1 に入れる文字列（null なら何も入れない＝初めての利用者）
+//   ctxOpts: ブラウザの文脈の設定（例: スマホを模す { viewport, hasTouch: true, isMobile: true }）
 // 戻り値の page.errors にページ内のエラーがたまる。
-async function open(browser, html, stored) {
-  const ctx = await browser.newContext();
+async function open(browser, html, stored, ctxOpts) {
+  const ctx = await browser.newContext(ctxOpts || {});
   // 「記録をコピー」は、クリップボードが使えないとき入力欄に書き出す。テストではその経路を使う
   await ctx.addInitScript(() => { try { Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true }); } catch (e) {} });
   const page = await ctx.newPage();
@@ -52,6 +53,15 @@ async function open(browser, html, stored) {
   await page.goto('file://' + html);
   await page.waitForSelector('#view > *');
   return page;
+}
+// 同じブラウザ（同じ保存データ）で、完成版をもう1ページ開く（2つのタブで同時に開いた状態を作る）
+async function openMore(page, html) {
+  const p = await page.context().newPage();
+  p.errors = [];
+  p.on('pageerror', e => p.errors.push(e.message));
+  await p.goto('file://' + html);
+  await p.waitForSelector('#view > *');
+  return p;
 }
 const raw = (page, key = KEY) => page.evaluate(k => localStorage.getItem(k), key);
 const stored = async page => JSON.parse(await raw(page));
@@ -66,4 +76,10 @@ async function statCounts(page) {
   })));
 }
 
-module.exports = { ROOT, KEY, BAK, tmpDir, cleanup, repoMigrations, chain, build, open, raw, stored, statCounts };
+// 学習の途中の「中断」: 確認が出たら「中断する」を押してホームに戻る（結果画面の「ホームへ」は確認なしで戻る）
+async function quit(page) {
+  await page.click('[data-quit]');
+  if (await page.locator('[data-leave="yes"]').count()) await page.click('[data-leave="yes"]');
+}
+
+module.exports = { ROOT, KEY, BAK, quit, tmpDir, cleanup, repoMigrations, chain, build, open, openMore, raw, stored, statCounts };

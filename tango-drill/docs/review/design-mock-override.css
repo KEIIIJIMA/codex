@@ -1,0 +1,220 @@
+/* ==========================================================================
+   単語ドリル デザイン試作（レビュー用の上書きスタイル。アプリ本体には入れていない）
+   使い方: index.html を開いたあと、この CSS を <style> として末尾に足す。
+   HTML と JS は変えていない。[指摘n] は「確認済みのデザイン指摘」の番号。
+   ========================================================================== */
+
+/* ---- 1. 色 -------------------------------------------------------------- */
+/* [指摘1] 臙脂を紫寄り、誤答を朱寄りに離す。[指摘7] 塗り用の色 --accent-fill を分ける。
+   [指摘38] 琥珀色の文字用に --warn-ink を足す（点・バーは --warn のまま） */
+:root{
+  --accent:#8c1c3f; --accent-soft:#f5e6eb; --accent-fill:var(--accent);
+  --bad:#c2351d; --bad-soft:#fbe6e0;
+  --warn-ink:#8a5300;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --accent:#f09ab4; --accent-fill:#b3294f; --accent-ink:#fff; --accent-soft:#3a2230;
+    --bad:#f08a6c; --bad-soft:#40261d; --warn-ink:#e0b25b;
+  }
+  :root:not([data-theme="light"])[data-subj="eigo"]{--accent:#9dbaf5;--accent-fill:#3565c4;--accent-ink:#fff;--accent-soft:#222d46}
+}
+:root[data-theme="dark"]{
+  --accent:#f09ab4; --accent-fill:#b3294f; --accent-ink:#fff; --accent-soft:#3a2230;
+  --bad:#f08a6c; --bad-soft:#40261d; --warn-ink:#e0b25b;
+}
+:root[data-theme="dark"][data-subj="eigo"]{--accent:#9dbaf5;--accent-fill:#3565c4;--accent-ink:#fff;--accent-soft:#222d46}
+
+/* 塗りは --accent-fill、文字と線は --accent */
+.switch button[aria-selected="true"],.btn.acc,.means li::before,.prog .track i{background:var(--accent-fill)}
+.btn.acc{border-color:var(--accent-fill)}
+.act rect[fill="var(--accent)"]{fill:var(--accent-fill)}
+
+/* ---- 2. 基本 ------------------------------------------------------------ */
+/* [指摘33][指摘18] 高さ100%をやめ、ヘッダーの固定と末尾の余白を効かせる */
+html,body{height:auto}
+body{padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+/* [指摘36] iPhone 向けのタッチ指定 */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,select,summary,[role=button]{touch-action:manipulation}
+.choice:active:not(:disabled),.mode:active,.vrow>button:active,.fchip:active{background:var(--surface2)}
+/* [指摘1] 入力欄のフォーカス枠は墨色（誤答の赤と混ざらないように） */
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline-color:var(--fg)}
+/* [指摘35] プレースホルダの色 */
+::placeholder{color:var(--muted);opacity:1}
+/* app-ux 9・12: 入力欄は16px以上、番号欄にもほかの欄と同じ見た目を当てる */
+select,input[type=text],input[type=search],input[type=number]{font-size:16px}
+input[type=number]{width:100%;font-family:inherit;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+
+/* ---- 3. ヘッダー -------------------------------------------------------- */
+/* [指摘40] color-mix が使えない端末向けの地色 */
+.top{background:var(--bg);background:color-mix(in srgb,var(--bg) 88%,transparent)}
+/* [指摘37] 押せる部品を44pxに。上下の余白を詰めてヘッダーの高さは増やさない */
+.top .wrap{padding-block:6px 4px}
+.top .wrap+.wrap{padding-block:2px 0}
+.switch button{min-height:44px;padding-inline:16px}
+.subtabs button{min-height:44px;padding-inline:15px}
+/* [指摘44] フォーカス枠が切れないように枠の分の余白を作る */
+.subtabs{padding:4px 4px 8px;margin:-4px -4px 0}
+/* [指摘34] 語数の文字を薄めない */
+.subtabs button .n{opacity:1}
+/* [指摘18] スマホでは副題を隠して題名とスイッチを1段に */
+@media (max-width:560px){
+  .brand .lv{display:none}
+  .top .wrap{flex-wrap:nowrap}
+}
+/* [指摘33][指摘39] 学習中はヘッダーとタブを隠す（試作は :has で判定。本番は JS でクラスを付ける） */
+body:has(#view>.prog) .top,body:has(#view>.prog) .tabs,body:has(#view>.prog) footer.about{display:none}
+body:has(#view>.prog) #view{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+
+/* ---- 4. 学習ホーム ------------------------------------------------------ */
+/* [指摘16] 押せないタイルは面をなくす（PC幅）。スマホ幅では下でタイル自体を隠す */
+.tile{background:transparent;border-color:transparent;padding:4px 0}
+.bar{height:10px}
+/* [指摘32] 状態の印は色に加えて形も変える（未学習=輪、学習中=半分、習得=塗り、苦手=三角） */
+.legend span::before{box-sizing:border-box;width:9px;height:9px;vertical-align:0;background:transparent;border:2px solid var(--new)}
+.legend .ok::before{background:var(--ok);border-color:var(--ok)}
+.legend .learning::before{background:linear-gradient(to right,var(--warn) 50%,transparent 50%);border-color:var(--warn)}
+.legend .weak::before{background:var(--bad);border:0;border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%)}
+/* [指摘23] 英字の見出しをやめる */
+.mode .k{display:none}
+@media (max-width:560px){
+  /* [指摘16][指摘19] 同じ数字の繰り返しをやめる: タイルを隠し、今日の行→バー→凡例の3行にする。
+     [指摘19][指摘23] 出題モードを設定より前に出す。試作は学習ホームだけ :has で限定して order で並べ替えた
+     （本番は viewHome の出力順を変える） */
+  #view:has(>.modes){display:flex;flex-direction:column}
+  #view:has(>.modes)>.tiles{display:none}
+  #view:has(>.modes)>.today{order:-3;gap:4px 16px;margin-bottom:10px}
+  #view:has(>.modes)>.bar{order:-2}
+  #view:has(>.modes)>.legend{order:-1;gap:4px 14px;margin-bottom:18px}
+  #view:has(>.modes)>.modes{order:1}
+  #view:has(>.modes)>.panel{order:2}
+  #view:has(>.modes)>p.hint,#view:has(>.modes)>.share{order:3}
+  /* [指摘23] 2列・高さ60px前後。説明文はスマホでは出さない。並びは カード／語→意味／意味→語／空所4択／空所記述／読み */
+  .modes{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+  .mode{padding:10px 14px;min-height:60px;justify-content:center}
+  .mode .d{display:none}
+  .mode .t{font-size:.95rem}
+  .mode[data-start="flash"]{order:1;grid-column:1/-1}
+  .modes:has(>.mode:nth-child(4):last-child) .mode[data-start="flash"]{grid-column:auto}
+  .mode[data-start="quiz"]{order:2}
+  .mode[data-start="quizR"]{order:3}
+  .mode[data-start="cloze"]{order:4}
+  .mode[data-start="clozeT"]{order:5}
+  .mode[data-start="typeY"]{order:6}
+  /* app-ux 12: 古文330 の番号欄は横に並べる */
+  .opts+.opts{grid-template-columns:1fr 1fr}
+  .opts+.opts>.opt:nth-child(3){grid-column:1/-1}
+}
+
+/* ---- 5. カード（フラッシュカード・解説） -------------------------------- */
+/* [指摘37] 中断ボタン */
+.prog button{min-height:44px;padding:4px 16px}
+/* [指摘2] スマホではカードの左右の余白を詰め、用例の箱を番号の下まで広げる */
+@media (max-width:520px){
+  .card{padding:24px 18px}
+  .card[style*="min-height:0"]{padding:20px 18px!important} /* 4択・空所の問題カード（HTML側の style 指定を上書き） */
+  .detail{padding:16px}
+  .means.per li:not(:only-child) .ex.sm{margin-left:-26px}
+}
+/* [指摘3] 表面は中央寄せ、ラベルは上端へ。字数に合わせた拡大（--n）は JS が要るので、ここでは一律の大きさ */
+.card.flip{align-items:center;text-align:center}
+.card.flip .chips{position:absolute;top:16px;left:18px;right:18px;margin:0}
+.card.flip .word{text-wrap:balance}
+.card.flip .word.ja{font-size:clamp(2rem,8.9vw,2.9rem)}
+.card.flip .word.en{font-size:clamp(2.1rem,9.5vw,3.1rem)}
+/* [指摘5] ラベルは枠なしの四角寄り（押せる丸い部品と形を分ける）。[指摘12] レベルは琥珀色をやめる */
+.chip{border:0;border-radius:6px;padding:3px 9px}
+.chip.lv{background:var(--surface2);color:var(--muted)}
+.chip.num{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+/* [指摘8] 意味が1つなら番号を出さない。説明文型の教材（古文常識・文学史）は細字の本文にする */
+.means li:only-child::before{display:none}
+:root[data-subj="joshiki"] .means li,:root[data-subj="bungaku"] .means li{font-size:.95rem;font-weight:400;line-height:1.75}
+/* [指摘10] 行末に1〜2文字だけ残さない */
+.choice .txt,.means li>span,.wlist .m,.vm{text-wrap:balance}
+.means .ex,.ex{text-wrap:pretty}
+:root[data-subj="joshiki"] .means li>span,:root[data-subj="bungaku"] .means li>span{text-wrap:pretty}
+/* [指摘4] 用例の縦線を弱め、英文は立体にする */
+.ex{border-left-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.ex .q.en{font-style:normal}
+/* [指摘38] 琥珀色の文字は濃いほうの色で */
+.note b,.conf.mid{color:var(--warn-ink)}
+/* [指摘13] 月の図: 輪郭を濃くして、ダークでも新月と欠けた側が円に見えるようにする */
+.figbox svg[aria-label^="月の満ち欠け"] circle[stroke="var(--line)"]{stroke:var(--muted)}
+
+/* [指摘17②][指摘22] 「まだ／覚えた」「次へ」は画面の下端に固定する（ページ全体を送る形は変えない） */
+#view>.actions{position:sticky;bottom:0;z-index:4;margin-top:6px;padding:14px 0 calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,transparent,var(--bg) 14px)}
+
+/* ---- 6. 4択・空所補充 --------------------------------------------------- */
+/* [指摘32] 解答後の番号を、正答は「✓」、選んだ誤答は「×」に（試作は CSS の擬似要素。本番は .n の中身を変える） */
+.choice.correct .n,.choice.wrong .n{position:relative;color:transparent}
+.choice.correct .n::after{content:"";position:absolute;left:50%;top:46%;width:.42em;height:.8em;border:solid var(--ok-ink);border-width:0 .17em .17em 0;transform:translate(-50%,-50%) rotate(45deg)}
+.choice.wrong .n::after{content:"×";position:absolute;inset:0;display:grid;place-items:center;color:var(--bad-ink);font-size:1.25em;line-height:1}
+/* [指摘11] 空欄は下線1本。線は墨色で、正誤が出たときだけ緑・赤に変わる */
+.blank{border-bottom-color:var(--fg)}
+.blank:not(.ok):not(.ng){color:transparent}
+/* [指摘30] 入力欄と「答え合わせ」を1行に */
+@media (max-width:480px){
+  .typeform{grid-template-columns:1fr auto}
+  .typeform .btn{padding-inline:14px;white-space:nowrap}
+}
+
+/* ---- 7. 結果 ------------------------------------------------------------ */
+/* [指摘9][指摘21] 点数を円の右に置く。[指摘6] 正答率の円は --ok */
+.score{flex-wrap:nowrap;gap:16px}
+.score>div{flex:1;min-width:0}
+.ring{width:96px;height:96px}
+.ring circle:nth-of-type(2){stroke:var(--ok)}
+/* [指摘9] 「ホームへ」は文字だけのボタンに。[指摘21] 全問正解のとき（ボタンが先頭に来る）は「もう一度」を塗りにする */
+.btn.ghost[data-quit]{border-color:transparent;color:var(--muted);font-weight:500}
+.row>.btn[data-retry="same"]:first-child{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
+/* [指摘5] 誤答一覧は押せないので、カードの形をやめて罫線だけにする */
+.wlist{gap:0}
+.wlist li{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 2px}
+.wlist li:last-child{border-bottom:0}
+/* [指摘9] 結果画面の一覧だけ、語と意味を2列にそろえる（成績の苦手一覧は3要素なので flex のまま） */
+#view>.wlist li{display:grid;grid-template-columns:minmax(0,8.5em) minmax(0,1fr);gap:4px 12px}
+#view>.wlist .w{overflow-wrap:anywhere}
+#view>.wlist .w small{display:block;margin-left:0!important;font-size:.8rem;line-height:1.5}
+
+/* ---- 8. 単語帳 ---------------------------------------------------------- */
+/* [指摘37] 絞り込みを44pxに。[指摘5] 選択中は黒塗りをやめ、サブタブと同じ表し方にする */
+.fchip{min-height:44px;padding:5px 12px}
+.filters{gap:6px}
+.fchip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+/* [指摘25] 状態とレベル（分野）を2段に分ける（見出しを付けるには HTML が要る） */
+.filters>span{flex-basis:100%;width:auto!important;height:0;margin-top:-4px}
+/* [指摘25] 行を詰める */
+@media (max-width:560px){.vrow>button{row-gap:2px;padding:9px 14px}}
+/* [指摘32] 状態の点は形も変える */
+.vrow>button{grid-template-columns:12px minmax(0,1.1fr) minmax(0,2fr)}
+@media (max-width:560px){.vrow>button{grid-template-columns:12px 1fr}}
+.dot{box-sizing:border-box;width:12px;height:12px;background:transparent;border:2px solid var(--new)}
+.dot.ok{background:var(--ok);border-color:var(--ok)}
+.dot.learning{background:linear-gradient(to right,var(--warn) 50%,transparent 50%);border-color:var(--warn)}
+.dot.weak{background:var(--bad);border:0;border-radius:0;clip-path:polygon(50% 4%,100% 96%,0 96%)}
+
+/* ---- 9. 成績・一覧表 ---------------------------------------------------- */
+/* [指摘6] 習得を表す塗りは科目色ではなく --ok */
+.lvbar .track i{background:var(--ok)}
+/* [指摘14] 表の外周のセル枠を消し、外枠1本にする。[指摘37] 見出し行を押しやすく */
+table.ref{border-style:hidden}
+.refd summary{padding:11px 0}
+
+/* ---- 10. タッチ端末・横向き -------------------------------------------- */
+/* [指摘34] ボタン下のキー案内は薄めない。タッチ端末では出さない（app-ux 14） */
+.btn small{opacity:1}
+@media (hover:none){
+  .btn small{display:none}
+  #view>p.hint{display:none}
+  .tap{font-size:0}
+  .tap::after{content:"タップで意味を表示";font-size:.78rem}
+  /* [指摘36] 触れたあとに hover の見た目が残らないようにする */
+  .mode:hover{transform:none;border-color:var(--line)}
+  .choice:hover:not(:disabled){border-color:var(--line)}
+}
+/* [指摘39] 横向き: カードの最低高さを外す（学習中はヘッダーを隠す前提） */
+@media (max-height:500px){
+  .card{min-height:0}
+  .card.flip{padding:52px 24px 40px}
+}
