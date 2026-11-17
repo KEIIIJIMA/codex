@@ -52,7 +52,7 @@ test('フラッシュカード: 表面では判定できない。めくってか
   await page.click('.card[data-flip]');
   assert.equal(await count(page, '.card.back'), 1);
   await page.click('[data-ans="0"]');
-  assert.equal(await num(page), '3 / 10');
+  assert.equal(await num(page), '3 / 11'); // 間違えた語は同じセットにもう一度出るので、問題数が1つ増える
   const s = await H.stored(page);
   assert.deepEqual([s.prog[D.kobun[0].id].c, s.prog[D.kobun[1].id].x], [1, 1]);
   await done(page);
@@ -94,13 +94,13 @@ test('学習中はヘッダーとタブを隠し、「まだ／覚えた」「�
   // 4択: 解答後、正誤と「次へ」が下端の帯に出る（解説が長くても画面内）
   await page.click('[data-start="quiz"]');
   for (let i = 0; i < 6; i++) {
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     const n = await box(page, '[data-next]'), v = await box(page, '.verdict');
     assert.ok(n.bottom <= h && n.top > h / 2, `「次へ」が画面の下端に無い（${n.top}〜${n.bottom}）`);
     assert.ok(v.bottom <= h && v.top > h / 2, '正誤の表示が画面外');
     await page.click('[data-next]');
   }
-  for (let i = 6; i < 10; i++) { await page.click('[data-pick="0"]'); await page.click('[data-next]'); }
+  for (let i = 6; i < 10; i++) { await H.pick(page); await page.click('[data-next]'); }
   // 結果画面ではヘッダーとタブが出る
   assert.match(await page.textContent('#view'), /\/ 10 問/);
   assert.ok(await shown(page, '.top') && await shown(page, '.tabs'), '結果画面でヘッダーが出ない');
@@ -198,7 +198,8 @@ test('出題範囲は「状態」「章・レベル」「分野」に区切る�
 /* ---- 結果 ---- */
 test('結果: 誤答があれば「間違えたn語をもう一度」が主ボタン。全問正解なら「次のn問へ」が主ボタンで、前の回に出た語を除いて出題する', async () => {
   const page = await openWith({ subj: 'kobun', kobun: INDEX });
-  const run = async wrongAt => { const ws = []; for (let i = 0; i < 10; i++) { ws.push(await word(page)); await H.ans(page, i === wrongAt ? 0 : 1); } return ws; };
+  // 最後まで答えて、出た語を返す（wrongAt 番目を間違える。間違えた語の差し戻しは正解して、一覧には入れない）
+  const run = async wrongAt => { const ws = []; while (await count(page, '.prog')) { const again = await count(page, '.again'); if (!again) ws.push(await word(page)); await H.ans(page, !again && ws.length - 1 === wrongAt ? 0 : 1); } return ws; };
   await page.click('[data-start="flash"]');
   const first = await run(2);
   assert.deepEqual(first, D.kobun.slice(0, 10).map(it => it.w));
@@ -214,7 +215,7 @@ test('結果: 誤答があれば「間違えたn語をもう一度」が主ボ�
   // 全問正解: 主ボタンは「次の10問へ」。円は緑、「全問正解」
   assert.deepEqual(await page.$$eval('.row .btn.acc', bs => bs.map(x => x.dataset.retry)), ['same']);
   assert.match(await page.innerText('.score'), /全問正解/);
-  assert.match(await page.innerText('.score'), /今日 ?20 ?問/);
+  assert.match(await page.innerText('.score'), /今日 ?21 ?\/ ?30 ?問/); // 1回目の差し戻しの1問を含む。目標（30問）も並べて出す
   await page.click('[data-retry="same"]');
   const third = await run(-1);
   assert.deepEqual(third, D.kobun.slice(20, 30).map(it => it.w), '3回目が、1回目と2回目に出た語を除いていない');
@@ -396,7 +397,7 @@ test('保存データの prefs や days が null でも起動する', async () =
     const s = await H.stored(page);
     assert.equal(typeof s.prefs, 'object'); assert.ok(s.prefs && !Array.isArray(s.days));
     assert.equal(Object.values(s.days).reduce((x, y) => x + y, 0), 1);
-    assert.equal(s.prog[D.kobun[0].id].c, 1);
+    assert.ok(s.prog[D.kobun[0].id].c >= 1); // 既定の出題順では、この語（期限が来た復習）が先に出て正答が増える
     await done(page);
   }
 });

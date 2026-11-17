@@ -29,7 +29,8 @@ function autoFixture() {
   const prog = {};
   KOBUN.forEach((it, i) => {
     if (NEW_AT.includes(i)) return;
-    prog[it.id] = WEAK_AT.includes(i) ? { c: 0, x: 2, s: 0, t: 5 } : { c: 2, x: 0, s: 2, t: 1000 + i };
+    // 復習の間隔（第4段階）: 苦手は期限前（明日）、習得は期限前（9日後）にしておく。期限が来た復習の配分は tests/learning.test.js で確かめる
+    prog[it.id] = WEAK_AT.includes(i) ? { c: 0, x: 2, s: 0, t: 5, g: 0, d: H.ymd(1) } : { c: 2, x: 0, s: 2, t: 1000 + i, g: 4, d: H.ymd(9) };
   });
   return prog;
 }
@@ -78,7 +79,7 @@ test('おまかせ＋収録順: 苦手と未学習を確保し、残りは収録
   assert.deepEqual(rest, firstOk, '残りの10語が、習得の語の収録順の先頭になっていない');
 });
 
-test('おまかせ＋既定の出題順は、これまでどおり 苦手→未学習→習得 の順', async () => {
+test('おまかせ＋既定の出題順は、苦手→未学習→習得（期限前）の順', async () => {
   const ids = await autoRun('smart');
   const weak = WEAK_AT.map(i => KOBUN[i].id), fresh = NEW_AT.map(i => KOBUN[i].id);
   assert.deepEqual(ids.slice(0, 5).slice().sort(), weak.slice().sort());
@@ -128,11 +129,11 @@ test('英語のレベル別タブ（基礎・標準・発展・最難関）は�
 /* ---- 成績の苦手ワードの並び ---- */
 test('成績の苦手ワードは、誤答数の多い順（同数なら正答の少ない順）に並ぶ', async () => {
   const [a, c, d, e] = [KOBUN[10], KOBUN[20], KOBUN[30], KOBUN[40]];
-  const prog = { [a.id]: { c: 5, x: 5, s: 0, t: 1 }, [c.id]: { c: 3, x: 4, s: 1, t: 2 }, [d.id]: { c: 0, x: 1, s: 0, t: 3 }, [e.id]: { c: 1, x: 4, s: 0, t: 4 } };
+  const prog = { [a.id]: { c: 5, x: 5, s: 0, t: 1 }, [c.id]: { c: 3, x: 4, s: 1, t: 2 }, [d.id]: { c: 0, x: 2, s: 0, t: 3 }, [e.id]: { c: 1, x: 4, s: 0, t: 4 } };
   const page = await openWith(prog, { subj: 'kobun' });
   await page.click('.tabs [data-tab="stats"]');
   const rows = await page.locator('.panel', { hasText: '古文単語の苦手ワード' }).locator('.wlist li').evaluateAll(els => els.map(li => [li.querySelector('.w').textContent.trim(), li.querySelector('.num').textContent.replace(/\s+/g, '')]));
-  assert.deepEqual(rows, [[a.w, '✕5◯5'], [e.w, '✕4◯1'], [c.w, '✕4◯3'], [d.w, '✕1◯0']]);
+  assert.deepEqual(rows, [[a.w, '✕5◯5'], [e.w, '✕4◯1'], [c.w, '✕4◯3'], [d.w, '✕2◯0']]);
   await done(page);
 });
 

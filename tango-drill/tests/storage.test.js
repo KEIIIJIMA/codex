@@ -34,6 +34,8 @@ async function imp(page, j) {
   await page.click('[data-import]');
   return (await page.textContent('#msg')).trim();
 }
+// 古文単語の収録順の先頭 n 語のID
+async function kobunHead(n) { const p = await openWith({}); const ids = await p.evaluate(k => window.__tangoTest.DATA.kobun.slice(0, k).map(it => it.id), n); await p.context().close(); return ids; }
 // フラッシュカードで n 問答える（始まっていなければ始める）。答えた語のIDを返す
 async function answer(page, n, ok = true) {
   if (!(await page.$('.prog'))) { if (!(await page.$('[data-start="flash"]'))) await page.click('.tabs [data-tab="home"]'); await page.click('[data-start="flash"]'); }
@@ -191,7 +193,9 @@ test('ほかのタブが保存すると、開いたままのページにも取�
 });
 
 test('知らせが届いていなくても、出題を始めるときは最新の記録で選ぶ（もう片方で付いた苦手が、苦手のみの出題に出る）', async () => {
-  const [A, B] = await pair({}, { subj: 'kobun', kobun: { range: 'weak', count: '10', order: 'index' } });
+  // 収録順の先頭5語は、一度正解したことのある語（「まだ」1回で苦手になるのは、正解したことのある語。初めて見た語は学習中）
+  const once = {}; for (const it of (await kobunHead(5))) once[it] = { c: 1, x: 0, s: 1, t: 1 };
+  const [A, B] = await pair(once, { subj: 'kobun', kobun: { range: 'weak', count: '10', order: 'index' } });
   await mute(B);
   await A.selectOption('#o-range', 'all');
   const a1 = await answer(A, 3, false); // A で3語を「まだ」＝苦手にする
@@ -202,7 +206,7 @@ test('知らせが届いていなくても、出題を始めるときは最新�
   const a2 = await answer(A, 2, false);
   await B.click('.tabs [data-tab="stats"]');
   await B.click('[data-start-weak]');
-  assert.equal((await B.textContent('.prog .num')).trim(), '1 / ' + (a1.length + a2.length));
+  assert.equal((await B.textContent('.prog .num')).trim(), '1 / ' + new Set(a1.concat(a2)).size); // a2 には、a1 の語の出し直しが混ざることがある
   await done(A, B);
 });
 

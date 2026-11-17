@@ -17,7 +17,7 @@ test.before(async () => {
 test.after(async () => { if (browser) await browser.close(); H.cleanup(); });
 const done = async page => { assert.deepEqual(page.errors, [], 'ページ内でエラーが出た'); await page.context().close(); };
 
-const WEAK = { c: 0, x: 1, s: 0, t: 1 };
+const WEAK = { c: 0, x: 2, s: 0, t: 1 }; // 苦手＝誤答2回以上（第4段階で決め方が変わった）
 // 科目 subj を開いた状態で始める。o.prefs は出題設定、o.weak は苦手にしておく項目ID
 function openAt(subj, o = {}) {
   const prog = {};
@@ -249,7 +249,7 @@ test('古文330: 4択の選択肢に添え書きが出ない（1章を通しで�
       assert.equal(cs.length, 4);
       assert.deepEqual(cs.filter(c => /[()〔〕]/.test(c)), [], `${mode} ${i + 1}問目`);
       assert.equal(new Set(cs).size, 4, `${mode} ${i + 1}問目: 同じ選択肢がある ${cs.join(' ')}`);
-      await page.click('[data-pick="0"]');
+      await H.pick(page);
       await page.click('[data-next]');
     }
     await done(page);
@@ -272,7 +272,7 @@ test('古文330: 同じ語形の「たまふ」が選択肢に2つ並ばない',
     const cs = await texts(page, '.choice .txt');
     assert.equal(cs.filter(c => c === 'たまふ').length, 1, cs.join(' '));
     assert.match(await page.textContent('.card .chips'), /動ハ(四|下二)/); // 設問は品詞で区別できる
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     await page.click('[data-next]');
   }
   await done(page);

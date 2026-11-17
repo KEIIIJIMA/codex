@@ -260,9 +260,13 @@ test('学習の途中で再読み込みすると、「続きから（◯問目�
   await page.reload();
   await page.waitForSelector('#view > *');
   await page.click('[data-resume="yes"]');
-  for (let i = 3; i < 10; i++) {
-    assert.equal(await num(page), `${i + 1} / 10`);
-    assert.equal(await word(page), byId[ids[i]].w, `${i + 1}問目の語が違う`);
+  // 2問目を間違えたので、その語が3〜5問あとにもう一度入っている（全11問。第4段階で足した差し戻し）
+  const ids2 = (await page.evaluate(() => window.__tangoTest.session().items.map(it => it.id)));
+  assert.equal(ids2.length, 11);
+  assert.deepEqual(ids2.filter((id, i) => !(id === ids[1] && i > 1)), ids, '差し戻しのほかは同じ並びのはず');
+  for (let i = 3; i < 11; i++) {
+    assert.equal(await num(page), `${i + 1} / 11`);
+    assert.equal(await word(page), byId[ids2[i]].w, `${i + 1}問目の語が違う`);
     await H.ans(page, 1);
   }
   // 結果は、再読み込みの前の回答も合わせて数える（10問中9問）
@@ -272,7 +276,7 @@ test('学習の途中で再読み込みすると、「続きから（◯問目�
   assert.equal(await H.raw(page, SKEY), null);
   const s = await H.stored(page);
   assert.equal(Object.keys(s.prog).length, 10);
-  for (const id of ids) assert.equal(s.prog[id].c + s.prog[id].x, 1, id + ': 回答が二重に記録された');
+  for (const id of ids) assert.equal(s.prog[id].c + s.prog[id].x, id === ids[1] ? 2 : 1, id + ': 回答が二重に記録された'); // 間違えた語は、差し戻しの回答と合わせて2回
   assert.equal(s.session, undefined); // 学習記録の保存データには入れない
   await page.reload();
   await page.waitForSelector('#view > *');
@@ -284,9 +288,9 @@ test('再開: 4択で答えた直後（解説の表示中）に再読み込み�
   const page = await openWith({ subj: 'eigo', eigo: { range: 'all', count: '10', order: 'random' } });
   await page.click('[data-start="quiz"]');
   const ids = (await sess(page)).ids;
-  await page.click('[data-pick="0"]');
+  await H.pick(page);
   await page.click('[data-next]');
-  await page.click('[data-pick="1"]'); // 2問目に答えたところ（「次へ」はまだ）
+  await H.pick(page); // 2問目に答えたところ（「次へ」はまだ）
   await page.reload();
   await page.waitForSelector('#view > *');
   assert.equal((await page.textContent('[data-resume="yes"]')).trim(), '続きから（3問目）');

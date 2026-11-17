@@ -160,7 +160,7 @@ test('キーボード操作の案内は、タッチ端末では出さず、PCで
     await H.quit(page);
     // 4択の「次へ」の Enter
     await page.click('[data-start="quiz"]');
-    await page.click('[data-pick="0"]');
+    await H.pick(page);
     assert.equal((await page.innerText('[data-next]')).replace(/\s+/g, ' ').trim(), touch ? '次へ' : '次へ Enter');
     await H.quit(page);
     await done(page);

@@ -331,7 +331,7 @@ test('差し戻しのあとで再読み込みしても、続きから再開で�
   await page.click('[data-resume="yes"]');
   assert.equal(await num(page), '2 / 3');
   await H.ans(page, true); await H.ans(page, true);
-  assert.match(await page.textContent('[data-rsum]'), /今回習得 0語・学習中 3語/);
+  assert.match(await page.textContent('[data-rsum]'), /今回習得 0語・学習中 2語/); // 1問目は記録の無い作り物の回答なので数に入らない
   await done(page);
 });
 
